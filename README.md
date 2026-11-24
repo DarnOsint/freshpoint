@@ -20,7 +20,7 @@ npm run dev
 
 Open http://localhost:5173.
 
-Without Supabase credentials the site still works — the auth pages show a friendly setup notice instead of a broken form.
+Without Supabase credentials the site still loads, but sending/verifying a code will show a generic error to the user. Auth errors are never surfaced verbatim to customers.
 
 ## Supabase setup
 
@@ -35,6 +35,8 @@ Without Supabase credentials the site still works — the auth pages show a frie
 - **Login:** phone number → Supabase sends SMS OTP → 6-digit verification → account page.
 - **Signup:** name, phone, account type (household / retail / restaurant / wholesale) and terms → SMS OTP → verification → profile is upserted → account page.
 - The country selector builds E.164 numbers (for example `+211900123456`). South Sudan is the default; 40+ countries are included in [`src/lib/countries.ts`](src/lib/countries.ts).
+- Signed-in visitors are taken to their account instead of seeing the login form again.
+- The UI is mobile-first: single-column layouts and 48px+ touch targets by default, with wider layouts added at larger breakpoints.
 
 ## Scripts
 
@@ -47,7 +49,7 @@ Without Supabase credentials the site still works — the auth pages show a frie
 
 ## PWA / deployment
 
-The production build is generated in `dist/`. `vite-plugin-pwa` generates the service worker and manifest automatically. Deploy to any static host (Vercel, Netlify, Cloudflare Pages) over HTTPS, set the two `VITE_SUPABASE_*` environment variables at build time, and users can install FreshPoint from their browser’s “Add to home screen” action.
+The production build is generated in `dist/`. `vite-plugin-pwa` generates the service worker and manifest automatically. The manifest `start_url` is `/login`, so an installed PWA opens straight to the login screen. Deploy to any static host (Vercel, Netlify, Cloudflare Pages) over HTTPS, set the two `VITE_SUPABASE_*` environment variables at build time, and users can install FreshPoint from their browser’s “Add to home screen” action.
 
 ## Customise before launch
 

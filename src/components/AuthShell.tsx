@@ -33,6 +33,7 @@ export function AuthShell({ eyebrow, heading, children, footer }: AuthShellProps
 
       <div className="auth-main">
         <div className="auth-card">
+          <div className="auth-card__mobile-logo"><Logo /></div>
           <p className="eyebrow">{eyebrow}</p>
           <h1>{heading}</h1>
           {children}

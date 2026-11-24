@@ -1,3 +1,4 @@
+import { ChevronDown } from 'lucide-react'
 import { countries, formatNationalNumber } from '../lib/countries'
 
 type PhoneFieldProps = {
@@ -39,6 +40,7 @@ export function PhoneField({
             ))}
           </select>
           <span className="phone-field__dial">{country.dial}</span>
+          <ChevronDown className="phone-field__chevron" size={15} aria-hidden="true" />
         </div>
         <input
           id={id}

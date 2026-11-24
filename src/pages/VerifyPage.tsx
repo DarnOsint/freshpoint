@@ -1,12 +1,14 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { ArrowRight, Info, RefreshCw } from 'lucide-react'
+import { ArrowRight, RefreshCw } from 'lucide-react'
 import { AuthShell } from '../components/AuthShell'
 import { OtpInput } from '../components/OtpInput'
-import { supabase, isSupabaseConfigured } from '../lib/supabase'
+import { supabase } from '../lib/supabase'
 import type { VerifyState } from '../lib/auth-context'
 
 const RESEND_SECONDS = 30
+const VERIFY_ERROR = 'That code isn’t valid or has expired. Request a new one.'
+const RESEND_ERROR = 'We couldn’t resend the code. Try again shortly.'
 
 function maskPhone(phone: string) {
   return `${phone.slice(0, 5)}••••${phone.slice(-3)}`
@@ -44,45 +46,48 @@ export function VerifyPage() {
     if (!flow) return
 
     setLoading(true)
-    const { data, error: verifyError } = await supabase.auth.verifyOtp({
-      phone: flow.phone,
-      token: code,
-      type: 'sms',
-    })
-    setLoading(false)
+    let verified = false
+    let user: { id: string } | null = null
 
-    if (verifyError) {
-      setError(verifyError.message)
+    try {
+      const { data, error: verifyError } = await supabase.auth.verifyOtp({
+        phone: flow.phone,
+        token: code,
+        type: 'sms',
+      })
+      if (verifyError) throw verifyError
+      verified = true
+      user = data.user ?? data.session?.user ?? null
+    } catch {
+      setError(VERIFY_ERROR)
+      setLoading(false)
       return
     }
 
-    if (flow.mode === 'signup' && flow.details && data.user) {
+    if (flow.mode === 'signup' && flow.details && user) {
       const { error: profileError } = await supabase.from('profiles').upsert({
-        id: data.user.id,
+        id: user.id,
         phone: flow.phone,
         full_name: flow.details.fullName,
         account_type: flow.details.accountType,
         updated_at: new Date().toISOString(),
       })
-
-      if (profileError) {
-        setError(`Account verified, but your profile could not be saved: ${profileError.message}`)
-        return
-      }
+      if (profileError) console.error('Failed to save FreshPoint profile', profileError)
     }
 
-    navigate('/account', { replace: true })
+    if (verified) navigate('/account', { replace: true })
   }
 
   async function handleResend() {
     if (countdown > 0 || !flow) return
     setError('')
-    const { error: resendError } = await supabase.auth.signInWithOtp({ phone: flow.phone })
-    if (resendError) {
-      setError(resendError.message)
-      return
+    try {
+      const { error: resendError } = await supabase.auth.signInWithOtp({ phone: flow.phone })
+      if (resendError) throw resendError
+      setCountdown(RESEND_SECONDS)
+    } catch {
+      setError(RESEND_ERROR)
     }
-    setCountdown(RESEND_SECONDS)
   }
 
   return (
@@ -96,15 +101,8 @@ export function VerifyPage() {
       }
     >
       <p className="auth-card__intro">
-        We sent a 6-digit code via SMS to <strong>{maskPhone(flow.phone)}</strong>. It may take a moment to arrive.
+        We sent a 6-digit code to <strong>{maskPhone(flow.phone)}</strong>. It may take a moment to arrive.
       </p>
-
-      {!isSupabaseConfigured ? (
-        <div className="notice notice--info">
-          <Info size={18} />
-          <span>SMS verification needs Supabase configuration. See <code>.env.example</code> for setup.</span>
-        </div>
-      ) : null}
 
       <form onSubmit={handleVerify} className="auth-form">
         <div className="field">

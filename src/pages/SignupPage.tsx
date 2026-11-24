@@ -1,10 +1,11 @@
 import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { ArrowRight, Info } from 'lucide-react'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { ArrowRight } from 'lucide-react'
 import { AuthShell } from '../components/AuthShell'
 import { PhoneField } from '../components/PhoneField'
 import { countries, defaultCountry, isValidNationalNumber, toE164 } from '../lib/countries'
-import { supabase, isSupabaseConfigured } from '../lib/supabase'
+import { supabase } from '../lib/supabase'
+import { useAuth } from '../lib/auth-context'
 import type { AccountType, VerifyState } from '../lib/auth-context'
 
 const accountTypes: Array<{ value: AccountType; label: string; description: string; icon: string }> = [
@@ -14,8 +15,11 @@ const accountTypes: Array<{ value: AccountType; label: string; description: stri
   { value: 'wholesale', label: 'Wholesale', description: 'Bulk orders', icon: '📦' },
 ]
 
+const SEND_ERROR = 'We couldn’t send your code. Check your number and try again.'
+
 export function SignupPage() {
   const navigate = useNavigate()
+  const { session } = useAuth()
   const [fullName, setFullName] = useState('')
   const [countryCode, setCountryCode] = useState(defaultCountry.code)
   const [phone, setPhone] = useState('')
@@ -32,28 +36,28 @@ export function SignupPage() {
     setPhoneError('')
     setFormError('')
 
-    if (fullName.trim().length < 2) setNameError('Please enter your full name.')
-    if (!isValidNationalNumber(phone)) setPhoneError('Please enter a valid phone number.')
-    if (!agreed) setFormError('Please accept the terms to continue.')
+    if (fullName.trim().length < 2) setNameError('Enter your full name.')
+    if (!isValidNationalNumber(phone)) setPhoneError('Enter a valid phone number.')
+    if (!agreed) setFormError('Accept the terms to continue.')
     if (fullName.trim().length < 2 || !isValidNationalNumber(phone) || !agreed) return
 
     const country = countries.find((item) => item.code === countryCode) ?? defaultCountry
     const fullPhone = toE164(country.dial, phone)
 
     setLoading(true)
-    const { error: authError } = await supabase.auth.signInWithOtp({
-      phone: fullPhone,
-      options: {
-        data: { full_name: fullName.trim(), account_type: accountType },
-      },
-    })
-    setLoading(false)
-
-    if (authError) {
-      setFormError(authError.message)
+    try {
+      const { error: authError } = await supabase.auth.signInWithOtp({
+        phone: fullPhone,
+        options: { data: { full_name: fullName.trim(), account_type: accountType } },
+      })
+      if (authError) throw authError
+    } catch {
+      setFormError(SEND_ERROR)
+      setLoading(false)
       return
     }
 
+    setLoading(false)
     navigate('/verify', {
       state: {
         phone: fullPhone,
@@ -63,10 +67,12 @@ export function SignupPage() {
     })
   }
 
+  if (session) return <Navigate to="/account" replace />
+
   return (
     <AuthShell
       eyebrow="Get started"
-      heading="Create your FreshPoint account"
+      heading="Create your account"
       footer={
         <>
           Already have an account? <Link to="/login">Log in</Link>
@@ -74,13 +80,6 @@ export function SignupPage() {
       }
     >
       <p className="auth-card__intro">Sign up with your phone number — no password to remember.</p>
-
-      {!isSupabaseConfigured ? (
-        <div className="notice notice--info">
-          <Info size={18} />
-          <span>Auth is not configured yet. Add your Supabase URL and anon key to <code>.env</code> to enable SMS signup.</span>
-        </div>
-      ) : null}
 
       <form onSubmit={handleSubmit} className="auth-form" noValidate>
         <div className="field">

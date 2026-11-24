@@ -1,14 +1,18 @@
 import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { ArrowRight, Info } from 'lucide-react'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { ArrowRight } from 'lucide-react'
 import { AuthShell } from '../components/AuthShell'
 import { PhoneField } from '../components/PhoneField'
 import { countries, defaultCountry, isValidNationalNumber, toE164 } from '../lib/countries'
-import { supabase, isSupabaseConfigured } from '../lib/supabase'
+import { supabase } from '../lib/supabase'
+import { useAuth } from '../lib/auth-context'
 import type { VerifyState } from '../lib/auth-context'
+
+const SEND_ERROR = 'We couldn’t send your code. Check your number and try again.'
 
 export function LoginPage() {
   const navigate = useNavigate()
+  const { session } = useAuth()
   const [countryCode, setCountryCode] = useState(defaultCountry.code)
   const [phone, setPhone] = useState('')
   const [error, setError] = useState('')
@@ -19,7 +23,7 @@ export function LoginPage() {
     setError('')
 
     if (!isValidNationalNumber(phone)) {
-      setError('Please enter a valid phone number.')
+      setError('Enter a valid phone number.')
       return
     }
 
@@ -27,16 +31,20 @@ export function LoginPage() {
     const fullPhone = toE164(country.dial, phone)
 
     setLoading(true)
-    const { error: authError } = await supabase.auth.signInWithOtp({ phone: fullPhone })
-    setLoading(false)
-
-    if (authError) {
-      setError(authError.message)
+    try {
+      const { error: authError } = await supabase.auth.signInWithOtp({ phone: fullPhone })
+      if (authError) throw authError
+    } catch {
+      setError(SEND_ERROR)
+      setLoading(false)
       return
     }
 
+    setLoading(false)
     navigate('/verify', { state: { phone: fullPhone, mode: 'login' } satisfies VerifyState })
   }
+
+  if (session) return <Navigate to="/account" replace />
 
   return (
     <AuthShell
@@ -48,14 +56,7 @@ export function LoginPage() {
         </>
       }
     >
-      <p className="auth-card__intro">Enter your phone number and we’ll send you a one-time code to log in.</p>
-
-      {!isSupabaseConfigured ? (
-        <div className="notice notice--info">
-          <Info size={18} />
-          <span>Auth is not configured yet. Add your Supabase URL and anon key to <code>.env</code> to enable SMS login.</span>
-        </div>
-      ) : null}
+      <p className="auth-card__intro">Enter your phone number and we’ll text you a one-time code.</p>
 
       <form onSubmit={handleSubmit} className="auth-form" noValidate>
         <PhoneField
@@ -70,7 +71,7 @@ export function LoginPage() {
         </button>
       </form>
 
-      <p className="auth-card__hint">By continuing you agree to our terms and privacy policy.</p>
+      <p className="auth-card__hint">We’ll only use your number to sign you in. No password needed.</p>
     </AuthShell>
   )
 }

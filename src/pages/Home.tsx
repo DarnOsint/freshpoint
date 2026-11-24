@@ -147,7 +147,13 @@ export function Home() {
           </div>
 
           <div className="hero__visual">
-            <div className="hero__photo" role="img" aria-label="Fresh produce at a market" />
+            <div className="hero__photo" role="img" aria-label="A colourful selection of fresh produce">
+              <div className="hero__harvest" aria-hidden="true">
+                <span>🥬</span><span>🍅</span><span>🥕</span>
+                <span>🥭</span><span>🍌</span><span>🌽</span>
+                <span>🥑</span><span>🍊</span><span>🧄</span>
+              </div>
+            </div>
             <div className="hero__float hero__float--top">
               <span className="hero__float-icon">🌿</span>
               <div><strong>100% fresh</strong><small>Picked at its best</small></div>
