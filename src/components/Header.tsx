@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { LogOut, Menu, UserRound, X } from 'lucide-react'
+import { LogOut, Menu, ShieldCheck, UserRound, X } from 'lucide-react'
 import { navigation } from '../config'
 import { useAuth } from '../lib/auth-context'
+import { isAdmin, homePathForUser } from '../lib/roles'
 import { Logo } from './Logo'
 
 export function Header() {
   const [open, setOpen] = useState(false)
-  const { session, signOut } = useAuth()
+  const { session, user, signOut } = useAuth()
 
   return (
     <header className="site-header">
@@ -30,8 +31,9 @@ export function Header() {
           <div className="main-nav__auth">
             {session ? (
               <>
-                <Link to="/app" className="btn btn--outline btn--small" onClick={() => setOpen(false)}>
-                  <UserRound size={16} /> My account
+                <Link to={homePathForUser(user)} className="btn btn--outline btn--small" onClick={() => setOpen(false)}>
+                  {isAdmin(user) ? <ShieldCheck size={16} /> : <UserRound size={16} />}
+                  {isAdmin(user) ? 'Admin console' : 'My account'}
                 </Link>
                 <button className="btn btn--ghost btn--small" onClick={() => void signOut()} type="button">
                   <LogOut size={16} /> Sign out

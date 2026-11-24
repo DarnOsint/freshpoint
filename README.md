@@ -37,6 +37,7 @@ Without Supabase credentials the site still loads, but sending/verifying a code 
 
 - **Signup:** email and password are required; phone is optional and may be added for phone sign-in later. After signup, Resend emails a 6-digit confirmation code. Entering it confirms the address, saves the profile, signs the user in, and sends a designed welcome email.
 - **Login:** choose **Phone**, **Email** or **Username** and enter the password. Username is resolved to the linked email (or phone) through a safe SQL function. Phone login also resolves the linked email first, so it keeps working even if a project has not enabled Supabase phone sign-in; direct phone-password auth is used when no linked email exists.
+- **Role-based destination:** both the shared `/login` screen and the header send admins to `/admin` and customers to `/app`. `/admin/login` is reserved for staff.
 - **Password reset:** email-only via `/forgot-password` → emailed code → `/reset-password`; no SMS or username-based recovery.
 - Authentication errors are never shown verbatim to customers — the UI uses friendly, generic messages.
 - The country selector builds E.164 numbers (for example `+211900123456`). South Sudan is the default; 40+ countries are included in [`src/lib/countries.ts`](src/lib/countries.ts).

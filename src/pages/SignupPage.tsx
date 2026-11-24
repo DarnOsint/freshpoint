@@ -5,6 +5,7 @@ import { AuthShell } from '../components/AuthShell'
 import { PhoneField } from '../components/PhoneField'
 import { countries, defaultCountry, isValidNationalNumber, toE164 } from '../lib/countries'
 import { useAuth } from '../lib/auth-context'
+import { homePathForUser } from '../lib/roles'
 import type { AccountType, VerifyState } from '../lib/auth-context'
 
 const accountTypes: Array<{ value: AccountType; label: string; description: string; icon: string }> = [
@@ -18,7 +19,7 @@ const SEND_ERROR = 'We couldn’t create your account. Check your details and tr
 
 export function SignupPage() {
   const navigate = useNavigate()
-  const { session } = useAuth()
+  const { session, user } = useAuth()
   const [fullName, setFullName] = useState('')
   const [username, setUsername] = useState('')
   const [countryCode, setCountryCode] = useState(defaultCountry.code)
@@ -113,7 +114,7 @@ export function SignupPage() {
     }
   }
 
-  if (session) return <Navigate to="/app" replace />
+  if (session) return <Navigate to={homePathForUser(user)} replace />
 
   return (
     <AuthShell

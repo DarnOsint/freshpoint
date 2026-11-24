@@ -6,6 +6,7 @@ import { PhoneField } from '../components/PhoneField'
 import { countries, defaultCountry, isValidNationalNumber, toE164 } from '../lib/countries'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/auth-context'
+import { homePathForUser } from '../lib/roles'
 
 type LoginMethod = 'phone' | 'email' | 'username'
 type UsernameLookup = { identifier: string; kind: 'phone' | 'email' }
@@ -20,7 +21,7 @@ const LOGIN_ERROR = 'We couldn’t log you in. Check your details and try again.
 
 export function LoginPage() {
   const navigate = useNavigate()
-  const { session } = useAuth()
+  const { session, user } = useAuth()
   const [method, setMethod] = useState<LoginMethod>('phone')
   const [countryCode, setCountryCode] = useState(defaultCountry.code)
   const [phone, setPhone] = useState('')
@@ -54,6 +55,7 @@ export function LoginPage() {
     }
 
     setLoading(true)
+    let signedInUser = user
     try {
       let identifier = ''
       let usePhone = method === 'phone'
@@ -69,13 +71,14 @@ export function LoginPage() {
         if (!lookupError) {
           const linkedEmail = (data as Array<{ email: string }> | null)?.[0]?.email
           if (linkedEmail) {
-            const { error: emailError } = await supabase.auth.signInWithPassword({
+            const { data: signedIn, error: emailError } = await supabase.auth.signInWithPassword({
               email: linkedEmail,
               password,
             })
             if (!emailError) {
+              signedInUser = signedIn.user
               setLoading(false)
-              navigate('/app', { replace: true })
+              navigate(homePathForUser(signedInUser), { replace: true })
               return
             }
           }
@@ -93,10 +96,11 @@ export function LoginPage() {
         usePhone = match.kind === 'phone'
       }
 
-      const { error: authError } = usePhone
+      const { data: signedIn, error: authError } = usePhone
         ? await supabase.auth.signInWithPassword({ phone: identifier, password })
         : await supabase.auth.signInWithPassword({ email: identifier, password })
       if (authError) throw authError
+      signedInUser = signedIn.user
     } catch {
       setError(LOGIN_ERROR)
       setLoading(false)
@@ -104,10 +108,10 @@ export function LoginPage() {
     }
 
     setLoading(false)
-    navigate('/app', { replace: true })
+    navigate(homePathForUser(signedInUser), { replace: true })
   }
 
-  if (session) return <Navigate to="/app" replace />
+  if (session) return <Navigate to={homePathForUser(user)} replace />
 
   return (
     <AuthShell

@@ -4,3 +4,7 @@ export function isAdmin(user: User | null | undefined) {
   if (!user) return false
   return user.app_metadata?.role === 'admin' || user.user_metadata?.role === 'admin'
 }
+
+export function homePathForUser(user: User | null | undefined) {
+  return isAdmin(user) ? '/admin' : '/app'
+}
