@@ -1,0 +1,67 @@
+export type Country = {
+  code: string
+  name: string
+  dial: string
+  flag: string
+}
+
+export const countries: Country[] = [
+  { code: 'SS', name: 'South Sudan', dial: '+211', flag: '🇸🇸' },
+  { code: 'KE', name: 'Kenya', dial: '+254', flag: '🇰🇪' },
+  { code: 'UG', name: 'Uganda', dial: '+256', flag: '🇺🇬' },
+  { code: 'TZ', name: 'Tanzania', dial: '+255', flag: '🇹🇿' },
+  { code: 'RW', name: 'Rwanda', dial: '+250', flag: '🇷🇼' },
+  { code: 'ET', name: 'Ethiopia', dial: '+251', flag: '🇪🇹' },
+  { code: 'SD', name: 'Sudan', dial: '+249', flag: '🇸🇩' },
+  { code: 'EG', name: 'Egypt', dial: '+20', flag: '🇪🇬' },
+  { code: 'NG', name: 'Nigeria', dial: '+234', flag: '🇳🇬' },
+  { code: 'GH', name: 'Ghana', dial: '+233', flag: '🇬🇭' },
+  { code: 'ZA', name: 'South Africa', dial: '+27', flag: '🇿🇦' },
+  { code: 'CD', name: 'DR Congo', dial: '+243', flag: '🇨🇩' },
+  { code: 'CM', name: 'Cameroon', dial: '+237', flag: '🇨🇲' },
+  { code: 'SN', name: 'Senegal', dial: '+221', flag: '🇸🇳' },
+  { code: 'CI', name: 'Côte d’Ivoire', dial: '+225', flag: '🇨🇮' },
+  { code: 'MA', name: 'Morocco', dial: '+212', flag: '🇲🇦' },
+  { code: 'US', name: 'United States', dial: '+1', flag: '🇺🇸' },
+  { code: 'CA', name: 'Canada', dial: '+1', flag: '🇨🇦' },
+  { code: 'GB', name: 'United Kingdom', dial: '+44', flag: '🇬🇧' },
+  { code: 'DE', name: 'Germany', dial: '+49', flag: '🇩🇪' },
+  { code: 'FR', name: 'France', dial: '+33', flag: '🇫🇷' },
+  { code: 'NL', name: 'Netherlands', dial: '+31', flag: '🇳🇱' },
+  { code: 'IT', name: 'Italy', dial: '+39', flag: '🇮🇹' },
+  { code: 'ES', name: 'Spain', dial: '+34', flag: '🇪🇸' },
+  { code: 'PT', name: 'Portugal', dial: '+351', flag: '🇵🇹' },
+  { code: 'IN', name: 'India', dial: '+91', flag: '🇮🇳' },
+  { code: 'PK', name: 'Pakistan', dial: '+92', flag: '🇵🇰' },
+  { code: 'BD', name: 'Bangladesh', dial: '+880', flag: '🇧🇩' },
+  { code: 'CN', name: 'China', dial: '+86', flag: '🇨🇳' },
+  { code: 'JP', name: 'Japan', dial: '+81', flag: '🇯🇵' },
+  { code: 'KR', name: 'South Korea', dial: '+82', flag: '🇰🇷' },
+  { code: 'AU', name: 'Australia', dial: '+61', flag: '🇦🇺' },
+  { code: 'NZ', name: 'New Zealand', dial: '+64', flag: '🇳🇿' },
+  { code: 'AE', name: 'United Arab Emirates', dial: '+971', flag: '🇦🇪' },
+  { code: 'SA', name: 'Saudi Arabia', dial: '+966', flag: '🇸🇦' },
+  { code: 'QA', name: 'Qatar', dial: '+974', flag: '🇶🇦' },
+  { code: 'TR', name: 'Türkiye', dial: '+90', flag: '🇹🇷' },
+  { code: 'BR', name: 'Brazil', dial: '+55', flag: '🇧🇷' },
+  { code: 'MX', name: 'Mexico', dial: '+52', flag: '🇲🇽' },
+  { code: 'AR', name: 'Argentina', dial: '+54', flag: '🇦🇷' },
+]
+
+export const defaultCountry = countries[0]
+
+/** Build an E.164 phone number from a selected dial code and national number. */
+export function toE164(dial: string, national: string): string {
+  const digits = national.replace(/\D/g, '').replace(/^0+/, '')
+  return `${dial}${digits}`
+}
+
+export function isValidNationalNumber(national: string): boolean {
+  const digits = national.replace(/\D/g, '')
+  return digits.length >= 6 && digits.length <= 14
+}
+
+export function formatNationalNumber(national: string): string {
+  const digits = national.replace(/\D/g, '').slice(0, 14)
+  return digits.replace(/(\d{3})(?=\d)/g, '$1 ')
+}
