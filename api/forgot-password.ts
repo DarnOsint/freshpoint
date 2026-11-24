@@ -16,7 +16,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new InputError('Enter a valid email address.')
 
     const profileResponse = await dbFetch(
-      `/rest/v1/profiles?email=eq.${encodeURIComponent(email)}&select=id,full_name&limit=1`,
+      `/profiles?email=eq.${encodeURIComponent(email)}&select=id,full_name&limit=1`,
     )
     if (!profileResponse.ok) {
       console.error('Profile lookup failed:', profileResponse.status, await profileResponse.text())
@@ -28,7 +28,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     if (!profile) return send(res, 200, { ok: true })
 
     const existingResponse = await dbFetch(
-      `/rest/v1/password_resets?email=eq.${encodeURIComponent(email)}&select=created_at`,
+      `/password_resets?email=eq.${encodeURIComponent(email)}&select=created_at`,
     )
     if (!existingResponse.ok) throw new Error('Reset lookup failed')
     const existing = (await existingResponse.json() as Reset[])[0]
@@ -37,7 +37,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     }
 
     const code = newCode()
-    const saved = await dbFetch('/rest/v1/password_resets?on_conflict=email', {
+    const saved = await dbFetch('/password_resets?on_conflict=email', {
       method: 'POST',
       headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
       body: JSON.stringify({
@@ -56,7 +56,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       await sendPasswordResetEmail(email, profile.full_name || 'there', code)
     } catch (emailError) {
       console.error('Password reset email failed:', emailError)
-      await dbFetch(`/rest/v1/password_resets?email=eq.${encodeURIComponent(email)}`, {
+      await dbFetch(`/password_resets?email=eq.${encodeURIComponent(email)}`, {
         method: 'DELETE',
         headers: { Prefer: 'return=minimal' },
       }).catch(() => undefined)

@@ -30,7 +30,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       throw new InputError(INVALID)
     }
 
-    const recordResponse = await dbFetch(`/rest/v1/email_confirmations?email=eq.${encodeURIComponent(email)}&select=*`)
+    const recordResponse = await dbFetch(`/email_confirmations?email=eq.${encodeURIComponent(email)}&select=*`)
     if (!recordResponse.ok) throw new Error('Confirmation lookup failed')
     const records = await recordResponse.json() as Confirmation[]
     const record = records[0]
@@ -40,7 +40,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     }
 
     if (hashCode(code) !== record.code_hash) {
-      await dbFetch(`/rest/v1/email_confirmations?email=eq.${encodeURIComponent(email)}`, {
+      await dbFetch(`/email_confirmations?email=eq.${encodeURIComponent(email)}`, {
         method: 'PATCH',
         headers: { Prefer: 'return=minimal' },
         body: JSON.stringify({ attempts: record.attempts + 1 }),
@@ -54,7 +54,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     })
     if (!confirmResponse.ok) throw new Error('Could not confirm email')
 
-    const profileResponse = await dbFetch('/rest/v1/profiles?on_conflict=id', {
+    const profileResponse = await dbFetch('/profiles?on_conflict=id', {
       method: 'POST',
       headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
       body: JSON.stringify({
@@ -89,7 +89,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       console.error('Welcome email failed:', emailError)
     }
 
-    await dbFetch(`/rest/v1/email_confirmations?email=eq.${encodeURIComponent(email)}`, {
+    await dbFetch(`/email_confirmations?email=eq.${encodeURIComponent(email)}`, {
       method: 'DELETE',
       headers: { Prefer: 'return=minimal' },
     })

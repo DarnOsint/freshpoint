@@ -35,7 +35,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     if ((await takenResponse.json()) === true) throw new InputError('That username is taken. Choose another.')
 
     if (phone) {
-      const phoneResponse = await dbFetch(`/rest/v1/profiles?phone=eq.${encodeURIComponent(phone)}&select=id&limit=1`)
+      const phoneResponse = await dbFetch(`/profiles?phone=eq.${encodeURIComponent(phone)}&select=id&limit=1`)
       if (!phoneResponse.ok) throw new Error('Phone lookup failed')
       if ((await phoneResponse.json() as unknown[]).length > 0) {
         throw new InputError('That phone number is already registered.')
@@ -69,7 +69,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     if (!user.id) throw new Error('Supabase user creation returned no id')
 
     const code = newCode()
-    const confirmationResponse = await dbFetch('/rest/v1/email_confirmations?on_conflict=email', {
+    const confirmationResponse = await dbFetch('/email_confirmations?on_conflict=email', {
       method: 'POST',
       headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
       body: JSON.stringify({
@@ -94,7 +94,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     } catch (emailError) {
       console.error('Confirmation email failed:', emailError)
       await adminFetch(`/auth/v1/admin/users/${user.id}`, { method: 'DELETE' }).catch(() => undefined)
-      await dbFetch(`/rest/v1/email_confirmations?email=eq.${encodeURIComponent(email)}`, {
+      await dbFetch(`/email_confirmations?email=eq.${encodeURIComponent(email)}`, {
         method: 'DELETE',
         headers: { Prefer: 'return=minimal' },
       }).catch(() => undefined)

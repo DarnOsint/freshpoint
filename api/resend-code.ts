@@ -14,7 +14,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     const email = String(body.email ?? '').trim().toLowerCase()
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new InputError('Enter a valid email address.')
 
-    const recordResponse = await dbFetch(`/rest/v1/email_confirmations?email=eq.${encodeURIComponent(email)}&select=full_name,attempts,created_at`)
+    const recordResponse = await dbFetch(`/email_confirmations?email=eq.${encodeURIComponent(email)}&select=full_name,attempts,created_at`)
     if (!recordResponse.ok) throw new Error('Confirmation lookup failed')
     const record = (await recordResponse.json() as Confirmation[])[0]
     if (!record) throw new InputError('Start signup again to receive a new code.')
@@ -23,7 +23,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     if (age < 30_000) return send(res, 200, { ok: true, throttled: true })
 
     const code = newCode()
-    const updateResponse = await dbFetch(`/rest/v1/email_confirmations?email=eq.${encodeURIComponent(email)}`, {
+    const updateResponse = await dbFetch(`/email_confirmations?email=eq.${encodeURIComponent(email)}`, {
       method: 'PATCH',
       headers: { Prefer: 'return=minimal' },
       body: JSON.stringify({

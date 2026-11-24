@@ -29,7 +29,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     if (password.length < 8) throw new InputError('Use a password of at least 8 characters.')
 
     const recordResponse = await dbFetch(
-      `/rest/v1/password_resets?email=eq.${encodeURIComponent(email)}&select=*`,
+      `/password_resets?email=eq.${encodeURIComponent(email)}&select=*`,
     )
     if (!recordResponse.ok) throw new Error('Reset lookup failed')
     const record = (await recordResponse.json() as Reset[])[0]
@@ -39,7 +39,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     }
 
     if (hashCode(code) !== record.code_hash) {
-      await dbFetch(`/rest/v1/password_resets?email=eq.${encodeURIComponent(email)}`, {
+      await dbFetch(`/password_resets?email=eq.${encodeURIComponent(email)}`, {
         method: 'PATCH',
         headers: { Prefer: 'return=minimal' },
         body: JSON.stringify({ attempts: record.attempts + 1 }),
@@ -62,7 +62,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       console.error('Password changed email failed:', emailError)
     }
 
-    await dbFetch(`/rest/v1/password_resets?email=eq.${encodeURIComponent(email)}`, {
+    await dbFetch(`/password_resets?email=eq.${encodeURIComponent(email)}`, {
       method: 'DELETE',
       headers: { Prefer: 'return=minimal' },
     })
