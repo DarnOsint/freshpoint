@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowRight, LogOut, Phone, UserRound } from 'lucide-react'
+import { ArrowRight, LogOut, Mail, Phone, UserRound } from 'lucide-react'
 import { useAuth } from '../lib/auth-context'
 
 const accountTypeLabels: Record<string, string> = {
@@ -38,6 +38,8 @@ export function AccountPage() {
   }
 
   const fullName = (user.user_metadata?.full_name as string | undefined) || 'FreshPoint customer'
+  const username = (user.user_metadata?.username as string | undefined) ?? '—'
+  const email = (user.user_metadata?.email as string | undefined) || user.email || '—'
   const accountType = (user.user_metadata?.account_type as string | undefined) ?? 'household'
 
   async function handleSignOut() {
@@ -58,8 +60,16 @@ export function AccountPage() {
             <strong>{fullName}</strong>
           </div>
           <div>
+            <span><UserRound size={17} /> Username</span>
+            <strong>{username}</strong>
+          </div>
+          <div>
             <span><Phone size={17} /> Phone number</span>
             <strong>{user.phone ?? '—'}</strong>
+          </div>
+          <div>
+            <span><Mail size={17} /> Email address</span>
+            <strong>{email}</strong>
           </div>
           <div>
             <span><ArrowRight size={17} /> Account type</span>

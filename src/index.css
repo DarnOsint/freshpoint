@@ -142,12 +142,16 @@ img, svg { display: block; }
 .hero__photo {
   min-height: 320px;
   border-radius: 26px;
+  position: relative;
   display: grid;
   place-items: center;
+  overflow: hidden;
   background: radial-gradient(circle at 20% 20%, #d9f99d 0, transparent 35%), radial-gradient(circle at 80% 80%, #fed7aa 0, transparent 38%), linear-gradient(150deg, #eaf7e6, #d6efd8);
   box-shadow: var(--shadow);
 }
-.hero__harvest { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 84%; padding: 12px; }
+.hero__photo-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.35s ease; }
+.hero__photo-img--loaded { opacity: 1; }
+.hero__harvest { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 84%; padding: 12px; }
 .hero__harvest span { display: grid; place-items: center; aspect-ratio: 1; border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 18px; background: rgba(255, 255, 255, 0.72); box-shadow: 0 8px 18px rgba(12, 55, 27, 0.08); font-size: 2.3rem; }
 .hero__harvest span:nth-child(3n + 2) { transform: rotate(-5deg); }
 .hero__harvest span:nth-child(3n) { transform: rotate(5deg); }
@@ -257,6 +261,10 @@ img, svg { display: block; }
 .auth-card__back { display: block; margin-top: 12px; color: #8a978e; font-size: 0.82rem; text-align: center; }
 .auth-card__back:hover { color: var(--green-700); }
 
+.login-methods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; margin-bottom: 18px; border: 1.5px solid var(--line); border-radius: 999px; background: var(--white); }
+.login-method { min-height: 40px; border: 0; border-radius: 999px; background: transparent; color: var(--muted); font-size: 0.82rem; font-weight: 700; cursor: pointer; }
+.login-method--active { background: var(--green-800); color: var(--white); }
+
 .auth-form { display: grid; gap: 14px; }
 .field label, .phone-field > label, .account-types legend { display: block; margin-bottom: 8px; color: #2c4032; font-size: 0.85rem; font-weight: 700; }
 .field input, .phone-field__row input {
@@ -273,6 +281,9 @@ img, svg { display: block; }
 }
 .field input:focus, .phone-field__row input:focus { border-color: var(--green-600); box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.12); }
 .field input::placeholder, .phone-field__row input::placeholder { color: #89968b; }
+.password-input { position: relative; }
+.password-input input { padding-right: 52px; }
+.password-input__toggle { position: absolute; top: 50%; right: 4px; transform: translateY(-50%); display: grid; place-items: center; width: 44px; height: 44px; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
 .phone-field__row { display: flex; gap: 8px; }
 .phone-field__country { position: relative; display: flex; align-items: center; flex: 0 0 110px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--white); overflow: hidden; }
 .phone-field__country:focus-within { border-color: var(--green-600); box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.12); }

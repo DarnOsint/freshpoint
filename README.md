@@ -25,15 +25,16 @@ Without Supabase credentials the site still loads, but sending/verifying a code 
 ## Supabase setup
 
 1. Create a project at [supabase.com](https://supabase.com) and copy its URL and anon key into `.env`.
-2. In **Authentication → Providers → Phone**, enable phone sign-in. Connect an SMS provider (Twilio, MessageBird or Vonage) and add credits — SMS OTP messages are billable.
+2. Keep **Authentication → Providers → Email** enabled, and enable **Phone** with an SMS provider (Twilio, MessageBird or Vonage) plus credits — SMS OTP messages are billable.
 3. In **Authentication → URL Configuration**, add your site URL (e.g. `http://localhost:5173` locally, your deployed domain in production), and add `http://localhost:5173/**` / `https://your-domain/**` to the redirect allow list.
-4. Run [`supabase/schema.sql`](supabase/schema.sql) in the SQL editor. It creates the `profiles` table and row-level security policies so signup details (name, account type, phone) are saved after verification.
+4. Run [`supabase/schema.sql`](supabase/schema.sql) in the SQL editor. It creates the `profiles` table, RLS policies, and two lookup functions used for username availability and username/password login.
 5. Set Site URL in Supabase to your production domain before going live.
 
 ### Auth flow
 
-- **Login:** phone number → Supabase sends SMS OTP → 6-digit verification → account page.
-- **Signup:** name, phone, account type (household / retail / restaurant / wholesale) and terms → SMS OTP → verification → profile is upserted → account page.
+- **Signup:** full name, username, phone, email, password (with confirmation) and account type → SMS OTP → verification → profile is saved → account page. The email is linked to the auth user after verification; once the confirmation email is accepted, email/password login works.
+- **Login:** choose **Phone**, **Email** or **Username** and enter the password. Phone and email use Supabase password auth directly; username is resolved to the linked phone/email through a safe SQL function, then the password is checked by Supabase.
+- Authentication errors are never shown verbatim to customers — the UI uses friendly, generic messages.
 - The country selector builds E.164 numbers (for example `+211900123456`). South Sudan is the default; 40+ countries are included in [`src/lib/countries.ts`](src/lib/countries.ts).
 - Signed-in visitors are taken to their account instead of seeing the login form again.
 - The UI is mobile-first: single-column layouts and 48px+ touch targets by default, with wider layouts added at larger breakpoints.
@@ -54,7 +55,7 @@ The production build is generated in `dist/`. `vite-plugin-pwa` generates the se
 ## Customise before launch
 
 - Update `config.ts` with real contact details — the phone number and email there are placeholders.
-- Replace `hero__photo`’s Unsplash background with your own farm/produce photography for stronger branding.
+- Replace `public/images/hero-market.jpg` with your own farm/produce photography for stronger branding. The local file is used so the hero works offline too.
 - Prices in the “Fresh picks” section are indicative examples in South Sudanese pounds (SSP) and should be connected to a live catalog when one exists.
 - Extend `src/lib/countries.ts` if a customer country is missing.
 - Brand assets live in `public/`: `logo.png` (header), `logo-light.png` (dark surfaces), `favicon.png`, and `icons/` (PWA icons generated from the supplied FreshPoint logo).

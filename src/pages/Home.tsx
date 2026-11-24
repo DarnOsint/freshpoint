@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
   ArrowRight,
@@ -115,6 +115,7 @@ const steps = [
 
 export function Home() {
   const { hash } = useLocation()
+  const [heroPhotoLoaded, setHeroPhotoLoaded] = useState(false)
 
   useEffect(() => {
     if (!hash) return
@@ -147,12 +148,21 @@ export function Home() {
           </div>
 
           <div className="hero__visual">
-            <div className="hero__photo" role="img" aria-label="A colourful selection of fresh produce">
-              <div className="hero__harvest" aria-hidden="true">
-                <span>🥬</span><span>🍅</span><span>🥕</span>
-                <span>🥭</span><span>🍌</span><span>🌽</span>
-                <span>🥑</span><span>🍊</span><span>🧄</span>
-              </div>
+            <div className="hero__photo">
+              <img
+                className={`hero__photo-img${heroPhotoLoaded ? ' hero__photo-img--loaded' : ''}`}
+                src="/images/hero-market.jpg"
+                alt="Fresh produce at a market"
+                onLoad={() => setHeroPhotoLoaded(true)}
+                onError={() => setHeroPhotoLoaded(false)}
+              />
+              {!heroPhotoLoaded ? (
+                <div className="hero__harvest" aria-hidden="true">
+                  <span>🥬</span><span>🍅</span><span>🥕</span>
+                  <span>🥭</span><span>🍌</span><span>🌽</span>
+                  <span>🥑</span><span>🍊</span><span>🧄</span>
+                </div>
+              ) : null}
             </div>
             <div className="hero__float hero__float--top">
               <span className="hero__float-icon">🌿</span>

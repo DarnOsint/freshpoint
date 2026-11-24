@@ -6,6 +6,8 @@ export type AccountType = 'household' | 'retailer' | 'restaurant' | 'wholesale'
 
 export type SignupDetails = {
   fullName: string
+  username: string
+  email: string
   accountType: AccountType
 }
 

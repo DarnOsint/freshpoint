@@ -68,11 +68,16 @@ export function VerifyPage() {
       const { error: profileError } = await supabase.from('profiles').upsert({
         id: user.id,
         phone: flow.phone,
+        email: flow.details.email,
+        username: flow.details.username,
         full_name: flow.details.fullName,
         account_type: flow.details.accountType,
         updated_at: new Date().toISOString(),
       })
       if (profileError) console.error('Failed to save FreshPoint profile', profileError)
+
+      const { error: emailLinkError } = await supabase.auth.updateUser({ email: flow.details.email })
+      if (emailLinkError) console.error('Failed to link email for login', emailLinkError)
     }
 
     if (verified) navigate('/account', { replace: true })

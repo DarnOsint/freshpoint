@@ -1,20 +1,33 @@
 import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Eye, EyeOff } from 'lucide-react'
 import { AuthShell } from '../components/AuthShell'
 import { PhoneField } from '../components/PhoneField'
 import { countries, defaultCountry, isValidNationalNumber, toE164 } from '../lib/countries'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/auth-context'
-import type { VerifyState } from '../lib/auth-context'
 
-const SEND_ERROR = 'We couldn’t send your code. Check your number and try again.'
+type LoginMethod = 'phone' | 'email' | 'username'
+type UsernameLookup = { identifier: string; kind: 'phone' | 'email' }
+
+const methods: Array<{ value: LoginMethod; label: string }> = [
+  { value: 'phone', label: 'Phone' },
+  { value: 'email', label: 'Email' },
+  { value: 'username', label: 'Username' },
+]
+
+const LOGIN_ERROR = 'We couldn’t log you in. Check your details and try again.'
 
 export function LoginPage() {
   const navigate = useNavigate()
   const { session } = useAuth()
+  const [method, setMethod] = useState<LoginMethod>('phone')
   const [countryCode, setCountryCode] = useState(defaultCountry.code)
   const [phone, setPhone] = useState('')
+  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -22,26 +35,57 @@ export function LoginPage() {
     event.preventDefault()
     setError('')
 
-    if (!isValidNationalNumber(phone)) {
-      setError('Enter a valid phone number.')
+    if (!password) {
+      setError('Enter your password.')
       return
     }
 
-    const country = countries.find((item) => item.code === countryCode) ?? defaultCountry
-    const fullPhone = toE164(country.dial, phone)
+    if (method === 'phone' && !isValidNationalNumber(phone)) {
+      setError('Enter a valid phone number.')
+      return
+    }
+    if (method === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError('Enter a valid email address.')
+      return
+    }
+    if (method === 'username' && !/^[a-z0-9_]{3,20}$/i.test(username.trim())) {
+      setError('Enter a valid username.')
+      return
+    }
 
     setLoading(true)
     try {
-      const { error: authError } = await supabase.auth.signInWithOtp({ phone: fullPhone })
+      let identifier = ''
+      let usePhone = method === 'phone'
+
+      if (method === 'phone') {
+        const country = countries.find((item) => item.code === countryCode) ?? defaultCountry
+        identifier = toE164(country.dial, phone)
+      } else if (method === 'email') {
+        identifier = email.trim()
+      } else {
+        const { data, error: lookupError } = await supabase.rpc('login_identifier_for_username', {
+          p_username: username.trim(),
+        })
+        if (lookupError) throw lookupError
+        const match = (data as UsernameLookup[] | null)?.[0]
+        if (!match) throw new Error('No login found')
+        identifier = match.identifier
+        usePhone = match.kind === 'phone'
+      }
+
+      const { error: authError } = usePhone
+        ? await supabase.auth.signInWithPassword({ phone: identifier, password })
+        : await supabase.auth.signInWithPassword({ email: identifier, password })
       if (authError) throw authError
     } catch {
-      setError(SEND_ERROR)
+      setError(LOGIN_ERROR)
       setLoading(false)
       return
     }
 
     setLoading(false)
-    navigate('/verify', { state: { phone: fullPhone, mode: 'login' } satisfies VerifyState })
+    navigate('/account', { replace: true })
   }
 
   if (session) return <Navigate to="/account" replace />
@@ -56,22 +100,77 @@ export function LoginPage() {
         </>
       }
     >
-      <p className="auth-card__intro">Enter your phone number and we’ll text you a one-time code.</p>
+      <p className="auth-card__intro">Log in with your phone, email or username and password.</p>
+
+      <div className="login-methods" role="tablist" aria-label="Choose a login method">
+        {methods.map((item) => (
+          <button
+            key={item.value}
+            type="button"
+            role="tab"
+            aria-selected={method === item.value}
+            className={`login-method${method === item.value ? ' login-method--active' : ''}`}
+            onClick={() => { setMethod(item.value); setError('') }}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
 
       <form onSubmit={handleSubmit} className="auth-form" noValidate>
-        <PhoneField
-          countryCode={countryCode}
-          onCountryChange={setCountryCode}
-          value={phone}
-          onChange={setPhone}
-          error={error}
-        />
+        {method === 'phone' ? (
+          <PhoneField
+            countryCode={countryCode}
+            onCountryChange={setCountryCode}
+            value={phone}
+            onChange={setPhone}
+            error={method === 'phone' ? error : undefined}
+          />
+        ) : (
+          <div className="field">
+            <label htmlFor="identifier">{method === 'email' ? 'Email address' : 'Username'}</label>
+            <input
+              id="identifier"
+              type={method === 'email' ? 'email' : 'text'}
+              inputMode={method === 'email' ? 'email' : 'text'}
+              autoComplete={method === 'email' ? 'email' : 'username'}
+              placeholder={method === 'email' ? 'you@example.com' : 'your.username'}
+              value={method === 'email' ? email : username}
+              onChange={(event) => (method === 'email' ? setEmail(event.target.value) : setUsername(event.target.value))}
+              aria-invalid={Boolean(error)}
+            />
+          </div>
+        )}
+
+        <div className="field">
+          <label htmlFor="password">Password</label>
+          <div className="password-input">
+            <input
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              autoComplete="current-password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              aria-invalid={Boolean(error)}
+            />
+            <button
+              type="button"
+              className="password-input__toggle"
+              onClick={() => setShowPassword((value) => !value)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
+        </div>
+
+        {error && method !== 'phone' ? <p className="field-error">{error}</p> : null}
+
         <button className="btn btn--primary btn--block btn--large" type="submit" disabled={loading}>
-          {loading ? 'Sending code…' : <>Send me a code <ArrowRight size={18} /></>}
+          {loading ? 'Logging in…' : <>Log in <ArrowRight size={18} /></>}
         </button>
       </form>
-
-      <p className="auth-card__hint">We’ll only use your number to sign you in. No password needed.</p>
     </AuthShell>
   )
 }
