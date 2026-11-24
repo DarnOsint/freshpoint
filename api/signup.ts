@@ -89,7 +89,18 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       throw new Error('Could not store confirmation')
     }
 
-    await sendConfirmationEmail(email, fullName, code)
+    try {
+      await sendConfirmationEmail(email, fullName, code)
+    } catch (emailError) {
+      console.error('Confirmation email failed:', emailError)
+      await adminFetch(`/auth/v1/admin/users/${user.id}`, { method: 'DELETE' }).catch(() => undefined)
+      await dbFetch(`/rest/v1/email_confirmations?email=eq.${encodeURIComponent(email)}`, {
+        method: 'DELETE',
+        headers: { Prefer: 'return=minimal' },
+      }).catch(() => undefined)
+      throw new InputError('We couldn’t send the confirmation email. Check the address and try again.')
+    }
+
     return send(res, 200, { ok: true, email })
   } catch (error) {
     if (error instanceof InputError) return send(res, 400, { error: error.message })

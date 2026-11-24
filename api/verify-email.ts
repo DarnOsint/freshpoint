@@ -83,7 +83,11 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       user: unknown
     }
 
-    await sendWelcomeEmail(email, record.full_name)
+    try {
+      await sendWelcomeEmail(email, record.full_name)
+    } catch (emailError) {
+      console.error('Welcome email failed:', emailError)
+    }
 
     await dbFetch(`/rest/v1/email_confirmations?email=eq.${encodeURIComponent(email)}`, {
       method: 'DELETE',
