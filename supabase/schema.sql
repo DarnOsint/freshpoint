@@ -259,7 +259,9 @@ create trigger password_resets_set_updated_at
   for each row execute function public.set_updated_at();
 
 -- Supabase creates these roles, but raw SQL tables need explicit REST privileges.
-grant usage on schema public to anon, authenticated;
+grant usage on schema public to anon, authenticated, service_role;
+grant all on public.profiles, public.products, public.orders, public.order_items to service_role;
+grant usage, select on sequence public.order_items_id_seq to service_role;
 grant select, insert, update on public.profiles to authenticated;
 grant select on public.products to anon, authenticated;
 grant select, insert, update on public.orders to authenticated;

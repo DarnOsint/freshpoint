@@ -18,7 +18,10 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     const profileResponse = await dbFetch(
       `/rest/v1/profiles?email=eq.${encodeURIComponent(email)}&select=id,full_name&limit=1`,
     )
-    if (!profileResponse.ok) throw new Error('Account lookup failed')
+    if (!profileResponse.ok) {
+      console.error('Profile lookup failed:', profileResponse.status, await profileResponse.text())
+      throw new Error('Account lookup failed')
+    }
     const profile = (await profileResponse.json() as Profile[])[0]
 
     // Never reveal whether an address is registered.
