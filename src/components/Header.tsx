@@ -1,29 +1,30 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { LogOut, Menu, ShieldCheck, UserRound, X } from 'lucide-react'
-import { navigation } from '../config'
 import { useAuth } from '../lib/auth-context'
 import { isAdmin, homePathForUser } from '../lib/roles'
+import { useSiteSettings } from '../lib/site-content'
 import { Logo } from './Logo'
 
 export function Header() {
   const [open, setOpen] = useState(false)
   const { session, user, signOut } = useAuth()
+  const { settings } = useSiteSettings()
 
   return (
     <header className="site-header">
       <div className="announcement">
-        <span>🌱 Farm-fresh produce, delivered across Juba</span>
+        <span>{settings.announcement.primary}</span>
         <span className="announcement__dot">•</span>
-        <span>Retail &amp; wholesale orders welcome</span>
+        <span>{settings.announcement.secondary}</span>
       </div>
 
       <div className="container header__inner">
-        <Logo />
+        <Logo label={settings.brand.appName} />
 
         <nav className={`main-nav${open ? ' main-nav--open' : ''}`} aria-label="Main navigation">
-          {navigation.map((item) => (
-            <Link key={item.label} to={item.href} onClick={() => setOpen(false)}>
+          {settings.navigation.map((item) => (
+            <Link key={`${item.label}-${item.href}`} to={item.href} onClick={() => setOpen(false)}>
               {item.label}
             </Link>
           ))}
@@ -42,10 +43,10 @@ export function Header() {
             ) : (
               <>
                 <Link to="/login" className="btn btn--outline btn--small" onClick={() => setOpen(false)}>
-                  Log in
+                  {settings.footer.loginLabel}
                 </Link>
                 <Link to="/signup" className="btn btn--primary btn--small" onClick={() => setOpen(false)}>
-                  Get started
+                  {settings.footer.createAccountLabel}
                 </Link>
               </>
             )}

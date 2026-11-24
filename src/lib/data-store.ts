@@ -16,7 +16,8 @@ export type DataContextValue = StoredData & {
   clearCart: () => void
   placeOrder: (details: { customer: string; phone: string; address: string }) => Order
   updateOrderStatus: (orderId: string, status: OrderStatus) => void
-  saveProduct: (product: Product) => void
+  saveProduct: (product: Product) => Promise<void>
+  deleteProduct: (productId: string) => Promise<void>
 }
 
 export const DataContext = createContext<DataContextValue | null>(null)

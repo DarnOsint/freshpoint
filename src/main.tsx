@@ -5,6 +5,7 @@ import { registerSW } from 'virtual:pwa-register'
 import { App } from './App'
 import { AuthProvider } from './lib/auth'
 import { DataProvider } from './lib/data-context'
+import { SiteSettingsProvider } from './lib/site-settings'
 import './index.css'
 
 registerSW({ immediate: true })
@@ -14,7 +15,9 @@ createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <AuthProvider>
         <DataProvider>
-          <App />
+          <SiteSettingsProvider>
+            <App />
+          </SiteSettingsProvider>
         </DataProvider>
       </AuthProvider>
     </BrowserRouter>

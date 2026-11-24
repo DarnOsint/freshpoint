@@ -2,6 +2,7 @@ import { createHash, randomInt } from 'node:crypto'
 
 export type ApiRequest = {
   method?: string
+  url?: string
   headers: Record<string, string | string[] | undefined>
   [Symbol.asyncIterator](): AsyncIterator<Buffer | string>
 }
@@ -13,6 +14,8 @@ export type ApiResponse = {
 }
 
 export class InputError extends Error {}
+export class AuthError extends Error {}
+export class ForbiddenError extends Error {}
 
 const supabaseUrl = (process.env.VITE_SUPABASE_URL ?? '').replace(/\/+$/, '')
 const anonKey = process.env.VITE_SUPABASE_ANON_KEY ?? ''
@@ -72,6 +75,25 @@ export function publicFetch(path: string, init: RequestInit = {}) {
 
 export function dbFetch(path: string, init: RequestInit = {}) {
   return adminFetch(`/rest/v1${path}`, init)
+}
+
+export type AdminUser = { id: string; app_metadata?: { role?: string } }
+
+export async function requireAdmin(req: ApiRequest): Promise<AdminUser> {
+  const raw = req.headers.authorization ?? req.headers.Authorization
+  const header = Array.isArray(raw) ? raw[0] : raw
+  const token = header?.startsWith('Bearer ') ? header.slice(7).trim() : ''
+  if (!token) throw new AuthError('Sign in to continue.')
+  if (!supabaseUrl || !anonKey) throw new Error('Authentication is not configured')
+
+  const response = await publicFetch('/auth/v1/user', {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!response.ok) throw new AuthError('Your session has expired. Please sign in again.')
+
+  const user = await response.json() as AdminUser
+  if (user?.app_metadata?.role !== 'admin') throw new ForbiddenError('Admin access required.')
+  return user
 }
 
 export function newCode() {

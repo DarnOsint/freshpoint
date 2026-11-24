@@ -1,0 +1,117 @@
+{
+  "brand": {
+    "appName": "FreshPoint",
+    "tagline": "Your Everyday Fresh Market",
+    "eyebrow": "OrganicPoint / FreshPoint · A OnePlan Enterprise brand",
+    "footerAbout": "Connecting farmers, trusted suppliers and consumers through quality produce, reliable sourcing and doorstep delivery across South Sudan.",
+    "footerTagline": "OrganicPoint / FreshPoint — from farm to market.",
+    "copyright": "FreshPoint. A OnePlan Enterprise brand.",
+    "heroPhotoKey": "hero-market.jpg",
+    "heroPhotoAlt": "Fresh produce at a market"
+  },
+  "announcement": {
+    "primary": "🌱 Farm-fresh produce, delivered across Juba",
+    "secondary": "Retail & wholesale orders welcome"
+  },
+  "contact": {
+    "location": "Juba, South Sudan",
+    "email": "hello@freshpoint.ss",
+    "phone": "+211 900 000 000",
+    "hours": "Mon – Sat, 8:00 AM – 6:00 PM"
+  },
+  "navigation": [
+    { "label": "Home", "href": "/#home" },
+    { "label": "Categories", "href": "/#categories" },
+    { "label": "How it works", "href": "/#how-it-works" },
+    { "label": "Wholesale", "href": "/#wholesale" },
+    { "label": "Contact", "href": "/#contact" }
+  ],
+  "hero": {
+    "eyebrow": "OrganicPoint / FreshPoint · A OnePlan Enterprise brand",
+    "title": "Fresh from the farm.",
+    "highlight": "Straight to your door.",
+    "lead": "Your trusted marketplace for fresh vegetables, fruits, grains and everyday food essentials. Shop quality produce at competitive prices with convenient delivery across South Sudan.",
+    "primaryLabel": "Start shopping",
+    "secondaryLabel": "Browse categories",
+    "points": [
+      { "text": "Quality-checked produce", "icon": "badge" },
+      { "text": "Trusted local sourcing", "icon": "handshake" },
+      { "text": "Doorstep delivery", "icon": "truck" }
+    ],
+    "floatTopTitle": "100% fresh",
+    "floatTopSubtitle": "Picked at its best",
+    "floatBottomTitle": "Delivered in Juba",
+    "floatBottomSubtitle": "Retail & wholesale",
+    "produce": "🍅 🥭 🥕 🥬 🍌 🌽"
+  },
+  "stats": {
+    "items": [
+      { "value": "6", "label": "Product categories" },
+      { "value": "100+", "label": "Fresh everyday products" },
+      { "value": "2", "label": "Ways to shop: retail & wholesale" },
+      { "value": "1", "label": "Goal: quality food for all" }
+    ]
+  },
+  "categories": {
+    "eyebrow": "What we offer",
+    "title": "Everything fresh, all in one place",
+    "intro": "From everyday vegetables to bulk grain supply, find the essentials your home or business needs.",
+    "items": [
+      { "emoji": "🥬", "name": "Vegetables", "description": "Harvested fresh, packed with goodness.", "products": "Tomatoes · Onions · Carrots · Spinach · Cabbage · Green pepper", "tone": "green" },
+      { "emoji": "🥭", "name": "Fruits", "description": "Ripe, juicy and naturally sweet.", "products": "Mangoes · Bananas · Oranges · Lemons · Watermelon · Avocado", "tone": "orange" },
+      { "emoji": "🌾", "name": "Grains", "description": "Everyday staples for every kitchen.", "products": "Maize · Rice · Sorghum · Millet · Beans", "tone": "amber" },
+      { "emoji": "🥔", "name": "Tubers", "description": "Wholesome energy from the soil.", "products": "Irish potatoes · Sweet potatoes · Cassava · Yams", "tone": "brown" },
+      { "emoji": "🧄", "name": "Cooking essentials", "description": "The little things that make meals sing.", "products": "Garlic · Ginger · Chilli · Groundnuts", "tone": "red" },
+      { "emoji": "📦", "name": "Bulk orders", "description": "Reliable supply for larger buyers.", "products": "Wholesale vegetables, fruits and grains", "tone": "teal" }
+    ]
+  },
+  "products": {
+    "eyebrow": "Fresh picks",
+    "title": "Popular produce this week",
+    "intro": "Competitive prices on quality produce. Create an account to place your order.",
+    "note": "Prices are indicative and may change with season and availability."
+  },
+  "reasons": {
+    "eyebrow": "Why FreshPoint",
+    "title": "Food you can trust, service you can count on",
+    "items": [
+      { "icon": "sprout", "title": "Direct from the farm", "text": "We source from our own production, local farmers and trusted suppliers — cutting out the middlemen." },
+      { "icon": "badge", "title": "Quality you can trust", "text": "Every order is selected, sorted and quality-checked before it reaches your doorstep." },
+      { "icon": "store", "title": "Retail & wholesale", "text": "Buy a little for the household or in bulk for your business, restaurant or institution." },
+      { "icon": "truck", "title": "Convenient delivery", "text": "Simple ordering and reliable doorstep delivery across Juba and surrounding areas." }
+    ]
+  },
+  "steps": {
+    "eyebrow": "How it works",
+    "title": "Fresh food in three simple steps",
+    "items": [
+      { "icon": "clipboard", "title": "Choose your produce", "text": "Browse fresh vegetables, fruits, grains and essentials by category." },
+      { "icon": "basket", "title": "Place your order", "text": "Sign up with your phone number and order as a household or bulk buyer." },
+      { "icon": "package", "title": "We deliver fresh", "text": "Our team picks, packs and delivers your order — farm fresh and on time." }
+    ]
+  },
+  "wholesale": {
+    "eyebrow": "For businesses & institutions",
+    "title": "Bulk produce, reliable supply, better prices",
+    "body": "We supply restaurants, hotels, schools, retailers and institutions with wholesale vegetables, fruits and grains. Tell us what you need and we’ll source, aggregate and deliver it.",
+    "primaryLabel": "Create a wholesale account",
+    "secondaryLabel": "Talk to our team",
+    "subject": "Wholesale enquiry",
+    "art": "🌾 🍊 🥦 🍚"
+  },
+  "location": {
+    "titlePrefix": "Proudly serving",
+    "body": "Rooted in South Sudan’s agricultural value chain, we make quality produce accessible, affordable and convenient for households, businesses and institutions.",
+    "ctaLabel": "Get started"
+  },
+  "footer": {
+    "exploreTitle": "Explore",
+    "contactTitle": "Get in touch",
+    "ctaTitle": "Ready to shop fresh?",
+    "ctaBody": "Create your account to order retail or wholesale produce.",
+    "ctaLabel": "Join FreshPoint",
+    "bottomLine": "OrganicPoint / FreshPoint — from farm to market.",
+    "createAccountLabel": "Create account",
+    "loginLabel": "Log in"
+  }
+}

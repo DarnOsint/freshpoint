@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { ClipboardList, ExternalLink, LayoutDashboard, LogOut, Package, UsersRound } from 'lucide-react'
+import { ClipboardList, ExternalLink, Globe, LayoutDashboard, LogOut, Package, UsersRound } from 'lucide-react'
 import { useAuth } from '../lib/auth-context'
 import { useData } from '../lib/data-store'
 import { Logo } from './Logo'
@@ -8,6 +8,7 @@ const navItems = [
   { to: '/admin', label: 'Overview', icon: LayoutDashboard, end: true },
   { to: '/admin/orders', label: 'Orders', icon: ClipboardList, end: false },
   { to: '/admin/products', label: 'Products', icon: Package, end: false },
+  { to: '/admin/website', label: 'Website', icon: Globe, end: false },
   { to: '/admin/customers', label: 'Customers', icon: UsersRound, end: false },
 ]
 

@@ -1,63 +1,63 @@
 import { Link } from 'react-router-dom'
 import { Globe, Mail, MapPin, MessageCircle, Phone } from 'lucide-react'
-import { config, navigation } from '../config'
+import { useSiteSettings } from '../lib/site-content'
 import { Logo } from './Logo'
 
 const year = new Date().getFullYear()
 
 export function Footer() {
+  const { settings } = useSiteSettings()
+
   return (
     <footer className="site-footer" id="contact">
       <div className="container footer__grid">
         <div className="footer__brand">
-          <Logo light />
-          <p>
-            Connecting farmers, trusted suppliers and consumers through quality produce, reliable sourcing and
-            doorstep delivery across South Sudan.
-          </p>
+          <Logo light label={settings.brand.appName} />
+          <p>{settings.brand.footerAbout}</p>
+          <small className="footer__tagline">{settings.brand.footerTagline}</small>
           <div className="footer__social">
-            <Link to="/" aria-label="FreshPoint home">
+            <Link to="/" aria-label={`${settings.brand.appName} home`}>
               <Globe size={18} />
             </Link>
-            <a href={`mailto:${config.email}`} aria-label="Message us">
+            <a href={`mailto:${settings.contact.email}`} aria-label="Message us">
               <MessageCircle size={18} />
             </a>
           </div>
         </div>
 
         <div>
-          <h3>Explore</h3>
+          <h3>{settings.footer.exploreTitle}</h3>
           <ul className="footer__links">
-            {navigation.map((item) => (
-              <li key={item.label}>
+            {settings.navigation.map((item) => (
+              <li key={`${item.label}-${item.href}`}>
                 <Link to={item.href}>{item.label}</Link>
               </li>
             ))}
-            <li><Link to="/signup">Create account</Link></li>
-            <li><Link to="/login">Log in</Link></li>
+            <li><Link to="/signup">{settings.footer.createAccountLabel}</Link></li>
+            <li><Link to="/login">{settings.footer.loginLabel}</Link></li>
           </ul>
         </div>
 
         <div>
-          <h3>Get in touch</h3>
+          <h3>{settings.footer.contactTitle}</h3>
           <ul className="footer__links footer__contact">
-            <li><MapPin size={16} /> {config.location}</li>
-            <li><Phone size={16} /> <a href={`tel:${config.phone.replace(/\s/g, '')}`}>{config.phone}</a></li>
-            <li><Mail size={16} /> <a href={`mailto:${config.email}`}>{config.email}</a></li>
-            <li>{config.hours}</li>
+            <li><MapPin size={16} /> {settings.contact.location}</li>
+            <li><Phone size={16} /> <a href={`tel:${settings.contact.phone.replace(/\s/g, '')}`}>{settings.contact.phone}</a></li>
+            <li><Mail size={16} /> <a href={`mailto:${settings.contact.email}`}>{settings.contact.email}</a></li>
+            <li>{settings.contact.hours}</li>
           </ul>
         </div>
 
         <div className="footer__cta">
-          <h3>Ready to shop fresh?</h3>
-          <p>Create your account to order retail or wholesale produce.</p>
-          <Link to="/signup" className="btn btn--primary btn--small">Join FreshPoint</Link>
+          <h3>{settings.footer.ctaTitle}</h3>
+          <p>{settings.footer.ctaBody}</p>
+          <Link to="/signup" className="btn btn--primary btn--small">{settings.footer.ctaLabel}</Link>
         </div>
       </div>
 
       <div className="container footer__bottom">
-        <p>© {year} FreshPoint. A OnePlan Enterprise brand.</p>
-        <p>OrganicPoint / FreshPoint — from farm to market.</p>
+        <p>© {year} {settings.brand.copyright}</p>
+        <p>{settings.footer.bottomLine}</p>
       </div>
     </footer>
   )

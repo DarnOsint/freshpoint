@@ -50,6 +50,7 @@ Without Supabase credentials the site still loads, but sending/verifying a code 
 - Set `VITE_R2_PUBLIC_BASE_URL` to that base URL, with no trailing slash, in `.env` and in Vercel’s build-time environment variables.
 - Upload the hero photo as `hero-market.jpg` and set `VITE_R2_HERO_KEY` to that key. If either variable is blank, the bundled `/images/hero-market.jpg` is used instead.
 - Product images are R2 object keys such as `products/tomatoes.jpg`. Enter the key in the admin product form; a full `https://` URL also works. With no key, the emoji tile is shown.
+- Landing-page copy is stored as `site/settings.json` in a public Supabase Storage bucket named `site`. The admin **Website** screen edits that file through a role-protected API; the browser never receives the Supabase secret key. Seed it from `src/lib/site-defaults.json`.
 - The SQL tables store only keys/URLs, never image binaries. Logos and PWA icons stay in `public/` so installation and offline UI keep working.
 
 The project bucket is `freshpoint` (account `1a5b866551a41273b73330df9fdd06f5`). S3 credentials are stored in the gitignored `.env.local` and are used only by the upload script:
@@ -82,9 +83,10 @@ Password recovery is email-only. Both login screens link to `/forgot-password`.
 ### Customer app and admin console
 
 - Signed-in customers land at `/app`. Tabs cover **Home** (overview), **Shop** (searchable catalogue), **Basket** (quantity controls and checkout), **Orders** and **Account**.
-- Placing an order adds it to order history and creates a customer record if needed. Products, orders and customers persist in the browser via `localStorage` for now; swapping in Supabase tables later only requires changing `src/lib/data-context.tsx`.
-- `/admin/login` is a separate, chrome-free sign-in for staff. After sign-in, the console is at `/admin` with orders, products and customers screens.
-- Admin access is granted by setting `app_metadata.role = 'admin'` on the Supabase auth user (the `profiles.role` column mirrors it for reporting). Non-admin users are redirected away from `/admin`. Seed the admin credential when ready.
+- Placing an order adds it to order history and creates a customer record if needed. Orders and the basket persist in the browser via `localStorage`; the product catalogue lives in the public Supabase `products` table and is edited by admins for all customers.
+- `/admin/login` is a separate, chrome-free sign-in for staff. After sign-in, the console is at `/admin` with orders, products, customers and **Website** screens.
+- Products can be added, edited, hidden or deleted from the admin console. The **Website** screen edits every public section: brand/contact details, header links and announcements, hero, stats, categories, product section, reasons, steps, wholesale, location and footer content.
+- Admin access is granted by setting `app_metadata.role = 'admin'` on the Supabase auth user (the `profiles.role` column mirrors it for reporting). Non-admin users are redirected away from `/admin`, and the content APIs reject non-admin sessions.
 
 ## Scripts
 
@@ -102,9 +104,9 @@ The production build is generated in `dist/`. `vite-plugin-pwa` generates the se
 
 ## Customise before launch
 
-- Update `config.ts` with real contact details — the phone number and email there are placeholders.
-- Replace `public/images/hero-market.jpg` with your own farm/produce photography, or upload it to R2 and set `VITE_R2_HERO_KEY`. The local file remains the offline fallback.
-- Prices in the “Fresh picks” section are indicative examples in South Sudanese pounds (SSP) and should be connected to a live catalog when one exists.
+- Use the admin **Website → Brand & contact** screen to replace placeholder contact details, brand copy and the hero image key. `config.ts` now only holds backwards-compatible defaults.
+- Replace `public/images/hero-market.jpg` with your own farm/produce photography, or upload it to R2 and set the hero image key in the admin Website screen. The local file remains the offline fallback.
+- The “Fresh picks” section uses the first eight active products from the shared catalogue, so product edits in the admin console update the landing page.
 - Extend `src/lib/countries.ts` if a customer country is missing.
 - Brand assets live in `public/`: `logo.png` (header), `logo-light.png` (dark surfaces), `favicon.png`, and `icons/` (PWA icons generated from the supplied FreshPoint logo).
 
@@ -117,7 +119,7 @@ src/
   components/    Header, Footer, Layout, Logo, auth/customer/admin shells, guards
   lib/           Supabase client, auth/store contexts, R2 asset helper, country helpers, demo data
   pages/user/    Dashboard, Shop, Cart, Orders, Profile
-  pages/admin/   Admin login, Dashboard, Orders, Products, Customers
+  pages/admin/   Admin login, Dashboard, Orders, Products, Customers, Website
   pages/         Home, Login, Signup, Verify, 404
   config.ts      Brand and contact details
   index.css      Design system and responsive styles

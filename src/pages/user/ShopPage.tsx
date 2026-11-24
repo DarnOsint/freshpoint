@@ -3,7 +3,6 @@ import { Check, Plus, Search } from 'lucide-react'
 import { ProductImage } from '../../components/ProductImage'
 import { useData } from '../../lib/data-store'
 import { formatMoney } from '../../lib/format'
-import { categories } from '../../lib/demo-data'
 
 export function ShopPage() {
   const { products, cart, addToCart } = useData()
@@ -11,7 +10,9 @@ export function ShopPage() {
   const [category, setCategory] = useState('All')
   const [added, setAdded] = useState('')
 
+  const categoryOptions = ['All', ...Array.from(new Set(products.map((product) => product.category)))]
   const filtered = useMemo(() => products.filter((product) => {
+    if (product.active === false) return false
     const matchesCategory = category === 'All' || product.category === category
     const matchesQuery = product.name.toLowerCase().includes(query.trim().toLowerCase())
     return matchesCategory && matchesQuery
@@ -39,7 +40,7 @@ export function ShopPage() {
       </label>
 
       <div className="filter-chips" role="group" aria-label="Filter by category">
-        {['All', ...categories].map((item) => (
+        {categoryOptions.map((item) => (
           <button
             key={item}
             type="button"

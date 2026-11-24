@@ -13,6 +13,8 @@ export type Product = {
   stock: number
   /** Cloudflare R2 object key (or full URL). Empty falls back to the emoji tile. */
   image?: string | null
+  /** Hidden products stay in the catalogue but disappear from the shop and landing page. */
+  active?: boolean
 }
 
 export type CartLine = { productId: string; quantity: number }
