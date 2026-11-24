@@ -36,7 +36,7 @@ Without Supabase credentials the site still loads, but sending/verifying a code 
 ### Auth flow
 
 - **Signup:** full name, username, phone, email, password (with confirmation) and account type → SMS OTP → verification → profile is saved → account page. The email is linked to the auth user after verification; once the confirmation email is accepted, email/password login works.
-- **Login:** choose **Phone**, **Email** or **Username** and enter the password. Phone and email use Supabase password auth directly; username is resolved to the linked phone/email through a safe SQL function, then the password is checked by Supabase.
+- **Login:** choose **Phone**, **Email** or **Username** and enter the password. Username is resolved to the linked email (or phone) through a safe SQL function. Phone login also resolves the linked email first, so it keeps working even if a project has not enabled Supabase phone sign-in; direct phone-password auth is used when no linked email exists.
 - Authentication errors are never shown verbatim to customers — the UI uses friendly, generic messages.
 - The country selector builds E.164 numbers (for example `+211900123456`). South Sudan is the default; 40+ countries are included in [`src/lib/countries.ts`](src/lib/countries.ts).
 - Signed-in visitors are taken to their account instead of seeing the login form again.
