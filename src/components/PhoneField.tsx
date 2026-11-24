@@ -9,6 +9,7 @@ type PhoneFieldProps = {
   error?: string
   id?: string
   autoFocus?: boolean
+  optional?: boolean
 }
 
 export function PhoneField({
@@ -19,12 +20,13 @@ export function PhoneField({
   error,
   id = 'phone',
   autoFocus,
+  optional,
 }: PhoneFieldProps) {
   const country = countries.find((item) => item.code === countryCode) ?? countries[0]
 
   return (
     <div className={`phone-field${error ? ' has-error' : ''}`}>
-      <label htmlFor={id}>Phone number</label>
+      <label htmlFor={id}>Phone number {optional ? <small>(optional)</small> : null}</label>
       <div className="phone-field__row">
         <div className="phone-field__country">
           <span className="phone-field__flag" aria-hidden="true">{country.flag}</span>

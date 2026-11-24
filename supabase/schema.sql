@@ -211,6 +211,31 @@ create trigger orders_set_updated_at
   before update on public.orders
   for each row execute function public.set_updated_at();
 
+-- Email confirmation codes are generated and sent by the serverless API via Resend.
+-- This table is server-only; no anon or authenticated grants are given.
+create table if not exists public.email_confirmations (
+  email text primary key,
+  user_id uuid not null,
+  code_hash text not null,
+  full_name text not null,
+  username text not null,
+  phone text,
+  account_type text not null,
+  attempts integer not null default 0,
+  expires_at timestamptz not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.email_confirmations enable row level security;
+revoke all on public.email_confirmations from anon, authenticated;
+grant all on public.email_confirmations to service_role;
+
+drop trigger if exists email_confirmations_set_updated_at on public.email_confirmations;
+create trigger email_confirmations_set_updated_at
+  before update on public.email_confirmations
+  for each row execute function public.set_updated_at();
+
 -- Supabase creates these roles, but raw SQL tables need explicit REST privileges.
 grant usage on schema public to anon, authenticated;
 grant select, insert, update on public.profiles to authenticated;

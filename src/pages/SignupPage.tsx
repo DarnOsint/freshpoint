@@ -4,7 +4,6 @@ import { ArrowRight, Eye, EyeOff } from 'lucide-react'
 import { AuthShell } from '../components/AuthShell'
 import { PhoneField } from '../components/PhoneField'
 import { countries, defaultCountry, isValidNationalNumber, toE164 } from '../lib/countries'
-import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/auth-context'
 import type { AccountType, VerifyState } from '../lib/auth-context'
 
@@ -53,7 +52,7 @@ export function SignupPage() {
 
     if (fullName.trim().length < 2) setNameError('Enter your full name.')
     if (!/^[a-z0-9_]{3,20}$/.test(cleanUsername)) setUsernameError('Use 3–20 letters, numbers or underscores.')
-    if (!isValidNationalNumber(phone)) setPhoneError('Enter a valid phone number.')
+    if (phone.trim() && !isValidNationalNumber(phone)) setPhoneError('Enter a valid phone number.')
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) setEmailError('Enter a valid email address.')
     if (password.length < 8) setPasswordError('Use at least 8 characters.')
     else if (password !== confirmPassword) setPasswordError('Passwords do not match.')
@@ -62,7 +61,7 @@ export function SignupPage() {
     if (
       fullName.trim().length < 2 ||
       !/^[a-z0-9_]{3,20}$/.test(cleanUsername) ||
-      !isValidNationalNumber(phone) ||
+      (phone.trim() !== '' && !isValidNationalNumber(phone)) ||
       !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail) ||
       password.length < 8 ||
       password !== confirmPassword ||
@@ -70,50 +69,48 @@ export function SignupPage() {
     ) return
 
     const country = countries.find((item) => item.code === countryCode) ?? defaultCountry
-    const fullPhone = toE164(country.dial, phone)
+    const fullPhone = phone.trim() ? toE164(country.dial, phone) : undefined
 
     setLoading(true)
     try {
-      const { data: taken, error: checkError } = await supabase.rpc('username_exists', { p_username: cleanUsername })
-      if (checkError) throw checkError
-      if (taken) {
-        setUsernameError('That username is taken. Choose another.')
+      const response = await fetch('/api/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: cleanEmail,
+          password,
+          fullName: fullName.trim(),
+          username: cleanUsername,
+          phone: fullPhone,
+          accountType,
+        }),
+      })
+      const result = await response.json() as { ok?: boolean; error?: string }
+      if (!response.ok || !result.ok) {
+        setFormError(result.error ?? SEND_ERROR)
         setLoading(false)
         return
       }
 
-      const { error: authError } = await supabase.auth.signUp({
-        phone: fullPhone,
-        password,
-        options: {
-          data: {
-            full_name: fullName.trim(),
+      setLoading(false)
+      navigate('/verify', {
+        state: {
+          email: cleanEmail,
+          password,
+          mode: 'signup',
+          details: {
+            fullName: fullName.trim(),
             username: cleanUsername,
             email: cleanEmail,
-            account_type: accountType,
+            phone: fullPhone,
+            accountType,
           },
-        },
+        } satisfies VerifyState,
       })
-      if (authError) throw authError
     } catch {
       setFormError(SEND_ERROR)
       setLoading(false)
-      return
     }
-
-    setLoading(false)
-    navigate('/verify', {
-      state: {
-        phone: fullPhone,
-        mode: 'signup',
-        details: {
-          fullName: fullName.trim(),
-          username: cleanUsername,
-          email: cleanEmail,
-          accountType,
-        },
-      } satisfies VerifyState,
-    })
   }
 
   if (session) return <Navigate to="/app" replace />
@@ -128,7 +125,7 @@ export function SignupPage() {
         </>
       }
     >
-      <p className="auth-card__intro">Sign up once, then log in with your phone, email or username.</p>
+      <p className="auth-card__intro">Sign up with your email, add a phone number if you like, then log in with whichever you prefer.</p>
 
       <form onSubmit={handleSubmit} className="auth-form" noValidate>
         <div className="field">
@@ -145,20 +142,21 @@ export function SignupPage() {
           {usernameError ? <p className="field-error">{usernameError}</p> : null}
         </div>
 
-        <PhoneField
-          countryCode={countryCode}
-          onCountryChange={setCountryCode}
-          value={phone}
-          onChange={setPhone}
-          error={phoneError}
-        />
-
         <div className="field">
           <label htmlFor="email">Email address</label>
           <input id="email" type="email" autoComplete="email" placeholder="you@example.com"
             value={email} onChange={(event) => setEmail(event.target.value)} aria-invalid={Boolean(emailError)} />
           {emailError ? <p className="field-error">{emailError}</p> : null}
         </div>
+
+        <PhoneField
+          countryCode={countryCode}
+          onCountryChange={setCountryCode}
+          value={phone}
+          onChange={setPhone}
+          optional
+          error={phoneError}
+        />
 
         <div className="field">
           <label htmlFor="password">Password</label>

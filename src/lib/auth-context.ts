@@ -8,11 +8,13 @@ export type SignupDetails = {
   fullName: string
   username: string
   email: string
+  phone?: string
   accountType: AccountType
 }
 
 export type VerifyState = {
-  phone: string
+  email: string
+  password: string
   mode: AuthMode
   details?: SignupDetails
 }

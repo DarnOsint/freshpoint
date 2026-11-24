@@ -10,19 +10,22 @@ const RESEND_SECONDS = 30
 const VERIFY_ERROR = 'That code isn’t valid or has expired. Request a new one.'
 const RESEND_ERROR = 'We couldn’t resend the code. Try again shortly.'
 
-function maskPhone(phone: string) {
-  return `${phone.slice(0, 5)}••••${phone.slice(-3)}`
+function maskEmail(email: string) {
+  const [name, domain] = email.split('@')
+  if (!domain) return email
+  return `${name.slice(0, 2)}••••${name.slice(-1)}@${domain}`
 }
 
 export function VerifyPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const flow = (location.state as VerifyState | null)?.phone ? (location.state as VerifyState) : null
+  const flow = (location.state as VerifyState | null)?.email ? (location.state as VerifyState) : null
 
   const [code, setCode] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [countdown, setCountdown] = useState(RESEND_SECONDS)
+  const [fallbackPassword, setFallbackPassword] = useState('')
 
   useEffect(() => {
     if (!flow) return
@@ -42,53 +45,53 @@ export function VerifyPage() {
       setError('Enter the full 6-digit code.')
       return
     }
-
     if (!flow) return
 
-    setLoading(true)
-    let verified = false
-    let user: { id: string } | null = null
-
-    try {
-      const { data, error: verifyError } = await supabase.auth.verifyOtp({
-        phone: flow.phone,
-        token: code,
-        type: 'sms',
-      })
-      if (verifyError) throw verifyError
-      verified = true
-      user = data.user ?? data.session?.user ?? null
-    } catch {
-      setError(VERIFY_ERROR)
-      setLoading(false)
+    const password = flow.password || fallbackPassword.trim()
+    if (!password) {
+      setError('Enter your password to finish verification.')
       return
     }
 
-    if (flow.mode === 'signup' && flow.details && user) {
-      const { error: profileError } = await supabase.from('profiles').upsert({
-        id: user.id,
-        phone: flow.phone,
-        email: flow.details.email,
-        username: flow.details.username,
-        full_name: flow.details.fullName,
-        account_type: flow.details.accountType,
-        updated_at: new Date().toISOString(),
+    setLoading(true)
+    try {
+      const response = await fetch('/api/verify-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: flow.email, code, password }),
       })
-      if (profileError) console.error('Failed to save FreshPoint profile', profileError)
+      const result = await response.json() as {
+        ok?: boolean
+        error?: string
+        access_token?: string
+        refresh_token?: string
+      }
+      if (!response.ok || !result.ok || !result.access_token || !result.refresh_token) {
+        throw new Error(result.error ?? VERIFY_ERROR)
+      }
 
-      const { error: emailLinkError } = await supabase.auth.updateUser({ email: flow.details.email })
-      if (emailLinkError) console.error('Failed to link email for login', emailLinkError)
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: result.access_token,
+        refresh_token: result.refresh_token,
+      })
+      if (sessionError) throw sessionError
+      navigate('/app', { replace: true })
+    } catch {
+      setError(VERIFY_ERROR)
+      setLoading(false)
     }
-
-    if (verified) navigate('/app', { replace: true })
   }
 
   async function handleResend() {
     if (countdown > 0 || !flow) return
     setError('')
     try {
-      const { error: resendError } = await supabase.auth.signInWithOtp({ phone: flow.phone })
-      if (resendError) throw resendError
+      const response = await fetch('/api/resend-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: flow.email }),
+      })
+      if (!response.ok) throw new Error('resend failed')
       setCountdown(RESEND_SECONDS)
     } catch {
       setError(RESEND_ERROR)
@@ -98,15 +101,15 @@ export function VerifyPage() {
   return (
     <AuthShell
       eyebrow="One last step"
-      heading="Verify your phone"
+      heading="Verify your email"
       footer={
         <>
-          Wrong number? <Link to={flow.mode === 'signup' ? '/signup' : '/login'}>Use a different number</Link>
+          Wrong address? <Link to="/signup">Use a different email</Link>
         </>
       }
     >
       <p className="auth-card__intro">
-        We sent a 6-digit code to <strong>{maskPhone(flow.phone)}</strong>. It may take a moment to arrive.
+        We sent a 6-digit code to <strong>{maskEmail(flow.email)}</strong>. Check your inbox and enter it below.
       </p>
 
       <form onSubmit={handleVerify} className="auth-form">
@@ -115,6 +118,15 @@ export function VerifyPage() {
           <OtpInput id="otp" value={code} onChange={setCode} disabled={loading} error={error} />
           {error ? <p className="field-error">{error}</p> : null}
         </div>
+
+        {!flow.password ? (
+          <div className="field">
+            <label htmlFor="verify-password">Password</label>
+            <input id="verify-password" type="password" autoComplete="current-password"
+              placeholder="Your FreshPoint password" value={fallbackPassword}
+              onChange={(event) => setFallbackPassword(event.target.value)} />
+          </div>
+        ) : null}
 
         <button className="btn btn--primary btn--block btn--large" type="submit" disabled={loading}>
           {loading ? 'Verifying…' : <>Verify &amp; continue <ArrowRight size={18} /></>}
