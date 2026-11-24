@@ -1,7 +1,7 @@
 import {
   InputError, adminFetch, assertConfigured, dbFetch, hashCode, publicFetch,
   readJson, send, sendWelcomeEmail, type ApiRequest, type ApiResponse,
-} from '../server/freshpoint'
+} from '../server/freshpoint.js'
 
 type Confirmation = {
   user_id: string

@@ -2,7 +2,7 @@ import {
   InputError, adminFetch, assertConfigured, dbFetch, hashCode, newCode, codeExpiry,
   publicFetch, readJson, send, sendConfirmationEmail,
   type ApiRequest, type ApiResponse,
-} from '../server/freshpoint'
+} from '../server/freshpoint.js'
 
 const accountTypes = new Set(['household', 'retailer', 'restaurant', 'wholesale'])
 
