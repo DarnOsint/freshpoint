@@ -11,11 +11,19 @@ export type Product = {
   emoji: string
   tone: 'red' | 'orange' | 'brown' | 'green' | 'amber' | 'teal'
   stock: number
+  /** Cloudflare R2 object key (or full URL). Empty falls back to the emoji tile. */
+  image?: string | null
 }
 
 export type CartLine = { productId: string; quantity: number }
 
-export type OrderLine = { name: string; quantity: number; price: number; emoji: string }
+export type OrderLine = {
+  name: string
+  quantity: number
+  price: number
+  emoji: string
+  image?: string | null
+}
 
 export type Order = {
   id: string

@@ -68,7 +68,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   function placeOrder(details: { customer: string; phone: string; address: string }) {
     const items = data.cart.flatMap((line) => {
       const product = data.products.find((item) => item.id === line.productId)
-      return product ? [{ name: product.name, quantity: line.quantity, price: product.price, emoji: product.emoji }] : []
+      return product ? [{ name: product.name, quantity: line.quantity, price: product.price, emoji: product.emoji, image: product.image }] : []
     })
     const order: Order = {
       id: `FP-${Math.floor(3000 + Math.random() * 6999)}`,

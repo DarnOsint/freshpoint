@@ -15,6 +15,7 @@ import {
   Truck,
 } from 'lucide-react'
 import { config } from '../config'
+import { imageUrl } from '../lib/assets'
 
 const categories = [
   {
@@ -116,6 +117,7 @@ const steps = [
 export function Home() {
   const { hash } = useLocation()
   const [heroPhotoLoaded, setHeroPhotoLoaded] = useState(false)
+  const heroImage = imageUrl(import.meta.env.VITE_R2_HERO_KEY, '/images/hero-market.jpg')
 
   useEffect(() => {
     if (!hash) return
@@ -151,7 +153,7 @@ export function Home() {
             <div className="hero__photo">
               <img
                 className={`hero__photo-img${heroPhotoLoaded ? ' hero__photo-img--loaded' : ''}`}
-                src="/images/hero-market.jpg"
+                src={heroImage}
                 alt="Fresh produce at a market"
                 onLoad={() => setHeroPhotoLoaded(true)}
                 onError={() => setHeroPhotoLoaded(false)}

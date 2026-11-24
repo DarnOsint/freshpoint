@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowRight, Minus, Plus, ShoppingBasket, Trash2 } from 'lucide-react'
+import { ProductImage } from '../../components/ProductImage'
 import { useAuth } from '../../lib/auth-context'
 import { useData } from '../../lib/data-store'
 import { formatMoney } from '../../lib/format'
@@ -55,7 +56,7 @@ export function CartPage() {
       <div className="cart-list">
         {lines.map(({ product, quantity }) => (
           <article className="cart-line" key={product.id}>
-            <span className={`cart-line__art cart-line__art--${product.tone}`} aria-hidden="true">{product.emoji}</span>
+            <ProductImage image={product.image} emoji={product.emoji} className={`cart-line__art cart-line__art--${product.tone}`} />
             <div className="cart-line__info">
               <strong>{product.name}</strong>
               <small>{formatMoney(product.price)} · {product.unit}</small>

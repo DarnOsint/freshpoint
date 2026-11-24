@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Check, Plus, Search } from 'lucide-react'
+import { ProductImage } from '../../components/ProductImage'
 import { useData } from '../../lib/data-store'
 import { formatMoney } from '../../lib/format'
 import { categories } from '../../lib/demo-data'
@@ -57,7 +58,7 @@ export function ShopPage() {
             return (
               <article className="shop-card" key={product.id}>
                 <div className={`shop-card__art shop-card__art--${product.tone}`} aria-hidden="true">
-                  <span>{product.emoji}</span>
+                  <ProductImage image={product.image} emoji={product.emoji} />
                   {product.stock <= 10 ? <em>Low stock</em> : null}
                 </div>
                 <div className="shop-card__body">

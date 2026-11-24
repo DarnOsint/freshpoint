@@ -61,6 +61,25 @@ export function LoginPage() {
       if (method === 'phone') {
         const country = countries.find((item) => item.code === countryCode) ?? defaultCountry
         identifier = toE164(country.dial, phone)
+
+        // Email is the reliable identifier when a project has phone sign-in disabled.
+        const { data, error: lookupError } = await supabase.rpc('login_identifier_for_phone', {
+          p_phone: identifier,
+        })
+        if (!lookupError) {
+          const linkedEmail = (data as Array<{ email: string }> | null)?.[0]?.email
+          if (linkedEmail) {
+            const { error: emailError } = await supabase.auth.signInWithPassword({
+              email: linkedEmail,
+              password,
+            })
+            if (!emailError) {
+              setLoading(false)
+              navigate('/app', { replace: true })
+              return
+            }
+          }
+        }
       } else if (method === 'email') {
         identifier = email.trim()
       } else {

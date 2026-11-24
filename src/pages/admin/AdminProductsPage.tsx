@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Package, Plus, Save, X } from 'lucide-react'
+import { ProductImage } from '../../components/ProductImage'
 import { categories } from '../../lib/demo-data'
 import { useData } from '../../lib/data-store'
 import { formatMoney } from '../../lib/format'
@@ -9,7 +10,7 @@ const tones: Product['tone'][] = ['green', 'orange', 'amber', 'brown', 'red', 't
 const emojis = ['🥬', '🥭', '🌾', '🥔', '🧄', '🍅', '🥕', '🍌', '🫘', '🥜']
 
 const emptyProduct: Product = {
-  id: '', name: '', category: 'Vegetables', price: 0, unit: 'per kg', emoji: '🥬', tone: 'green', stock: 0,
+  id: '', name: '', category: 'Vegetables', price: 0, unit: 'per kg', emoji: '🥬', tone: 'green', stock: 0, image: '',
 }
 
 export function AdminProductsPage() {
@@ -63,6 +64,9 @@ export function AdminProductsPage() {
             <div className="field"><label htmlFor="productStock">Stock</label>
               <input id="productStock" type="number" min="0" value={form.stock} onChange={(event) => setForm({ ...form, stock: Number(event.target.value) })} inputMode="numeric" />
             </div>
+            <div className="field"><label htmlFor="productImage">Image key / URL</label>
+              <input id="productImage" value={form.image ?? ''} onChange={(event) => setForm({ ...form, image: event.target.value })} placeholder="products/tomatoes.jpg" />
+            </div>
             <div className="field"><label htmlFor="productEmoji">Icon</label>
               <select id="productEmoji" value={form.emoji} onChange={(event) => setForm({ ...form, emoji: event.target.value })}>
                 {emojis.map((emoji) => <option key={emoji} value={emoji}>{emoji}</option>)}
@@ -85,7 +89,7 @@ export function AdminProductsPage() {
           <div className="product-table__head"><span>Product</span><span>Price</span><span>Stock</span></div>
           {products.map((product) => (
             <div className="product-table__row" key={product.id}>
-              <div className="product-table__name"><span className={`cart-line__art cart-line__art--${product.tone}`}>{product.emoji}</span><div><strong>{product.name}</strong><small>{product.category} · {product.unit}</small></div></div>
+              <div className="product-table__name"><ProductImage image={product.image} emoji={product.emoji} className={`cart-line__art cart-line__art--${product.tone}`} /><div><strong>{product.name}</strong><small>{product.category} · {product.unit}</small></div></div>
               <strong>{formatMoney(product.price)}</strong>
               <span className={`stock-pill${product.stock <= 10 ? ' stock-pill--low' : ''}`}>{product.stock}</span>
             </div>

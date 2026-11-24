@@ -425,6 +425,9 @@ img, svg { display: block; }
 .shop-card { overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: var(--white); }
 .shop-card__art { position: relative; display: grid; place-items: center; height: 96px; font-size: 2.5rem; }
 .shop-card__art em { position: absolute; top: 7px; right: 7px; padding: 3px 7px; border-radius: 999px; background: var(--white); color: #b45309; font-size: 0.6rem; font-style: normal; font-weight: 800; }
+.product-image { display: block; width: 100%; height: 100%; object-fit: cover; }
+.shop-card__art .product-image { position: absolute; inset: 0; }
+.cart-line__art.product-image { overflow: hidden; }
 .shop-card__art--red { background: linear-gradient(135deg, #ffe4e6, #fff1f2); }
 .shop-card__art--orange { background: linear-gradient(135deg, #fed7aa, #fff7ed); }
 .shop-card__art--brown { background: linear-gradient(135deg, #e7d5bf, #faf5ef); }
