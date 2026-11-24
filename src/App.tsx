@@ -7,6 +7,8 @@ import { Home } from './pages/Home'
 import { LoginPage } from './pages/LoginPage'
 import { SignupPage } from './pages/SignupPage'
 import { VerifyPage } from './pages/VerifyPage'
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
+import { ResetPasswordPage } from './pages/ResetPasswordPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { DashboardPage } from './pages/user/DashboardPage'
 import { ShopPage } from './pages/user/ShopPage'
@@ -25,6 +27,8 @@ export function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/verify" element={<VerifyPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/admin/login" element={<AdminLoginPage />} />
       <Route path="/account" element={<Navigate to="/app/account" replace />} />
 

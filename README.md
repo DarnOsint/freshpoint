@@ -37,6 +37,7 @@ Without Supabase credentials the site still loads, but sending/verifying a code 
 
 - **Signup:** email and password are required; phone is optional and may be added for phone sign-in later. After signup, Resend emails a 6-digit confirmation code. Entering it confirms the address, saves the profile, signs the user in, and sends a designed welcome email.
 - **Login:** choose **Phone**, **Email** or **Username** and enter the password. Username is resolved to the linked email (or phone) through a safe SQL function. Phone login also resolves the linked email first, so it keeps working even if a project has not enabled Supabase phone sign-in; direct phone-password auth is used when no linked email exists.
+- **Password reset:** email-only via `/forgot-password` → emailed code → `/reset-password`; no SMS or username-based recovery.
 - Authentication errors are never shown verbatim to customers — the UI uses friendly, generic messages.
 - The country selector builds E.164 numbers (for example `+211900123456`). South Sudan is the default; 40+ countries are included in [`src/lib/countries.ts`](src/lib/countries.ts).
 - Signed-in visitors are taken to their account instead of seeing the login form again.
@@ -66,8 +67,16 @@ Confirmation codes and the welcome email are sent by serverless API routes that 
 - `api/signup.ts` creates the Supabase Auth user, stores a hashed code in the server-only `email_confirmations` table, and emails the code.
 - `api/verify-email.ts` checks the code, confirms the email, saves the profile, starts a Supabase session and sends the branded welcome email.
 - `api/resend-code.ts` issues a fresh code with a 30-second cooldown.
-- Set `RESEND_API_KEY`, `SUPABASE_SECRET_KEY` (both sensitive), `RESEND_FROM_EMAIL` and `SITE_URL` in Vercel. `SITE_URL` builds the welcome email’s “Start shopping” link.
+- Set `RESEND_API_KEY`, `SUPABASE_SECRET_KEY` (both sensitive), `RESEND_FROM_EMAIL` and `SITE_URL` in Vercel. `SITE_URL` builds the welcome email’s “Start shopping” link and password-reset links.
 - While testing, `RESEND_FROM_EMAIL` can be `FreshPoint <onboarding@resend.dev>`. Resend limits those messages to the account owner’s address, so verify a sending domain and switch to an address on it before launch.
+
+### Password reset
+
+Password recovery is email-only. Both login screens link to `/forgot-password`.
+
+- `api/forgot-password.ts` looks up the profile by email, stores a hashed 6-digit code in the server-only `password_resets` table, and emails a reset link plus code through Resend. Unknown addresses return the same success response so accounts cannot be enumerated.
+- `api/reset-password.ts` validates the code (5 attempts, 10-minute expiry), updates the Supabase Auth password with the secret key, emails a “password changed” notice, and removes the code.
+- The reset page accepts the emailed link or manual code entry, and can request a new code after a 30-second cooldown.
 
 ### Customer app and admin console
 
@@ -101,7 +110,7 @@ The production build is generated in `dist/`. `vite-plugin-pwa` generates the se
 ## Structure
 
 ```
-api/             Serverless signup, email verification and code resend routes
+api/             Serverless signup, email verification, password reset and code resend routes
 server/          Shared Supabase/Resend helpers and branded email templates
 src/
   components/    Header, Footer, Layout, Logo, auth/customer/admin shells, guards

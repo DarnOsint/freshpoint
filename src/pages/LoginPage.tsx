@@ -184,6 +184,8 @@ export function LoginPage() {
           </div>
         </div>
 
+        <div className="auth-link-row"><Link to="/forgot-password">Forgot password?</Link></div>
+
         {error && method !== 'phone' ? <p className="field-error">{error}</p> : null}
 
         <button className="btn btn--primary btn--block btn--large" type="submit" disabled={loading}>

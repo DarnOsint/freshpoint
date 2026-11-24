@@ -260,6 +260,11 @@ img, svg { display: block; }
 .auth-card__footer a { color: var(--green-700); font-weight: 700; }
 .auth-card__back { display: block; margin-top: 12px; color: #8a978e; font-size: 0.82rem; text-align: center; }
 .auth-card__back:hover { color: var(--green-700); }
+.auth-card__intro--tight { margin-top: 14px; margin-bottom: 0; font-size: 0.82rem; }
+.auth-link-row { display: flex; justify-content: flex-end; margin-top: -2px; }
+.auth-link-row a { display: inline-flex; align-items: center; min-height: 44px; color: var(--green-700); font-size: 0.84rem; font-weight: 700; }
+.auth-notice { display: grid; place-items: center; gap: 10px; margin-bottom: 18px; padding: 20px 16px; border: 1px solid #bbf7d0; border-radius: 14px; background: var(--green-50); color: var(--green-800); text-align: center; }
+.auth-notice p { margin: 0; font-size: 0.88rem; line-height: 1.6; }
 
 .login-methods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; margin-bottom: 18px; border: 1.5px solid var(--line); border-radius: 999px; background: var(--white); }
 .login-method { min-height: 40px; border: 0; border-radius: 999px; background: transparent; color: var(--muted); font-size: 0.82rem; font-weight: 700; cursor: pointer; }

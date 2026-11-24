@@ -135,6 +135,27 @@ ${button(`${siteUrl}/login`, 'Start shopping')}`
   await sendEmail(email, 'Welcome to FreshPoint 🎉', layout(content))
 }
 
+export async function sendPasswordResetEmail(email: string, name: string, code: string) {
+  const resetUrl = `${siteUrl}/reset-password?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`
+  const content = `
+<h1 style="margin:0 0 16px;font-size:24px;color:#166534;">Reset your password</h1>
+<p style="margin:0 0 18px;font-size:15px;line-height:1.7;">Hi ${escapeHtml(name)}, we received a request to reset your FreshPoint password. Use the code below or the button to choose a new one.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 22px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;"><tr><td style="padding:18px 26px;font-family:courier,monospace;font-size:30px;letter-spacing:8px;color:#14532d;font-weight:bold;">${code}</td></tr></table>
+<p style="margin:0 0 22px;">${button(resetUrl, 'Reset password')}</p>
+<p style="margin:0;font-size:13px;line-height:1.6;color:#4b6b55;">This code expires in 10 minutes and can be used once. If you did not request a reset, you can ignore this email — your password will stay unchanged.</p>`
+  await sendEmail(email, 'Reset your FreshPoint password', layout(content))
+}
+
+export async function sendPasswordChangedEmail(email: string, name: string) {
+  const content = `
+<h1 style="margin:0 0 16px;font-size:24px;color:#166534;">Password updated</h1>
+<p style="margin:0 0 18px;font-size:15px;line-height:1.7;">Hi ${escapeHtml(name)}, your FreshPoint password has just been changed.</p>
+<p style="margin:0 0 24px;font-size:15px;line-height:1.7;">You can now log in with your email, username or phone number and your new password.</p>
+${button(`${siteUrl}/login`, 'Go to login')}
+<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#4b6b55;">If this wasn’t you, contact FreshPoint support immediately.</p>`
+  await sendEmail(email, 'Your FreshPoint password was changed', layout(content))
+}
+
 async function sendEmail(to: string, subject: string, html: string) {
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',

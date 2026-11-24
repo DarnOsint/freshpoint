@@ -114,6 +114,7 @@ export function AdminLoginPage() {
             </button>
           </div>
         </div>
+        <div className="auth-link-row"><Link to="/forgot-password">Forgot password?</Link></div>
         {error ? <p className="field-error">{error}</p> : null}
         <button className="btn btn--primary btn--block btn--large" type="submit" disabled={loading}>
           {loading ? 'Signing in…' : <>Sign in to console <ArrowRight size={18} /></>}

@@ -236,6 +236,28 @@ create trigger email_confirmations_set_updated_at
   before update on public.email_confirmations
   for each row execute function public.set_updated_at();
 
+-- Password reset codes are emailed by the serverless API via Resend.
+-- Server-only, like email_confirmations.
+create table if not exists public.password_resets (
+  email text primary key,
+  user_id uuid not null,
+  code_hash text not null,
+  full_name text not null,
+  attempts integer not null default 0,
+  expires_at timestamptz not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.password_resets enable row level security;
+revoke all on public.password_resets from anon, authenticated;
+grant all on public.password_resets to service_role;
+
+drop trigger if exists password_resets_set_updated_at on public.password_resets;
+create trigger password_resets_set_updated_at
+  before update on public.password_resets
+  for each row execute function public.set_updated_at();
+
 -- Supabase creates these roles, but raw SQL tables need explicit REST privileges.
 grant usage on schema public to anon, authenticated;
 grant select, insert, update on public.profiles to authenticated;
