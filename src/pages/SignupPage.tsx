@@ -116,7 +116,7 @@ export function SignupPage() {
     })
   }
 
-  if (session) return <Navigate to="/account" replace />
+  if (session) return <Navigate to="/app" replace />
 
   return (
     <AuthShell

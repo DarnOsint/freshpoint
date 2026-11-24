@@ -5,8 +5,10 @@ A installable PWA and marketing site for **OrganicPoint / FreshPoint**, an agric
 The app includes:
 
 - A full landing page: hero, product categories, fresh picks, why FreshPoint, how it works, wholesale CTA and contact details.
-- Phone-based login and signup with a country selector that defaults to **South Sudan (+211)** and can be changed to any supported country.
+- Password login with **phone**, **email** or **username**, and signup that sets the password. The phone country selector defaults to **South Sudan (+211)**.
 - SMS one-time-code verification powered by Supabase Auth.
+- A mobile-first customer app after login: dashboard, shop, basket/checkout, order history and profile.
+- A separate admin console at `/admin`: overview, order management, products and customers.
 - Installable PWA support with an offline-capable service worker, web manifest and app icons.
 
 ## Quick start
@@ -39,6 +41,13 @@ Without Supabase credentials the site still loads, but sending/verifying a code 
 - Signed-in visitors are taken to their account instead of seeing the login form again.
 - The UI is mobile-first: single-column layouts and 48px+ touch targets by default, with wider layouts added at larger breakpoints.
 
+### Customer app and admin console
+
+- Signed-in customers land at `/app`. Tabs cover **Home** (overview), **Shop** (searchable catalogue), **Basket** (quantity controls and checkout), **Orders** and **Account**.
+- Placing an order adds it to order history and creates a customer record if needed. Products, orders and customers persist in the browser via `localStorage` for now; swapping in Supabase tables later only requires changing `src/lib/data-context.tsx`.
+- `/admin/login` is a separate, chrome-free sign-in for staff. After sign-in, the console is at `/admin` with orders, products and customers screens.
+- Admin access is granted by setting `app_metadata.role = 'admin'` on the Supabase auth user (the `profiles.role` column mirrors it for reporting). Non-admin users are redirected away from `/admin`. Seed the admin credential when ready.
+
 ## Scripts
 
 | Command | What it does |
@@ -64,9 +73,11 @@ The production build is generated in `dist/`. `vite-plugin-pwa` generates the se
 
 ```
 src/
-  components/    Header, Footer, Layout, Logo, phone/OTP fields, auth shell
-  lib/           Supabase client, auth context, country/dial-code helpers
-  pages/         Home, Login, Signup, Verify, Account, 404
+  components/    Header, Footer, Layout, Logo, auth/customer/admin shells, guards
+  lib/           Supabase client, auth/store contexts, country helpers, demo data
+  pages/user/    Dashboard, Shop, Cart, Orders, Profile
+  pages/admin/   Admin login, Dashboard, Orders, Products, Customers
+  pages/         Home, Login, Signup, Verify, 404
   config.ts      Brand and contact details
   index.css      Design system and responsive styles
 public/icons/    PWA app icons

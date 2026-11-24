@@ -80,7 +80,7 @@ export function VerifyPage() {
       if (emailLinkError) console.error('Failed to link email for login', emailLinkError)
     }
 
-    if (verified) navigate('/account', { replace: true })
+    if (verified) navigate('/app', { replace: true })
   }
 
   async function handleResend() {

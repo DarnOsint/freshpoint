@@ -85,10 +85,10 @@ export function LoginPage() {
     }
 
     setLoading(false)
-    navigate('/account', { replace: true })
+    navigate('/app', { replace: true })
   }
 
-  if (session) return <Navigate to="/account" replace />
+  if (session) return <Navigate to="/app" replace />
 
   return (
     <AuthShell

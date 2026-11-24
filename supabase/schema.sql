@@ -11,6 +11,12 @@ create table if not exists public.profiles (
   updated_at timestamptz not null default now()
 );
 
+-- Admin access is granted by setting app_metadata.role = 'admin' on the auth user.
+-- This column mirrors that role for reporting and is safe to seed later.
+alter table public.profiles
+  add column if not exists role text not null default 'customer'
+    check (role in ('customer', 'admin'));
+
 create unique index if not exists profiles_username_key on public.profiles (lower(username));
 
 alter table public.profiles enable row level security;

@@ -30,7 +30,7 @@ export function Header() {
           <div className="main-nav__auth">
             {session ? (
               <>
-                <Link to="/account" className="btn btn--outline btn--small" onClick={() => setOpen(false)}>
+                <Link to="/app" className="btn btn--outline btn--small" onClick={() => setOpen(false)}>
                   <UserRound size={16} /> My account
                 </Link>
                 <button className="btn btn--ghost btn--small" onClick={() => void signOut()} type="button">
