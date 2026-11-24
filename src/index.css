@@ -247,10 +247,10 @@ img, svg { display: block; }
 .location-card p { margin: 0; color: var(--muted); font-size: 0.88rem; line-height: 1.6; }
 
 /* Auth — mobile first */
-.auth-layout { display: flex; flex-direction: column; min-height: calc(100dvh - 86px); }
+.auth-layout { display: flex; flex-direction: column; min-height: 100dvh; }
 .auth-panel { display: none; }
-.auth-main { display: block; flex: 1; padding: 20px 20px 28px; background: var(--cream); }
-.auth-card { width: 100%; }
+.auth-main { display: flex; flex: 1; padding: 20px 20px 28px; background: var(--cream); }
+.auth-card { width: 100%; margin: auto; }
 .auth-card__mobile-logo { display: flex; justify-content: center; margin-bottom: 16px; }
 .auth-card__mobile-logo img { height: 42px; }
 .auth-card h1 { margin-bottom: 8px; color: var(--green-950); font-size: 1.65rem; line-height: 1.15; letter-spacing: -0.035em; }
@@ -394,7 +394,6 @@ img, svg { display: block; }
   .step-card { padding: 28px 26px 30px; }
   .step-card__number { font-size: 2.6rem; }
   .step-card__icon { width: 52px; height: 52px; }
-  .auth-layout { min-height: calc(100dvh - 106px); }
   .auth-card h1 { font-size: 2.15rem; }
   .auth-card__mobile-logo img { height: 50px; }
   .auth-form { gap: 18px; }
@@ -436,7 +435,7 @@ img, svg { display: block; }
   .location-card { flex-direction: row; align-items: center; gap: 24px; padding: 32px 36px; }
   .location-card .btn { margin-left: auto; }
 
-  .auth-layout { display: grid; grid-template-columns: 0.9fr 1.1fr; min-height: calc(100dvh - 106px); }
+  .auth-layout { display: grid; grid-template-columns: 0.9fr 1.1fr; min-height: 100dvh; }
   .auth-panel { position: relative; display: flex; flex-direction: column; justify-content: center; gap: 32px; padding: 52px clamp(28px, 5vw, 70px); background: radial-gradient(circle at 10% 90%, rgba(34, 197, 94, 0.25), transparent 42%), linear-gradient(150deg, var(--green-950), var(--green-800)); color: var(--white); }
   .auth-panel__content h2 { max-width: 430px; margin-bottom: 16px; font-size: clamp(1.8rem, 2.6vw, 2.5rem); line-height: 1.16; letter-spacing: -0.035em; }
   .auth-panel__content > p:not(.eyebrow) { max-width: 430px; color: #c8e7d1; line-height: 1.7; }

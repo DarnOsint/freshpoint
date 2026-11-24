@@ -10,11 +10,11 @@ import { NotFoundPage } from './pages/NotFoundPage'
 export function App() {
   return (
     <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/signup" element={<SignupPage />} />
+      <Route path="/verify" element={<VerifyPage />} />
       <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
-        <Route path="/verify" element={<VerifyPage />} />
         <Route path="/account" element={<AccountPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
