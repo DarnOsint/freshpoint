@@ -3,6 +3,7 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { ArrowRight, RefreshCw } from 'lucide-react'
 import { AuthShell } from '../components/AuthShell'
 import { OtpInput } from '../components/OtpInput'
+import { homePathForUser } from '../lib/roles'
 import { useSiteSettings } from '../lib/site-content'
 import { supabase } from '../lib/supabase'
 import type { VerifyState } from '../lib/auth-context'
@@ -72,12 +73,12 @@ export function VerifyPage() {
         throw new Error(result.error ?? copy.codeError)
       }
 
-      const { error: sessionError } = await supabase.auth.setSession({
+      const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
         access_token: result.access_token,
         refresh_token: result.refresh_token,
       })
       if (sessionError) throw sessionError
-      navigate('/app', { replace: true })
+      navigate(homePathForUser(sessionData.user), { replace: true })
     } catch {
       setError(copy.codeError)
       setLoading(false)

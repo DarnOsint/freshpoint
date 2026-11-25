@@ -784,8 +784,10 @@ export function AdminWebsitePage() {
             <TextField label="Filter label" value={app.shop.filterLabel} onChange={(value) => updateApp('shop', 'filterLabel', value)} />
             <TextField label="All categories" value={app.shop.all} onChange={(value) => updateApp('shop', 'all', value)} />
             <TextField label="Low stock" value={app.shop.lowStock} onChange={(value) => updateApp('shop', 'lowStock', value)} />
-            <TextField label="Added label" value={app.shop.added} onChange={(value) => updateApp('shop', 'added', value)} />
             <TextField label="Add to basket" value={app.shop.addToBasket} onChange={(value) => updateApp('shop', 'addToBasket', value)} />
+            <TextField label="Choose item label" value={app.shop.selectLabel} onChange={(value) => updateApp('shop', 'selectLabel', value)} />
+            <TextField label="Decrease item label" value={app.shop.decreaseLabel} onChange={(value) => updateApp('shop', 'decreaseLabel', value)} />
+            <TextField label="Increase item label" value={app.shop.increaseLabel} onChange={(value) => updateApp('shop', 'increaseLabel', value)} />
             <TextField label="Nothing found title" value={app.shop.nothingFound} onChange={(value) => updateApp('shop', 'nothingFound', value)} />
             <TextField label="Nothing found text" value={app.shop.nothingFoundHint} onChange={(value) => updateApp('shop', 'nothingFoundHint', value)} />
           </div>

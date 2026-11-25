@@ -66,7 +66,7 @@ export function CartPage() {
               <div className="qty-control">
                 <button type="button" onClick={() => setCartQuantity(product.id, quantity - 1)} aria-label={copy.removeOne.replace('{name}', product.name)}><Minus size={16} /></button>
                 <span>{quantity}</span>
-                <button type="button" onClick={() => setCartQuantity(product.id, quantity + 1)} aria-label={copy.addOne.replace('{name}', product.name)}><Plus size={16} /></button>
+                <button type="button" onClick={() => setCartQuantity(product.id, quantity + 1)} disabled={quantity >= product.stock} aria-label={copy.addOne.replace('{name}', product.name)}><Plus size={16} /></button>
               </div>
             </div>
             <div className="cart-line__right">

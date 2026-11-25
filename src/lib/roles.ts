@@ -6,5 +6,5 @@ export function isAdmin(user: User | null | undefined) {
 }
 
 export function homePathForUser(user: User | null | undefined) {
-  return isAdmin(user) ? '/admin' : '/app'
+  return isAdmin(user) ? '/admin' : '/app/shop'
 }

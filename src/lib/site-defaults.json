@@ -347,8 +347,10 @@
         "filterLabel": "Filter by category",
         "all": "All",
         "lowStock": "Low stock",
-        "added": "Added",
         "addToBasket": "Add to basket",
+        "selectLabel": "Choose {name}",
+        "decreaseLabel": "Remove one {name}",
+        "increaseLabel": "Add one {name}",
         "nothingFound": "Nothing found",
         "nothingFoundHint": "Try another name or category."
       },

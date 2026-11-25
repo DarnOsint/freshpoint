@@ -64,8 +64,10 @@ export type SiteAppInterface = {
     filterLabel: string
     all: string
     lowStock: string
-    added: string
     addToBasket: string
+    selectLabel: string
+    decreaseLabel: string
+    increaseLabel: string
     nothingFound: string
     nothingFoundHint: string
   }
