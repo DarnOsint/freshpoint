@@ -270,7 +270,13 @@ export type SiteInterface = {
 }
 
 export type SiteSettings = {
-  seo: { title: string; description: string }
+  seo: {
+    title: string
+    description: string
+    manifestName: string
+    manifestShortName: string
+    themeColor: string
+  }
   brand: {
     appName: string
     tagline: string

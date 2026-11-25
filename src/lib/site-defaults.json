@@ -1,7 +1,10 @@
 {
   "seo": {
     "title": "FreshPoint — Your Everyday Fresh Market",
-    "description": "Your trusted marketplace for fresh vegetables, fruits, grains and everyday food essentials. Shop quality produce at competitive prices with convenient delivery across South Sudan."
+    "description": "Your trusted marketplace for fresh vegetables, fruits, grains and everyday food essentials. Shop quality produce at competitive prices with convenient delivery across South Sudan.",
+    "manifestName": "FreshPoint — Your Everyday Fresh Market",
+    "manifestShortName": "FreshPoint",
+    "themeColor": "#166534"
   },
   "brand": {
     "appName": "FreshPoint",

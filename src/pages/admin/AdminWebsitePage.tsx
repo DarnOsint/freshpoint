@@ -296,6 +296,9 @@ export function AdminWebsitePage() {
           <div className="admin-form__grid">
             <TextField label="Browser title" value={draft.seo.title} onChange={(value) => patch((current) => ({ ...current, seo: { ...current.seo, title: value } }))} />
             <TextField label="Search description" value={draft.seo.description} onChange={(value) => patch((current) => ({ ...current, seo: { ...current.seo, description: value } }))} multiline />
+            <TextField label="Installed app name" value={draft.seo.manifestName} onChange={(value) => patch((current) => ({ ...current, seo: { ...current.seo, manifestName: value } }))} />
+            <TextField label="Installed app short name" value={draft.seo.manifestShortName} onChange={(value) => patch((current) => ({ ...current, seo: { ...current.seo, manifestShortName: value } }))} />
+            <TextField label="Theme colour" value={draft.seo.themeColor} onChange={(value) => patch((current) => ({ ...current, seo: { ...current.seo, themeColor: value } }))} />
             <TextField label="App name" value={draft.brand.appName} onChange={(value) => updateBrand('appName', value)} />
             <TextField label="Tagline" value={draft.brand.tagline} onChange={(value) => updateBrand('tagline', value)} />
             <TextField label="Brand eyebrow" value={draft.brand.eyebrow} onChange={(value) => updateBrand('eyebrow', value)} multiline />

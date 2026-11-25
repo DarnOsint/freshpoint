@@ -30,9 +30,13 @@ export function SiteSettingsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     document.title = settings.seo.title
-    const meta = document.querySelector('meta[name="description"]')
-    if (meta) meta.setAttribute('content', settings.seo.description)
-  }, [settings.seo.description, settings.seo.title])
+    const description = document.querySelector('meta[name="description"]')
+    if (description) description.setAttribute('content', settings.seo.description)
+    const theme = document.querySelector('meta[name="theme-color"]')
+    if (theme) theme.setAttribute('content', settings.seo.themeColor)
+    const manifest = document.querySelector<HTMLLinkElement>('link[rel="manifest"]')
+    if (manifest) manifest.href = '/api/manifest'
+  }, [settings.seo.description, settings.seo.themeColor, settings.seo.title])
 
   useEffect(() => {
     let active = true
