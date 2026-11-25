@@ -7,6 +7,7 @@ const year = new Date().getFullYear()
 
 export function Footer() {
   const { settings } = useSiteSettings()
+  const copy = settings.interface.common
 
   return (
     <footer className="site-footer" id="contact">
@@ -19,7 +20,7 @@ export function Footer() {
             <Link to="/" aria-label={`${settings.brand.appName} home`}>
               <Globe size={18} />
             </Link>
-            <a href={`mailto:${settings.contact.email}`} aria-label="Message us">
+            <a href={`mailto:${settings.contact.email}`} aria-label={copy.messageUs}>
               <MessageCircle size={18} />
             </a>
           </div>

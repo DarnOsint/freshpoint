@@ -3,9 +3,12 @@ import { Check, Plus, Search } from 'lucide-react'
 import { ProductImage } from '../../components/ProductImage'
 import { useData } from '../../lib/data-store'
 import { formatMoney } from '../../lib/format'
+import { useSiteSettings } from '../../lib/site-content'
 
 export function ShopPage() {
   const { products, cart, addToCart } = useData()
+  const { settings } = useSiteSettings()
+  const copy = settings.interface.app.shop
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('All')
   const [added, setAdded] = useState('')
@@ -28,18 +31,18 @@ export function ShopPage() {
     <div className="app-page">
       <header className="app-page__head">
         <div>
-          <p className="eyebrow">Fresh catalogue</p>
-          <h1>Shop produce</h1>
-          <p>Quality-checked essentials, ready for delivery across Juba.</p>
+          <p className="eyebrow">{copy.eyebrow}</p>
+          <h1>{copy.heading}</h1>
+          <p>{copy.intro}</p>
         </div>
       </header>
 
       <label className="search-field">
         <Search size={19} />
-        <input type="search" placeholder="Search produce" value={query} onChange={(event) => setQuery(event.target.value)} />
+        <input type="search" placeholder={copy.searchPlaceholder} value={query} onChange={(event) => setQuery(event.target.value)} />
       </label>
 
-      <div className="filter-chips" role="group" aria-label="Filter by category">
+      <div className="filter-chips" role="group" aria-label={copy.filterLabel}>
         {categoryOptions.map((item) => (
           <button
             key={item}
@@ -47,7 +50,7 @@ export function ShopPage() {
             className={`filter-chip${category === item ? ' filter-chip--active' : ''}`}
             onClick={() => setCategory(item)}
           >
-            {item}
+            {item === 'All' ? copy.all : item}
           </button>
         ))}
       </div>
@@ -60,7 +63,7 @@ export function ShopPage() {
               <article className="shop-card" key={product.id}>
                 <div className={`shop-card__art shop-card__art--${product.tone}`} aria-hidden="true">
                   <ProductImage image={product.image} emoji={product.emoji} />
-                  {product.stock <= 10 ? <em>Low stock</em> : null}
+                  {product.stock <= 10 ? <em>{copy.lowStock}</em> : null}
                 </div>
                 <div className="shop-card__body">
                   <h3>{product.name}</h3>
@@ -71,7 +74,7 @@ export function ShopPage() {
                     type="button"
                     onClick={() => handleAdd(product.id)}
                   >
-                    {added === product.id ? <><Check size={16} /> Added</> : <><Plus size={16} /> Add to basket{inCart ? ` (${inCart})` : ''}</>}
+                    {added === product.id ? <><Check size={16} /> {copy.added}</> : <><Plus size={16} /> {copy.addToBasket}{inCart ? ` (${inCart})` : ''}</>}
                   </button>
                 </div>
               </article>
@@ -81,8 +84,8 @@ export function ShopPage() {
       ) : (
         <div className="empty-state">
           <Search size={28} />
-          <h3>Nothing found</h3>
-          <p>Try another name or category.</p>
+          <h3>{copy.nothingFound}</h3>
+          <p>{copy.nothingFoundHint}</p>
         </div>
       )}
     </div>

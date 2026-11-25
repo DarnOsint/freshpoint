@@ -3,11 +3,14 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { ArrowRight, CheckCircle2, Eye, EyeOff, RefreshCw } from 'lucide-react'
 import { AuthShell } from '../components/AuthShell'
 import { OtpInput } from '../components/OtpInput'
+import { useSiteSettings } from '../lib/site-content'
 
 const RESEND_SECONDS = 30
-const INVALID = 'That code isn’t valid or has expired. Request a new one.'
 
 export function ResetPasswordPage() {
+  const { settings } = useSiteSettings()
+  const copy = settings.interface.reset
+  const common = settings.interface.common
   const [params] = useSearchParams()
   const [email, setEmail] = useState(params.get('email') ?? '')
   const [code, setCode] = useState((params.get('code') ?? '').replace(/\D/g, '').slice(0, 6))
@@ -33,19 +36,19 @@ export function ResetPasswordPage() {
     const cleanEmail = email.trim().toLowerCase()
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
-      setError('Enter a valid email address.')
+      setError(common.validEmail)
       return
     }
     if (code.length !== 6) {
-      setError('Enter the full 6-digit code.')
+      setError(common.fullCode)
       return
     }
     if (password.length < 8) {
-      setError('Use at least 8 characters.')
+      setError(common.passwordTooShort)
       return
     }
     if (password !== confirmPassword) {
-      setError('Passwords do not match.')
+      setError(common.passwordMismatch)
       return
     }
 
@@ -57,10 +60,10 @@ export function ResetPasswordPage() {
         body: JSON.stringify({ email: cleanEmail, code, password }),
       })
       const result = await response.json() as { ok?: boolean; error?: string }
-      if (!response.ok || !result.ok) throw new Error(result.error ?? INVALID)
+      if (!response.ok || !result.ok) throw new Error(result.error ?? copy.error)
       setDone(true)
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : INVALID)
+      setError(requestError instanceof Error ? requestError.message : copy.error)
     } finally {
       setLoading(false)
     }
@@ -71,7 +74,7 @@ export function ResetPasswordPage() {
     setError('')
     const cleanEmail = email.trim().toLowerCase()
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
-      setError('Enter a valid email address first.')
+      setError(copy.enterEmailFirst)
       return
     }
     try {
@@ -84,43 +87,37 @@ export function ResetPasswordPage() {
       setCode('')
       setCountdown(RESEND_SECONDS)
     } catch {
-      setError('We couldn’t resend the code. Try again shortly.')
+      setError(copy.resendError)
     }
   }
 
   return (
     <AuthShell
-      eyebrow="Choose a new password"
-      heading={done ? 'Password updated' : 'Reset your password'}
-      footer={
-        <>
-          Need help? <Link to="/login">Back to login</Link>
-        </>
-      }
+      eyebrow={copy.eyebrow}
+      heading={done ? copy.doneHeading : copy.heading}
+      footer={<>{copy.needHelp} <Link to="/login">{common.backToLogin}</Link></>}
     >
       {done ? (
         <>
           <div className="auth-notice">
             <CheckCircle2 size={26} />
-            <p>Your password has been changed. You can now log in with your new password.</p>
+            <p>{copy.doneNotice}</p>
           </div>
           <Link className="btn btn--primary btn--block btn--large" to="/login">
-            Go to login <ArrowRight size={18} />
+            {copy.doneCta} <ArrowRight size={18} />
           </Link>
         </>
       ) : (
         <>
-          <p className="auth-card__intro">
-            Enter the 6-digit code we emailed you and choose a new password.
-          </p>
+          <p className="auth-card__intro">{copy.intro}</p>
           <form onSubmit={handleSubmit} className="auth-form" noValidate>
             <div className="field">
-              <label htmlFor="reset-email">Email address</label>
+              <label htmlFor="reset-email">{common.emailLabel}</label>
               <input
                 id="reset-email"
                 type="email"
                 autoComplete="email"
-                placeholder="you@example.com"
+                placeholder={common.emailPlaceholder}
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 aria-invalid={Boolean(error)}
@@ -128,18 +125,18 @@ export function ResetPasswordPage() {
             </div>
 
             <div className="field">
-              <label htmlFor="reset-code">Reset code</label>
+              <label htmlFor="reset-code">{copy.codeLabel}</label>
               <OtpInput id="reset-code" value={code} onChange={setCode} disabled={loading} error={error} />
             </div>
 
             <div className="field">
-              <label htmlFor="new-password">New password</label>
+              <label htmlFor="new-password">{copy.newPasswordLabel}</label>
               <div className="password-input">
                 <input
                   id="new-password"
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="new-password"
-                  placeholder="At least 8 characters"
+                  placeholder={common.passwordPlaceholder}
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                 />
@@ -147,7 +144,7 @@ export function ResetPasswordPage() {
                   type="button"
                   className="password-input__toggle"
                   onClick={() => setShowPassword((value) => !value)}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-label={showPassword ? common.hidePassword : common.showPassword}
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
@@ -155,12 +152,12 @@ export function ResetPasswordPage() {
             </div>
 
             <div className="field">
-              <label htmlFor="confirm-password">Confirm new password</label>
+              <label htmlFor="confirm-password">{copy.confirmPasswordLabel}</label>
               <input
                 id="confirm-password"
                 type={showPassword ? 'text' : 'password'}
                 autoComplete="new-password"
-                placeholder="Repeat your new password"
+                placeholder={copy.confirmPlaceholder}
                 value={confirmPassword}
                 onChange={(event) => setConfirmPassword(event.target.value)}
               />
@@ -169,13 +166,13 @@ export function ResetPasswordPage() {
             {error ? <p className="field-error">{error}</p> : null}
 
             <button className="btn btn--primary btn--block btn--large" type="submit" disabled={loading}>
-              {loading ? 'Updating…' : <>Set new password <ArrowRight size={18} /></>}
+              {loading ? copy.updating : <>{copy.submit} <ArrowRight size={18} /></>}
             </button>
           </form>
 
           <button className="resend-button" type="button" onClick={() => void handleResend()} disabled={countdown > 0}>
             <RefreshCw size={15} />
-            {countdown > 0 ? `Resend code in ${countdown}s` : 'Resend code'}
+            {countdown > 0 ? copy.resendIn.replace('{seconds}', String(countdown)) : copy.resend}
           </button>
         </>
       )}

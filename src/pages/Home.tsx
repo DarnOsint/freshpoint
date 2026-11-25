@@ -1,36 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import {
-  ArrowRight,
-  BadgeCheck,
-  Building2,
-  ClipboardList,
-  Handshake,
-  Leaf,
-  MapPin,
-  PackageCheck,
-  ShoppingBasket,
-  Sprout,
-  Store,
-  Truck,
-  type LucideIcon,
-} from 'lucide-react'
+import { ArrowRight, Building2, Leaf, MapPin } from 'lucide-react'
 import { ProductImage } from '../components/ProductImage'
 import { imageUrl } from '../lib/assets'
 import { useData } from '../lib/data-store'
 import { formatMoney } from '../lib/format'
-import { useSiteSettings, type SiteIcon } from '../lib/site-content'
-
-const iconMap: Record<SiteIcon, LucideIcon> = {
-  sprout: Sprout,
-  badge: BadgeCheck,
-  store: Store,
-  truck: Truck,
-  handshake: Handshake,
-  clipboard: ClipboardList,
-  basket: ShoppingBasket,
-  package: PackageCheck,
-}
+import { useSiteSettings } from '../lib/site-content'
+import { siteIcon } from '../lib/site-icons'
 
 export function Home() {
   const { hash } = useLocation()
@@ -62,7 +38,7 @@ export function Home() {
             </div>
             <ul className="hero__points">
               {settings.hero.points.map((point, index) => {
-                const Icon = iconMap[point.icon] ?? BadgeCheck
+                const Icon = siteIcon(point.icon)
                 return <li key={`${point.text}-${index}`}><Icon size={18} /> {point.text}</li>
               })}
             </ul>
@@ -79,18 +55,16 @@ export function Home() {
               />
               {!heroPhotoLoaded ? (
                 <div className="hero__harvest" aria-hidden="true">
-                  <span>🥬</span><span>🍅</span><span>🥕</span>
-                  <span>🥭</span><span>🍌</span><span>🌽</span>
-                  <span>🥑</span><span>🍊</span><span>🧄</span>
+                  {settings.interface.home.harvest.split(/\s+/).filter(Boolean).map((emoji, index) => <span key={`${emoji}-${index}`}>{emoji}</span>)}
                 </div>
               ) : null}
             </div>
             <div className="hero__float hero__float--top">
-              <span className="hero__float-icon">🌿</span>
+              <span className="hero__float-icon">{settings.hero.floatTopIcon}</span>
               <div><strong>{settings.hero.floatTopTitle}</strong><small>{settings.hero.floatTopSubtitle}</small></div>
             </div>
             <div className="hero__float hero__float--bottom">
-              <span className="hero__float-icon">🚚</span>
+              <span className="hero__float-icon">{settings.hero.floatBottomIcon}</span>
               <div><strong>{settings.hero.floatBottomTitle}</strong><small>{settings.hero.floatBottomSubtitle}</small></div>
             </div>
             <div className="hero__produce" aria-hidden="true">{settings.hero.produce}</div>
@@ -149,7 +123,7 @@ export function Home() {
                 <div className="product-card__body">
                   <h3>{product.name}</h3>
                   <p className="product-card__price"><strong>{formatMoney(product.price)}</strong> <span>{product.unit}</span></p>
-                  <Link to="/signup" className="product-card__link">Order now <ArrowRight size={15} /></Link>
+                  <Link to="/signup" className="product-card__link">{settings.interface.home.orderNow} <ArrowRight size={15} /></Link>
                 </div>
               </article>
             ))}
@@ -168,7 +142,7 @@ export function Home() {
           </div>
           <div className="reason-grid">
             {settings.reasons.items.map((reason, index) => {
-              const Icon = iconMap[reason.icon] ?? Sprout
+              const Icon = siteIcon(reason.icon)
               return (
                 <article className="reason-card" key={`${reason.title}-${index}`}>
                   <span className="reason-card__icon"><Icon size={24} /></span>
@@ -191,7 +165,7 @@ export function Home() {
           </div>
           <div className="steps-grid">
             {settings.steps.items.map((step, index) => {
-              const Icon = iconMap[step.icon] ?? ClipboardList
+              const Icon = siteIcon(step.icon)
               return (
                 <article className="step-card" key={`${step.title}-${index}`}>
                   <span className="step-card__number">0{index + 1}</span>

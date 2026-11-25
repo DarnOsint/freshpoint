@@ -3,12 +3,11 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { ArrowRight, RefreshCw } from 'lucide-react'
 import { AuthShell } from '../components/AuthShell'
 import { OtpInput } from '../components/OtpInput'
+import { useSiteSettings } from '../lib/site-content'
 import { supabase } from '../lib/supabase'
 import type { VerifyState } from '../lib/auth-context'
 
 const RESEND_SECONDS = 30
-const VERIFY_ERROR = 'That code isn’t valid or has expired. Request a new one.'
-const RESEND_ERROR = 'We couldn’t resend the code. Try again shortly.'
 
 function maskEmail(email: string) {
   const [name, domain] = email.split('@')
@@ -19,6 +18,9 @@ function maskEmail(email: string) {
 export function VerifyPage() {
   const navigate = useNavigate()
   const location = useLocation()
+  const { settings } = useSiteSettings()
+  const copy = settings.interface.verify
+  const common = settings.interface.common
   const flow = (location.state as VerifyState | null)?.email ? (location.state as VerifyState) : null
 
   const [code, setCode] = useState('')
@@ -42,14 +44,14 @@ export function VerifyPage() {
     setError('')
 
     if (code.length !== 6) {
-      setError('Enter the full 6-digit code.')
+      setError(common.fullCode)
       return
     }
     if (!flow) return
 
     const password = flow.password || fallbackPassword.trim()
     if (!password) {
-      setError('Enter your password to finish verification.')
+      setError(copy.enterPassword)
       return
     }
 
@@ -67,7 +69,7 @@ export function VerifyPage() {
         refresh_token?: string
       }
       if (!response.ok || !result.ok || !result.access_token || !result.refresh_token) {
-        throw new Error(result.error ?? VERIFY_ERROR)
+        throw new Error(result.error ?? copy.codeError)
       }
 
       const { error: sessionError } = await supabase.auth.setSession({
@@ -77,7 +79,7 @@ export function VerifyPage() {
       if (sessionError) throw sessionError
       navigate('/app', { replace: true })
     } catch {
-      setError(VERIFY_ERROR)
+      setError(copy.codeError)
       setLoading(false)
     }
   }
@@ -94,48 +96,44 @@ export function VerifyPage() {
       if (!response.ok) throw new Error('resend failed')
       setCountdown(RESEND_SECONDS)
     } catch {
-      setError(RESEND_ERROR)
+      setError(copy.resendError)
     }
   }
 
   return (
     <AuthShell
-      eyebrow="One last step"
-      heading="Verify your email"
-      footer={
-        <>
-          Wrong address? <Link to="/signup">Use a different email</Link>
-        </>
-      }
+      eyebrow={copy.eyebrow}
+      heading={copy.heading}
+      footer={<>{copy.wrongAddress} <Link to="/signup">{copy.differentEmail}</Link></>}
     >
       <p className="auth-card__intro">
-        We sent a 6-digit code to <strong>{maskEmail(flow.email)}</strong>. Check your inbox and enter it below.
+        {copy.intro} <strong>{maskEmail(flow.email)}</strong>. {copy.introSuffix}
       </p>
 
       <form onSubmit={handleVerify} className="auth-form">
         <div className="field">
-          <label htmlFor="otp">Verification code</label>
+          <label htmlFor="otp">{copy.codeLabel}</label>
           <OtpInput id="otp" value={code} onChange={setCode} disabled={loading} error={error} />
           {error ? <p className="field-error">{error}</p> : null}
         </div>
 
         {!flow.password ? (
           <div className="field">
-            <label htmlFor="verify-password">Password</label>
+            <label htmlFor="verify-password">{copy.fallbackPasswordLabel}</label>
             <input id="verify-password" type="password" autoComplete="current-password"
-              placeholder="Your FreshPoint password" value={fallbackPassword}
+              placeholder={copy.fallbackPlaceholder} value={fallbackPassword}
               onChange={(event) => setFallbackPassword(event.target.value)} />
           </div>
         ) : null}
 
         <button className="btn btn--primary btn--block btn--large" type="submit" disabled={loading}>
-          {loading ? 'Verifying…' : <>Verify &amp; continue <ArrowRight size={18} /></>}
+          {loading ? copy.verifying : <>{copy.submit} <ArrowRight size={18} /></>}
         </button>
       </form>
 
       <button className="resend-button" type="button" onClick={() => void handleResend()} disabled={countdown > 0}>
         <RefreshCw size={15} />
-        {countdown > 0 ? `Resend code in ${countdown}s` : 'Resend code'}
+        {countdown > 0 ? copy.resendIn.replace('{seconds}', String(countdown)) : copy.resend}
       </button>
     </AuthShell>
   )

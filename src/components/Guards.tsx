@@ -2,12 +2,14 @@ import type { ReactNode } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/auth-context'
 import { isAdmin } from '../lib/roles'
+import { useSiteSettings } from '../lib/site-content'
 
 function Loading() {
+  const { settings } = useSiteSettings()
   return (
     <div className="app-loading">
       <span className="app-loading__spinner" aria-hidden="true" />
-      <p>Loading FreshPoint…</p>
+      <p>Loading {settings.brand.appName}…</p>
     </div>
   )
 }

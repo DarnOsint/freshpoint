@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Package, Pencil, Plus, Save, Trash2, X } from 'lucide-react'
+import { ImageUploadField } from '../../components/ImageUploadField'
 import { ProductImage } from '../../components/ProductImage'
 import { categories as defaultCategories } from '../../lib/demo-data'
 import { useData } from '../../lib/data-store'
@@ -105,9 +106,12 @@ export function AdminProductsPage() {
             <div className="field"><label htmlFor="productStock">Stock</label>
               <input id="productStock" type="number" min="0" value={form.stock} onChange={(event) => setForm({ ...form, stock: Number(event.target.value) })} inputMode="numeric" />
             </div>
-            <div className="field"><label htmlFor="productImage">Image key / URL</label>
-              <input id="productImage" value={form.image ?? ''} onChange={(event) => setForm({ ...form, image: event.target.value })} placeholder="products/tomatoes.jpg" />
-            </div>
+            <ImageUploadField
+              label="Product image"
+              value={form.image ?? ''}
+              onChange={(key) => setForm((current) => ({ ...current, image: key }))}
+              folder="products"
+            />
             <div className="field"><label htmlFor="productEmoji">Icon</label>
               <select id="productEmoji" value={form.emoji} onChange={(event) => setForm({ ...form, emoji: event.target.value })}>
                 {emojis.map((emoji) => <option key={emoji} value={emoji}>{emoji}</option>)}

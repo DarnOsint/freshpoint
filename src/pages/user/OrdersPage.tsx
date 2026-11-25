@@ -4,19 +4,22 @@ import { StatusBadge } from '../../components/StatusBadge'
 import { useAuth } from '../../lib/auth-context'
 import { useData } from '../../lib/data-store'
 import { formatDate, formatMoney } from '../../lib/format'
+import { useSiteSettings } from '../../lib/site-content'
 
 export function OrdersPage() {
   const { user } = useAuth()
   const { orders } = useData()
+  const { settings } = useSiteSettings()
+  const copy = settings.interface.app.orders
   const mine = orders.filter((order) => !user?.phone || order.phone === user.phone)
 
   return (
     <div className="app-page">
       <header className="app-page__head">
         <div>
-          <p className="eyebrow">Order history</p>
-          <h1>My orders</h1>
-          <p>Follow your orders from placement to delivery.</p>
+          <p className="eyebrow">{copy.eyebrow}</p>
+          <h1>{copy.heading}</h1>
+          <p>{copy.intro}</p>
         </div>
       </header>
 
@@ -40,9 +43,9 @@ export function OrdersPage() {
       ) : (
         <div className="empty-state">
           <PackageCheck size={30} />
-          <h3>No orders yet</h3>
-          <p>Your orders will show up here once you place one.</p>
-          <Link to="/app/shop" className="btn btn--primary btn--small">Browse produce <ArrowRight size={16} /></Link>
+          <h3>{copy.emptyHeading}</h3>
+          <p>{copy.emptyBody}</p>
+          <Link to="/app/shop" className="btn btn--primary btn--small">{copy.browseProduce} <ArrowRight size={16} /></Link>
         </div>
       )}
     </div>

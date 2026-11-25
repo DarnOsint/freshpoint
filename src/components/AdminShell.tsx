@@ -2,6 +2,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { ClipboardList, ExternalLink, Globe, LayoutDashboard, LogOut, Package, UsersRound } from 'lucide-react'
 import { useAuth } from '../lib/auth-context'
 import { useData } from '../lib/data-store'
+import { useSiteSettings } from '../lib/site-content'
 import { Logo } from './Logo'
 
 const navItems = [
@@ -15,6 +16,7 @@ const navItems = [
 export function AdminShell() {
   const { signOut } = useAuth()
   const { orders } = useData()
+  const { settings } = useSiteSettings()
   const navigate = useNavigate()
   const pending = orders.filter((order) => order.status === 'Pending').length
 
@@ -27,7 +29,7 @@ export function AdminShell() {
     <div className="admin-shell">
       <aside className="admin-sidebar">
         <div className="admin-sidebar__brand">
-          <Logo light />
+          <Logo light label={settings.brand.appName} />
           <p>Admin console</p>
         </div>
         <nav className="admin-sidebar__nav" aria-label="Admin navigation">
@@ -47,7 +49,7 @@ export function AdminShell() {
 
       <div className="admin-body">
         <header className="admin-topbar">
-          <div className="admin-topbar__brand"><Logo /></div>
+          <div className="admin-topbar__brand"><Logo label={settings.brand.appName} /></div>
           <span className="admin-topbar__label">Admin console</span>
           <button type="button" className="admin-topbar__signout" onClick={() => void handleSignOut()} aria-label="Sign out">
             <LogOut size={19} />

@@ -1,5 +1,6 @@
 import { ChevronDown } from 'lucide-react'
 import { countries, formatNationalNumber } from '../lib/countries'
+import { useSiteSettings } from '../lib/site-content'
 
 type PhoneFieldProps = {
   countryCode: string
@@ -23,15 +24,16 @@ export function PhoneField({
   optional,
 }: PhoneFieldProps) {
   const country = countries.find((item) => item.code === countryCode) ?? countries[0]
+  const copy = useSiteSettings().settings.interface.common
 
   return (
     <div className={`phone-field${error ? ' has-error' : ''}`}>
-      <label htmlFor={id}>Phone number {optional ? <small>(optional)</small> : null}</label>
+      <label htmlFor={id}>{copy.phoneLabel} {optional ? <small>{copy.phoneOptional}</small> : null}</label>
       <div className="phone-field__row">
         <div className="phone-field__country">
           <span className="phone-field__flag" aria-hidden="true">{country.flag}</span>
           <select
-            aria-label="Country code"
+            aria-label={copy.countryCode}
             value={country.code}
             onChange={(event) => onCountryChange(event.target.value)}
           >
@@ -50,7 +52,7 @@ export function PhoneField({
           inputMode="tel"
           autoComplete="tel-national"
           autoFocus={autoFocus}
-          placeholder="900 123 456"
+          placeholder={copy.phonePlaceholder}
           value={value}
           onChange={(event) => onChange(formatNationalNumber(event.target.value))}
           aria-invalid={Boolean(error)}

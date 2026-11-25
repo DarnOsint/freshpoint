@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { BadgeCheck, Leaf, Sprout, Truck } from 'lucide-react'
+import { Leaf } from 'lucide-react'
+import { useSiteSettings } from '../lib/site-content'
+import { siteIcon } from '../lib/site-icons'
 import { Logo } from './Logo'
 
 type AuthShellProps = {
@@ -11,34 +13,35 @@ type AuthShellProps = {
 }
 
 export function AuthShell({ eyebrow, heading, children, footer }: AuthShellProps) {
+  const { settings } = useSiteSettings()
+  const copy = settings.interface.authPanel
+
   return (
     <section className="auth-layout">
       <aside className="auth-panel">
-        <Logo light />
+        <Logo light label={settings.brand.appName} />
         <div className="auth-panel__content">
-          <p className="eyebrow eyebrow--light"><Leaf size={15} /> Your Everyday Fresh Market</p>
-          <h2>Good food starts with a simple order.</h2>
-          <p>
-            Join FreshPoint to shop fresh produce, manage wholesale orders and get quality essentials delivered
-            to your door.
-          </p>
+          <p className="eyebrow eyebrow--light"><Leaf size={15} /> {copy.eyebrow}</p>
+          <h2>{copy.heading}</h2>
+          <p>{copy.body}</p>
           <ul>
-            <li><BadgeCheck size={18} /> Quality-checked farm produce</li>
-            <li><Sprout size={18} /> Sourced from local farmers &amp; suppliers</li>
-            <li><Truck size={18} /> Retail, wholesale and doorstep delivery</li>
+            {copy.points.map((point, index) => {
+              const Icon = siteIcon(point.icon)
+              return <li key={`${point.text}-${index}`}><Icon size={18} /> {point.text}</li>
+            })}
           </ul>
         </div>
-        <p className="auth-panel__brand">A OnePlan Enterprise brand · OrganicPoint / FreshPoint</p>
+        <p className="auth-panel__brand">{copy.brandLine}</p>
       </aside>
 
       <div className="auth-main">
         <div className="auth-card">
-          <div className="auth-card__mobile-logo"><Logo /></div>
+          <div className="auth-card__mobile-logo"><Logo label={settings.brand.appName} /></div>
           <p className="eyebrow">{eyebrow}</p>
           <h1>{heading}</h1>
           {children}
           <div className="auth-card__footer">{footer}</div>
-          <Link to="/" className="auth-card__back">← Back to FreshPoint home</Link>
+          <Link to="/" className="auth-card__back">{copy.backHome}</Link>
         </div>
       </div>
     </section>

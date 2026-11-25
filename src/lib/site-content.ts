@@ -1,5 +1,6 @@
 import { createContext, useContext } from 'react'
 import defaults from './site-defaults.json'
+import type { AccountType, OrderStatus } from './types'
 
 export type SiteTone = 'green' | 'orange' | 'amber' | 'brown' | 'red' | 'teal'
 export type SiteIcon = 'sprout' | 'badge' | 'store' | 'truck' | 'handshake' | 'clipboard' | 'basket' | 'package'
@@ -17,7 +18,259 @@ export type SiteCategory = {
 export type SiteFeature = { icon: SiteIcon; title: string; text: string }
 export type SiteStep = { icon: SiteIcon; title: string; text: string }
 
+export type SiteAppInterface = {
+  shell: {
+    navigation: string
+    home: string
+    shop: string
+    basket: string
+    orders: string
+    account: string
+    signOut: string
+    basketAria: string
+  }
+  accountTypes: Record<AccountType, string>
+  statuses: Record<OrderStatus, string>
+  dashboard: {
+    eyebrow: string
+    welcome: string
+    intro: string
+    bannerTitle: string
+    bannerText: string
+    bannerCta: string
+    ordersPlaced: string
+    itemsInBasket: string
+    productsAvailable: string
+    quickActions: string
+    browseProduce: string
+    browseProduceHint: string
+    trackOrders: string
+    trackOrdersHint: string
+    deliveryDetails: string
+    deliveryDetailsHint: string
+    recentOrders: string
+    viewAll: string
+    item: string
+    items: string
+    noOrders: string
+    noOrdersHint: string
+    startShopping: string
+  }
+  shop: {
+    eyebrow: string
+    heading: string
+    intro: string
+    searchPlaceholder: string
+    filterLabel: string
+    all: string
+    lowStock: string
+    added: string
+    addToBasket: string
+    nothingFound: string
+    nothingFoundHint: string
+  }
+  cart: {
+    eyebrow: string
+    heading: string
+    emptyHeading: string
+    emptyBody: string
+    browseProduce: string
+    intro: string
+    deliveryTitle: string
+    nameLabel: string
+    namePlaceholder: string
+    phoneLabel: string
+    phonePlaceholder: string
+    addressLabel: string
+    addressPlaceholder: string
+    nameError: string
+    phoneError: string
+    addressError: string
+    total: string
+    placeOrder: string
+    note: string
+    removeOne: string
+    addOne: string
+    remove: string
+  }
+  orders: {
+    eyebrow: string
+    heading: string
+    intro: string
+    emptyHeading: string
+    emptyBody: string
+    browseProduce: string
+  }
+  profile: {
+    eyebrow: string
+    heading: string
+    accountDetails: string
+    more: string
+    myOrders: string
+    myOrdersHint: string
+    contactSupport: string
+    contactSupportHint: string
+    signOut: string
+    username: string
+    phoneLabel: string
+    emailLabel: string
+    accountType: string
+  }
+}
+
+export type SiteInterface = {
+  authPanel: {
+    eyebrow: string
+    heading: string
+    body: string
+    points: SitePoint[]
+    brandLine: string
+    backHome: string
+  }
+  common: {
+    emailLabel: string
+    emailPlaceholder: string
+    usernameLabel: string
+    usernamePlaceholder: string
+    passwordLabel: string
+    passwordPlaceholder: string
+    hidePassword: string
+    showPassword: string
+    hideConfirmation: string
+    showConfirmation: string
+    forgotPassword: string
+    backToLogin: string
+    validEmail: string
+    validUsername: string
+    validPhone: string
+    passwordTooShort: string
+    passwordMismatch: string
+    fullCode: string
+    countryCode: string
+    phoneLabel: string
+    phoneOptional: string
+    phonePlaceholder: string
+    otpLabel: string
+    digitLabel: string
+    mainNavigation: string
+    openMenu: string
+    closeMenu: string
+    adminConsole: string
+    myAccount: string
+    signOut: string
+    messageUs: string
+    customerFallback: string
+    notApplicable: string
+    loading: string
+  }
+  login: {
+    eyebrow: string
+    heading: string
+    intro: string
+    phoneMethod: string
+    emailMethod: string
+    usernameMethod: string
+    methodLabel: string
+    newHere: string
+    createAccount: string
+    loggingIn: string
+    submit: string
+    error: string
+    enterPassword: string
+  }
+  signup: {
+    eyebrow: string
+    heading: string
+    intro: string
+    fullNameLabel: string
+    fullNamePlaceholder: string
+    nameError: string
+    usernameRule: string
+    passwordPlaceholder: string
+    confirmPasswordLabel: string
+    confirmPasswordPlaceholder: string
+    shoppingAs: string
+    terms: string
+    agreeError: string
+    creating: string
+    submit: string
+    error: string
+    alreadyAccount: string
+    loginLink: string
+    accountTypes: Record<AccountType, { label: string; description: string; icon: string }>
+  }
+  verify: {
+    eyebrow: string
+    heading: string
+    wrongAddress: string
+    differentEmail: string
+    intro: string
+    introSuffix: string
+    codeLabel: string
+    fallbackPasswordLabel: string
+    fallbackPlaceholder: string
+    verifying: string
+    submit: string
+    resend: string
+    resendIn: string
+    codeError: string
+    resendError: string
+    enterPassword: string
+  }
+  forgot: {
+    eyebrow: string
+    heading: string
+    sentHeading: string
+    remembered: string
+    notice: string
+    submitCode: string
+    noEmailHint: string
+    intro: string
+    send: string
+    sending: string
+    error: string
+  }
+  reset: {
+    eyebrow: string
+    heading: string
+    doneHeading: string
+    needHelp: string
+    doneNotice: string
+    doneCta: string
+    intro: string
+    codeLabel: string
+    newPasswordLabel: string
+    confirmPasswordLabel: string
+    confirmPlaceholder: string
+    submit: string
+    updating: string
+    resend: string
+    resendIn: string
+    resendError: string
+    error: string
+    enterEmailFirst: string
+  }
+  adminLogin: {
+    eyebrow: string
+    heading: string
+    footer: string
+    goToLogin: string
+    intro: string
+    methodLabel: string
+    emailMethod: string
+    usernameMethod: string
+    submit: string
+    signingIn: string
+    error: string
+    enterDetails: string
+  }
+  notFound: { eyebrow: string; heading: string; body: string; cta: string }
+  home: { orderNow: string; harvest: string }
+  app: SiteAppInterface
+}
+
 export type SiteSettings = {
+  seo: { title: string; description: string }
   brand: {
     appName: string
     tagline: string
@@ -27,6 +280,8 @@ export type SiteSettings = {
     copyright: string
     heroPhotoKey: string
     heroPhotoAlt: string
+    logoKey: string
+    logoLightKey: string
   }
   announcement: { primary: string; secondary: string }
   contact: { location: string; email: string; phone: string; hours: string }
@@ -39,8 +294,10 @@ export type SiteSettings = {
     primaryLabel: string
     secondaryLabel: string
     points: SitePoint[]
+    floatTopIcon: string
     floatTopTitle: string
     floatTopSubtitle: string
+    floatBottomIcon: string
     floatBottomTitle: string
     floatBottomSubtitle: string
     produce: string
@@ -75,6 +332,7 @@ export type SiteSettings = {
     createAccountLabel: string
     loginLabel: string
   }
+  interface: SiteInterface
 }
 
 export const defaultSiteSettings = defaults as unknown as SiteSettings

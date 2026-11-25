@@ -10,6 +10,7 @@ export function Header() {
   const [open, setOpen] = useState(false)
   const { session, user, signOut } = useAuth()
   const { settings } = useSiteSettings()
+  const copy = settings.interface.common
 
   return (
     <header className="site-header">
@@ -22,7 +23,7 @@ export function Header() {
       <div className="container header__inner">
         <Logo label={settings.brand.appName} />
 
-        <nav className={`main-nav${open ? ' main-nav--open' : ''}`} aria-label="Main navigation">
+        <nav className={`main-nav${open ? ' main-nav--open' : ''}`} aria-label={copy.mainNavigation}>
           {settings.navigation.map((item) => (
             <Link key={`${item.label}-${item.href}`} to={item.href} onClick={() => setOpen(false)}>
               {item.label}
@@ -34,10 +35,10 @@ export function Header() {
               <>
                 <Link to={homePathForUser(user)} className="btn btn--outline btn--small" onClick={() => setOpen(false)}>
                   {isAdmin(user) ? <ShieldCheck size={16} /> : <UserRound size={16} />}
-                  {isAdmin(user) ? 'Admin console' : 'My account'}
+                  {isAdmin(user) ? copy.adminConsole : copy.myAccount}
                 </Link>
                 <button className="btn btn--ghost btn--small" onClick={() => void signOut()} type="button">
-                  <LogOut size={16} /> Sign out
+                  <LogOut size={16} /> {copy.signOut}
                 </button>
               </>
             ) : (
@@ -57,7 +58,7 @@ export function Header() {
           className="nav-toggle"
           type="button"
           onClick={() => setOpen((value) => !value)}
-          aria-label={open ? 'Close menu' : 'Open menu'}
+          aria-label={open ? copy.closeMenu : copy.openMenu}
           aria-expanded={open}
         >
           {open ? <X size={24} /> : <Menu size={24} />}

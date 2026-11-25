@@ -2,10 +2,12 @@ import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, MailCheck } from 'lucide-react'
 import { AuthShell } from '../components/AuthShell'
-
-const REQUEST_ERROR = 'We couldn’t send the reset email. Check the address and try again.'
+import { useSiteSettings } from '../lib/site-content'
 
 export function ForgotPasswordPage() {
+  const { settings } = useSiteSettings()
+  const copy = settings.interface.forgot
+  const common = settings.interface.common
   const [email, setEmail] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -16,7 +18,7 @@ export function ForgotPasswordPage() {
     setError('')
     const cleanEmail = email.trim().toLowerCase()
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
-      setError('Enter a valid email address.')
+      setError(common.validEmail)
       return
     }
 
@@ -28,10 +30,10 @@ export function ForgotPasswordPage() {
         body: JSON.stringify({ email: cleanEmail }),
       })
       const result = await response.json() as { ok?: boolean; error?: string }
-      if (!response.ok || !result.ok) throw new Error(result.error ?? REQUEST_ERROR)
+      if (!response.ok || !result.ok) throw new Error(result.error ?? copy.error)
       setSent(true)
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : REQUEST_ERROR)
+      setError(requestError instanceof Error ? requestError.message : copy.error)
     } finally {
       setLoading(false)
     }
@@ -39,47 +41,35 @@ export function ForgotPasswordPage() {
 
   return (
     <AuthShell
-      eyebrow="Account recovery"
-      heading={sent ? 'Check your email' : 'Forgot your password?'}
-      footer={
-        <>
-          Remembered it? <Link to="/login">Back to login</Link>
-        </>
-      }
+      eyebrow={copy.eyebrow}
+      heading={sent ? copy.sentHeading : copy.heading}
+      footer={<>{copy.remembered} <Link to="/login">{common.backToLogin}</Link></>}
     >
       {sent ? (
         <>
           <div className="auth-notice">
             <MailCheck size={26} />
-            <p>
-              If an account exists for <strong>{email.trim().toLowerCase()}</strong>, we’ve sent a 6-digit reset
-              code. It expires in 10 minutes.
-            </p>
+            <p>{copy.notice.replace('{email}', email.trim().toLowerCase())}</p>
           </div>
           <Link
             className="btn btn--primary btn--block btn--large"
             to={`/reset-password?email=${encodeURIComponent(email.trim().toLowerCase())}`}
           >
-            Enter reset code <ArrowRight size={18} />
+            {copy.submitCode} <ArrowRight size={18} />
           </Link>
-          <p className="auth-card__intro auth-card__intro--tight">
-            Didn’t get it? Check your spam folder, or go back and try again with the same address.
-          </p>
+          <p className="auth-card__intro auth-card__intro--tight">{copy.noEmailHint}</p>
         </>
       ) : (
         <>
-          <p className="auth-card__intro">
-            Enter the email you use with FreshPoint. We’ll send a reset code to your inbox — no phone or username
-            needed.
-          </p>
+          <p className="auth-card__intro">{copy.intro}</p>
           <form onSubmit={handleSubmit} className="auth-form" noValidate>
             <div className="field">
-              <label htmlFor="reset-email">Email address</label>
+              <label htmlFor="reset-email">{common.emailLabel}</label>
               <input
                 id="reset-email"
                 type="email"
                 autoComplete="email"
-                placeholder="you@example.com"
+                placeholder={common.emailPlaceholder}
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 aria-invalid={Boolean(error)}
@@ -87,7 +77,7 @@ export function ForgotPasswordPage() {
               {error ? <p className="field-error">{error}</p> : null}
             </div>
             <button className="btn btn--primary btn--block btn--large" type="submit" disabled={loading}>
-              {loading ? 'Sending…' : <>Send reset code <ArrowRight size={18} /></>}
+              {loading ? copy.sending : <>{copy.send} <ArrowRight size={18} /></>}
             </button>
           </form>
         </>

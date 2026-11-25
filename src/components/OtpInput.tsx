@@ -1,4 +1,5 @@
 import { useRef, type ClipboardEvent, type KeyboardEvent } from 'react'
+import { useSiteSettings } from '../lib/site-content'
 
 const LENGTH = 6
 
@@ -12,6 +13,7 @@ type OtpInputProps = {
 
 export function OtpInput({ value, onChange, disabled, error, id }: OtpInputProps) {
   const inputs = useRef<Array<HTMLInputElement | null>>([])
+  const copy = useSiteSettings().settings.interface.common
 
   function setDigit(index: number, raw: string) {
     const digit = raw.replace(/\D/g, '').slice(-1)
@@ -35,7 +37,7 @@ export function OtpInput({ value, onChange, disabled, error, id }: OtpInputProps
   }
 
   return (
-    <div className={`otp-input${error ? ' has-error' : ''}`} role="group" aria-label="Six digit verification code">
+    <div className={`otp-input${error ? ' has-error' : ''}`} role="group" aria-label={copy.otpLabel}>
       {Array.from({ length: LENGTH }, (_, index) => (
         <input
           key={index}
@@ -50,7 +52,7 @@ export function OtpInput({ value, onChange, disabled, error, id }: OtpInputProps
           onChange={(event) => setDigit(index, event.target.value)}
           onKeyDown={(event) => handleKeyDown(index, event)}
           onPaste={handlePaste}
-          aria-label={`Digit ${index + 1}`}
+          aria-label={`${copy.digitLabel} ${index + 1}`}
         />
       ))}
     </div>

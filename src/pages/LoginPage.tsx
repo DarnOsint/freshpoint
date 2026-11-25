@@ -7,21 +7,22 @@ import { countries, defaultCountry, isValidNationalNumber, toE164 } from '../lib
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/auth-context'
 import { homePathForUser } from '../lib/roles'
+import { useSiteSettings } from '../lib/site-content'
 
 type LoginMethod = 'phone' | 'email' | 'username'
 type UsernameLookup = { identifier: string; kind: 'phone' | 'email' }
 
-const methods: Array<{ value: LoginMethod; label: string }> = [
-  { value: 'phone', label: 'Phone' },
-  { value: 'email', label: 'Email' },
-  { value: 'username', label: 'Username' },
-]
-
-const LOGIN_ERROR = 'We couldn’t log you in. Check your details and try again.'
-
 export function LoginPage() {
   const navigate = useNavigate()
   const { session, user } = useAuth()
+  const { settings } = useSiteSettings()
+  const copy = settings.interface.login
+  const common = settings.interface.common
+  const methods: Array<{ value: LoginMethod; label: string }> = [
+    { value: 'phone', label: copy.phoneMethod },
+    { value: 'email', label: copy.emailMethod },
+    { value: 'username', label: copy.usernameMethod },
+  ]
   const [method, setMethod] = useState<LoginMethod>('phone')
   const [countryCode, setCountryCode] = useState(defaultCountry.code)
   const [phone, setPhone] = useState('')
@@ -37,20 +38,20 @@ export function LoginPage() {
     setError('')
 
     if (!password) {
-      setError('Enter your password.')
+      setError(copy.enterPassword)
       return
     }
 
     if (method === 'phone' && !isValidNationalNumber(phone)) {
-      setError('Enter a valid phone number.')
+      setError(common.validPhone)
       return
     }
     if (method === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      setError('Enter a valid email address.')
+      setError(common.validEmail)
       return
     }
     if (method === 'username' && !/^[a-z0-9_]{3,20}$/i.test(username.trim())) {
-      setError('Enter a valid username.')
+      setError(common.validUsername)
       return
     }
 
@@ -102,7 +103,7 @@ export function LoginPage() {
       if (authError) throw authError
       signedInUser = signedIn.user
     } catch {
-      setError(LOGIN_ERROR)
+      setError(copy.error)
       setLoading(false)
       return
     }
@@ -115,17 +116,13 @@ export function LoginPage() {
 
   return (
     <AuthShell
-      eyebrow="Welcome back"
-      heading="Log in to FreshPoint"
-      footer={
-        <>
-          New to FreshPoint? <Link to="/signup">Create an account</Link>
-        </>
-      }
+      eyebrow={copy.eyebrow}
+      heading={copy.heading}
+      footer={<>{copy.newHere} <Link to="/signup">{copy.createAccount}</Link></>}
     >
-      <p className="auth-card__intro">Log in with your phone, email or username and password.</p>
+      <p className="auth-card__intro">{copy.intro}</p>
 
-      <div className="login-methods" role="tablist" aria-label="Choose a login method">
+      <div className="login-methods" role="tablist" aria-label={copy.methodLabel}>
         {methods.map((item) => (
           <button
             key={item.value}
@@ -151,13 +148,13 @@ export function LoginPage() {
           />
         ) : (
           <div className="field">
-            <label htmlFor="identifier">{method === 'email' ? 'Email address' : 'Username'}</label>
+            <label htmlFor="identifier">{method === 'email' ? common.emailLabel : common.usernameLabel}</label>
             <input
               id="identifier"
               type={method === 'email' ? 'email' : 'text'}
               inputMode={method === 'email' ? 'email' : 'text'}
               autoComplete={method === 'email' ? 'email' : 'username'}
-              placeholder={method === 'email' ? 'you@example.com' : 'your.username'}
+              placeholder={method === 'email' ? common.emailPlaceholder : common.usernamePlaceholder}
               value={method === 'email' ? email : username}
               onChange={(event) => (method === 'email' ? setEmail(event.target.value) : setUsername(event.target.value))}
               aria-invalid={Boolean(error)}
@@ -166,13 +163,13 @@ export function LoginPage() {
         )}
 
         <div className="field">
-          <label htmlFor="password">Password</label>
+          <label htmlFor="password">{common.passwordLabel}</label>
           <div className="password-input">
             <input
               id="password"
               type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
-              placeholder="Enter your password"
+              placeholder={common.passwordPlaceholder}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               aria-invalid={Boolean(error)}
@@ -181,19 +178,19 @@ export function LoginPage() {
               type="button"
               className="password-input__toggle"
               onClick={() => setShowPassword((value) => !value)}
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              aria-label={showPassword ? common.hidePassword : common.showPassword}
             >
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
         </div>
 
-        <div className="auth-link-row"><Link to="/forgot-password">Forgot password?</Link></div>
+        <div className="auth-link-row"><Link to="/forgot-password">{common.forgotPassword}</Link></div>
 
         {error && method !== 'phone' ? <p className="field-error">{error}</p> : null}
 
         <button className="btn btn--primary btn--block btn--large" type="submit" disabled={loading}>
-          {loading ? 'Logging in…' : <>Log in <ArrowRight size={18} /></>}
+          {loading ? copy.loggingIn : <>{copy.submit} <ArrowRight size={18} /></>}
         </button>
       </form>
     </AuthShell>
