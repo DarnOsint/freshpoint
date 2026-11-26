@@ -7,6 +7,13 @@ export type SiteIcon = 'sprout' | 'badge' | 'store' | 'truck' | 'handshake' | 'c
 
 export type SiteLink = { label: string; href: string }
 export type SitePoint = { text: string; icon: SiteIcon }
+
+const phoneHiddenSections = new Set(['categories', 'why-us', 'how-it-works', 'wholesale'])
+
+export function isHiddenPhoneSection(href: string) {
+  return phoneHiddenSections.has(href.replace(/^\/?#?/, ''))
+}
+
 export type SiteStat = { value: string; label: string }
 export type SiteCategory = {
   emoji: string

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Globe, Mail, MapPin, MessageCircle, Phone } from 'lucide-react'
-import { useSiteSettings } from '../lib/site-content'
+import { isHiddenPhoneSection, useSiteSettings } from '../lib/site-content'
 import { Logo } from './Logo'
 
 const year = new Date().getFullYear()
@@ -26,16 +26,16 @@ export function Footer() {
           </div>
         </div>
 
-        <div>
+        <div className="footer__explore">
           <h3>{settings.footer.exploreTitle}</h3>
           <ul className="footer__links">
             {settings.navigation.map((item) => (
-              <li key={`${item.label}-${item.href}`}>
+              <li key={`${item.label}-${item.href}`} className={isHiddenPhoneSection(item.href) ? 'section-link' : undefined}>
                 <Link to={item.href}>{item.label}</Link>
               </li>
             ))}
-            <li><Link to="/signup">{settings.footer.createAccountLabel}</Link></li>
-            <li><Link to="/login">{settings.footer.loginLabel}</Link></li>
+            <li className="footer__auth"><Link to="/signup">{settings.footer.createAccountLabel}</Link></li>
+            <li className="footer__auth"><Link to="/login">{settings.footer.loginLabel}</Link></li>
           </ul>
         </div>
 

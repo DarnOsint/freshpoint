@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { LogOut, Menu, ShieldCheck, UserRound, X } from 'lucide-react'
 import { useAuth } from '../lib/auth-context'
 import { isAdmin, homePathForUser } from '../lib/roles'
-import { useSiteSettings } from '../lib/site-content'
+import { isHiddenPhoneSection, useSiteSettings } from '../lib/site-content'
 import { Logo } from './Logo'
 
 export function Header() {
@@ -25,7 +25,12 @@ export function Header() {
 
         <nav className={`main-nav${open ? ' main-nav--open' : ''}`} aria-label={copy.mainNavigation}>
           {settings.navigation.map((item) => (
-            <Link key={`${item.label}-${item.href}`} to={item.href} onClick={() => setOpen(false)}>
+            <Link
+              key={`${item.label}-${item.href}`}
+              to={item.href}
+              className={isHiddenPhoneSection(item.href) ? 'section-link' : undefined}
+              onClick={() => setOpen(false)}
+            >
               {item.label}
             </Link>
           ))}

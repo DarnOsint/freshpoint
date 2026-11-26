@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useLayoutEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { ArrowRight, Building2, Leaf, MapPin } from 'lucide-react'
 import { ProductImage } from '../components/ProductImage'
@@ -16,15 +16,25 @@ export function Home() {
   const heroImage = imageUrl(settings.brand.heroPhotoKey, '/images/hero-market.jpg')
   const featured = products.filter((product) => product.active !== false).slice(0, 8)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    document.body.classList.add('home-view')
+    return () => document.body.classList.remove('home-view')
+  }, [])
+
+  useLayoutEffect(() => {
     if (!hash) return
     const target = document.querySelector(hash)
-    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    if (!(target instanceof HTMLElement) || target.offsetParent === null) {
+      window.scrollTo({ top: 0, behavior: 'instant' })
+      return
+    }
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }, [hash])
 
   return (
-    <>
+    <div className="home-page">
       <section className="hero" id="home">
+        <h1 className="mobile-only-heading">{settings.brand.appName} — {settings.hero.title} {settings.hero.highlight}</h1>
         <div className="container hero__grid">
           <div className="hero__copy">
             <p className="eyebrow"><Leaf size={15} /> {settings.hero.eyebrow}</p>
@@ -212,6 +222,6 @@ export function Home() {
           <Link to="/signup" className="btn btn--primary">{settings.location.ctaLabel} <ArrowRight size={17} /></Link>
         </div>
       </section>
-    </>
+    </div>
   )
 }
