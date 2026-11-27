@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { SheetCloseButton } from './SheetCloseButton'
 import { StatusBadge } from './StatusBadge'
 import { useData } from '../lib/data-store'
 import { formatDate, formatMoney } from '../lib/format'
@@ -155,7 +156,7 @@ export function OrderWorkspace({ manager = false }: { manager?: boolean }) {
                 <h2 id="order-sheet-title">{selected.id}</h2>
                 <small>Placed {formatDate(selected.createdAt)}</small>
               </div>
-              <button className="admin-icon-button" type="button" onClick={closeOrder} aria-label="Close order details">Close</button>
+              <SheetCloseButton label="Close order details" onClick={closeOrder} />
             </div>
 
             <div className="order-sheet__status">
@@ -218,8 +219,6 @@ export function OrderWorkspace({ manager = false }: { manager?: boolean }) {
 
             {error ? <p className="field-error admin-inline-error">{error}</p> : null}
             {notice ? <p className="profile-success">{notice}</p> : null}
-
-            <button className="btn btn--outline btn--block" type="button" onClick={closeOrder}>Close</button>
           </div>
         </div>
       ) : null}

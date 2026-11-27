@@ -34,6 +34,11 @@ export type SiteAppInterface = {
     profile: string
     signOut: string
     basketAria: string
+    notifications: string
+    notificationsAria: string
+    markAllRead: string
+    noNotifications: string
+    noNotificationsHint: string
   }
   statuses: Record<OrderStatus, string>
   dashboard: {
@@ -86,6 +91,9 @@ export type SiteAppInterface = {
     browseProduce: string
     intro: string
     deliveryTitle: string
+    useVerifiedAddress: string
+    addAddressHint: string
+    updateProfile: string
     nameLabel: string
     namePlaceholder: string
     phoneLabel: string
@@ -122,6 +130,10 @@ export type SiteAppInterface = {
     signOut: string
     username: string
     phoneLabel: string
+    addressLabel: string
+    addressPlaceholder: string
+    addressOptional: string
+    addressError: string
     emailLabel: string
     fullNameLabel: string
     readOnlyHint: string
@@ -317,7 +329,7 @@ export type SiteSettings = {
     logoLightKey: string
   }
   announcement: { primary: string; secondary: string }
-  contact: { location: string; email: string; phone: string; hours: string }
+  contact: { location: string; email: string; phone: string; whatsapp: string; hours: string }
   navigation: SiteLink[]
   hero: {
     eyebrow: string

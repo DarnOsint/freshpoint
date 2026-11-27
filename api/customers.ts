@@ -32,11 +32,13 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       const email = String(body.email ?? '').trim().toLowerCase()
       const rawPhone = String(body.phone ?? '').trim()
       const phone = rawPhone ? (rawPhone.startsWith('+') ? rawPhone : `+${rawPhone.replace(/\D/g, '')}`) : ''
+      const address = String(body.address ?? '').trim()
 
       if (fullName.length < 2 || fullName.length > 80) throw new InputError('Enter a name between 2 and 80 characters.')
       if (!/^[a-z0-9_]{3,20}$/.test(username)) throw new InputError('Use 3–20 letters, numbers or underscores for your username.')
       if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new InputError('Enter a valid email address.')
       if (phone && !/^\+\d{7,15}$/.test(phone)) throw new InputError('Enter a valid phone number.')
+      if (address.length > 200) throw new InputError('Enter a shorter delivery address.')
 
       const taken = await dbFetch(`/profiles?username=eq.${encodeURIComponent(username)}&id=neq.${encodeURIComponent(targetId)}&select=id&limit=1`)
       if (!taken.ok) throw new Error('Username lookup failed')
@@ -62,6 +64,8 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       const userMetadata: Record<string, unknown> = { ...target.user_metadata, full_name: fullName, username }
       if (email) userMetadata.email = email
       if (phone) userMetadata.phone = phone
+      if (address) userMetadata.address = address
+      else delete userMetadata.address
 
       const authUpdate: Record<string, unknown> = { user_metadata: userMetadata }
       if (email) {
@@ -100,6 +104,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
           username,
           email,
           phone,
+          address,
         })
         if (nextRole) {
           await recordAudit(actor, 'customer.role_change', 'customer', targetId, {
@@ -109,12 +114,27 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         }
       }
 
-      return send(res, 200, { ok: true, fullName, username, email, phone, role: nextRole ?? target.app_metadata?.role ?? 'customer' })
+      return send(res, 200, { ok: true, fullName, username, email, phone, address, role: nextRole ?? target.app_metadata?.role ?? 'customer' })
     }
 
     if (req.method !== 'GET') return send(res, 405, { error: 'Method not allowed' })
 
     const url = new URL(req.url ?? '', 'http://localhost')
+    if (url.searchParams.get('view') === 'me') {
+      const user = await requireUser(req)
+      const response = await dbFetch(`/profiles?id=eq.${encodeURIComponent(user.id)}&select=full_name,username,phone,email`)
+      if (!response.ok) throw new Error('Profile lookup failed')
+      const rows = await response.json() as Array<{ full_name: string | null; username: string | null; phone: string | null; email: string | null }>
+      const profile = rows[0] ?? { full_name: null, username: null, phone: null, email: null }
+      return send(res, 200, {
+        fullName: profile.full_name ?? '',
+        username: profile.username ?? '',
+        phone: profile.phone ?? '',
+        email: profile.email ?? '',
+        address: String(user.user_metadata?.address ?? ''),
+      })
+    }
+
     if (url.searchParams.get('view') === 'audit') {
       await requireAdmin(req)
       return send(res, 200, await listAuditLogs())
@@ -129,6 +149,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     if (!usersResponse.ok) throw new Error('Account lookup failed')
     const usersPayload = await usersResponse.json() as { users?: AuthUserRow[] }
     const roles = new Map((usersPayload.users ?? []).map((user) => [user.id, user.app_metadata?.role]))
+    const addresses = new Map((usersPayload.users ?? []).map((user) => [user.id, String(user.user_metadata?.address ?? '')]))
 
     const customers = profiles.map((profile) => {
       const metadataRole = roles.get(profile.id)
@@ -140,6 +161,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         name: profile.full_name?.trim() || profile.email?.split('@')[0] || 'FreshPoint customer',
         username: profile.username?.trim() || profile.email?.split('@')[0] || 'customer',
         phone: profile.phone ?? '',
+        address: addresses.get(profile.id) ?? '',
         email: profile.email ?? '',
         joinedAt: profile.created_at,
         role,

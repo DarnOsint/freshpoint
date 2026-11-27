@@ -26,6 +26,7 @@
     "location": "Juba, South Sudan",
     "email": "hello@freshpointltd.com",
     "phone": "+211 900 000 000",
+    "whatsapp": "+211 900 000 000",
     "hours": "Mon – Sat, 8:00 AM – 6:00 PM"
   },
   "navigation": [
@@ -360,7 +361,12 @@
         "account": "Profile",
         "profile": "Profile",
         "signOut": "Sign out",
-        "basketAria": "Basket, {count} items"
+        "basketAria": "Basket, {count} items",
+        "notifications": "Notifications",
+        "notificationsAria": "Notifications, {count} unread",
+        "markAllRead": "Mark all read",
+        "noNotifications": "No notifications yet",
+        "noNotificationsHint": "Updates about your orders will appear here."
       },
       "statuses": {
         "Pending": "Pending",
@@ -419,6 +425,9 @@
         "browseProduce": "Browse produce",
         "intro": "Review your items and add a delivery address.",
         "deliveryTitle": "Delivery details",
+        "useVerifiedAddress": "Use my verified phone and delivery address",
+        "addAddressHint": "Save a delivery address in your profile to use it here.",
+        "updateProfile": "Update profile",
         "nameLabel": "Full name",
         "namePlaceholder": "Your name",
         "phoneLabel": "Phone number",
@@ -455,9 +464,13 @@
         "signOut": "Sign out",
         "username": "Username",
         "phoneLabel": "Phone number",
+        "addressLabel": "Delivery address",
+        "addressPlaceholder": "Area, street or landmark in Juba",
+        "addressOptional": "(optional)",
+        "addressError": "Enter a delivery address or leave it blank.",
         "emailLabel": "Email address",
         "fullNameLabel": "Full name",
-        "readOnlyHint": "Your email and phone are used for orders and cannot be changed here.",
+        "readOnlyHint": "Your email is used for orders and cannot be changed here. Add or update your phone and delivery address below.",
         "summaryTitle": "Your activity",
         "ordersPlaced": "Orders placed",
         "itemsOrdered": "Items ordered",

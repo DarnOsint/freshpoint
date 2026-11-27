@@ -89,6 +89,7 @@ export type AuthUser = {
   id: string
   email?: string | null
   app_metadata?: { role?: string; [key: string]: unknown }
+  user_metadata?: Record<string, unknown>
 }
 
 export type Role = 'admin' | 'manager' | 'customer'

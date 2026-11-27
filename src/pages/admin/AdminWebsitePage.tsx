@@ -290,6 +290,7 @@ export function AdminWebsitePage() {
             <TextField label="Location" value={draft.contact.location} onChange={(value) => updateContact('location', value)} />
             <TextField label="Email" value={draft.contact.email} onChange={(value) => updateContact('email', value)} />
             <TextField label="Phone" value={draft.contact.phone} onChange={(value) => updateContact('phone', value)} />
+            <TextField label="WhatsApp number" value={draft.contact.whatsapp} onChange={(value) => updateContact('whatsapp', value)} />
             <TextField label="Opening hours" value={draft.contact.hours} onChange={(value) => updateContact('hours', value)} />
           </div>
         </div>
@@ -663,6 +664,11 @@ export function AdminWebsitePage() {
             <TextField label="Orders" value={app.shell.orders} onChange={(value) => updateApp('shell', 'orders', value)} />
             <TextField label="Sign out" value={app.shell.signOut} onChange={(value) => updateApp('shell', 'signOut', value)} />
             <TextField label="Basket label" value={app.shell.basketAria} onChange={(value) => updateApp('shell', 'basketAria', value)} />
+            <TextField label="Notifications label" value={app.shell.notifications} onChange={(value) => updateApp('shell', 'notifications', value)} />
+            <TextField label="Notifications aria label" value={app.shell.notificationsAria} onChange={(value) => updateApp('shell', 'notificationsAria', value)} />
+            <TextField label="Mark all read button" value={app.shell.markAllRead} onChange={(value) => updateApp('shell', 'markAllRead', value)} />
+            <TextField label="No notifications title" value={app.shell.noNotifications} onChange={(value) => updateApp('shell', 'noNotifications', value)} />
+            <TextField label="No notifications text" value={app.shell.noNotificationsHint} onChange={(value) => updateApp('shell', 'noNotificationsHint', value)} />
           </div>
 
           <h2>Order statuses</h2>
@@ -727,6 +733,9 @@ export function AdminWebsitePage() {
             <TextField label="Browse produce" value={app.cart.browseProduce} onChange={(value) => updateApp('cart', 'browseProduce', value)} />
             <TextField label="Introduction" value={app.cart.intro} onChange={(value) => updateApp('cart', 'intro', value)} multiline />
             <TextField label="Delivery heading" value={app.cart.deliveryTitle} onChange={(value) => updateApp('cart', 'deliveryTitle', value)} />
+            <TextField label="Use saved details label" value={app.cart.useVerifiedAddress} onChange={(value) => updateApp('cart', 'useVerifiedAddress', value)} />
+            <TextField label="No saved address hint" value={app.cart.addAddressHint} onChange={(value) => updateApp('cart', 'addAddressHint', value)} />
+            <TextField label="Update profile link" value={app.cart.updateProfile} onChange={(value) => updateApp('cart', 'updateProfile', value)} />
             <TextField label="Name label" value={app.cart.nameLabel} onChange={(value) => updateApp('cart', 'nameLabel', value)} />
             <TextField label="Name placeholder" value={app.cart.namePlaceholder} onChange={(value) => updateApp('cart', 'namePlaceholder', value)} />
             <TextField label="Phone label" value={app.cart.phoneLabel} onChange={(value) => updateApp('cart', 'phoneLabel', value)} />
@@ -767,6 +776,10 @@ export function AdminWebsitePage() {
             <TextField label="Sign out" value={app.profile.signOut} onChange={(value) => updateApp('profile', 'signOut', value)} />
             <TextField label="Username label" value={app.profile.username} onChange={(value) => updateApp('profile', 'username', value)} />
             <TextField label="Phone label" value={app.profile.phoneLabel} onChange={(value) => updateApp('profile', 'phoneLabel', value)} />
+            <TextField label="Delivery address label" value={app.profile.addressLabel} onChange={(value) => updateApp('profile', 'addressLabel', value)} />
+            <TextField label="Delivery address placeholder" value={app.profile.addressPlaceholder} onChange={(value) => updateApp('profile', 'addressPlaceholder', value)} />
+            <TextField label="Optional hint" value={app.profile.addressOptional} onChange={(value) => updateApp('profile', 'addressOptional', value)} />
+            <TextField label="Address error" value={app.profile.addressError} onChange={(value) => updateApp('profile', 'addressError', value)} />
             <TextField label="Email label" value={app.profile.emailLabel} onChange={(value) => updateApp('profile', 'emailLabel', value)} />
             <TextField label="Full name label" value={app.profile.fullNameLabel} onChange={(value) => updateApp('profile', 'fullNameLabel', value)} />
             <TextField label="Read-only hint" value={app.profile.readOnlyHint} onChange={(value) => updateApp('profile', 'readOnlyHint', value)} multiline />

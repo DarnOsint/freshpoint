@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ProductImage } from '../../components/ProductImage'
 import { useAuth } from '../../lib/auth-context'
@@ -7,16 +7,47 @@ import { formatMoney } from '../../lib/format'
 import { useSiteSettings } from '../../lib/site-content'
 
 export function CartPage() {
-  const { user } = useAuth()
+  const { user, session } = useAuth()
   const { cart, products, cartTotal, setCartQuantity, placeOrder } = useData()
   const { settings } = useSiteSettings()
   const copy = settings.interface.app.cart
   const navigate = useNavigate()
+
+  const [saved, setSaved] = useState({
+    phone: String(user?.user_metadata?.phone || user?.phone || ''),
+    address: String(user?.user_metadata?.address ?? '').trim(),
+  })
   const [name, setName] = useState((user?.user_metadata?.full_name as string | undefined) ?? '')
-  const [phone, setPhone] = useState(user?.phone ?? '')
-  const [address, setAddress] = useState('')
+  const [phone, setPhone] = useState(saved.phone)
+  const [address, setAddress] = useState(saved.address)
+  const [useSaved, setUseSaved] = useState(Boolean(saved.address))
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+
+  useEffect(() => {
+    let active = true
+    const headers = session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}
+    fetch('/api/customers?view=me', { headers, cache: 'no-store' })
+      .then((response) => response.ok ? response.json() : null)
+      .then((me) => {
+        if (!active || !me) return
+        const next = { phone: String(me.phone ?? ''), address: String(me.address ?? '').trim() }
+        setSaved(next)
+        setPhone(next.phone)
+        setAddress(next.address)
+        if (me.fullName) setName(String(me.fullName))
+      })
+      .catch(() => undefined)
+    return () => { active = false }
+  }, [session?.access_token])
+
+  function toggleSaved(next: boolean) {
+    setUseSaved(next)
+    if (next) {
+      setPhone(saved.phone)
+      setAddress(saved.address)
+    }
+  }
 
   const lines = cart.flatMap((line) => {
     const product = products.find((item) => item.id === line.productId)
@@ -71,14 +102,18 @@ export function CartPage() {
               <strong>{product.name}</strong>
               <small>{formatMoney(product.price)} · {product.unit}</small>
               <div className="qty-control">
-                <button type="button" onClick={() => setCartQuantity(product.id, quantity - 1)} aria-label={copy.removeOne.replace('{name}', product.name)}>Less</button>
+                <button type="button" onClick={() => setCartQuantity(product.id, quantity - 1)} aria-label={copy.removeOne.replace('{name}', product.name)}>-</button>
                 <span>{quantity}</span>
-                <button type="button" onClick={() => setCartQuantity(product.id, quantity + 1)} disabled={quantity >= product.stock} aria-label={copy.addOne.replace('{name}', product.name)}>More</button>
+                <button type="button" onClick={() => setCartQuantity(product.id, quantity + 1)} disabled={quantity >= product.stock} aria-label={copy.addOne.replace('{name}', product.name)}>+</button>
               </div>
             </div>
             <div className="cart-line__right">
               <strong>{formatMoney(product.price * quantity)}</strong>
-              <button type="button" className="cart-line__remove" onClick={() => setCartQuantity(product.id, 0)} aria-label={copy.remove.replace('{name}', product.name)}>Remove</button>
+              <button type="button" className="cart-line__remove" onClick={() => setCartQuantity(product.id, 0)} aria-label={copy.remove.replace('{name}', product.name)}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5" />
+                </svg>
+              </button>
             </div>
           </article>
         ))}
@@ -86,6 +121,17 @@ export function CartPage() {
 
       <form className="checkout-form" onSubmit={(event) => void handleSubmit(event)} noValidate>
         <h2>{copy.deliveryTitle}</h2>
+        {saved.address ? (
+          <label className="checkout-saved">
+            <input type="checkbox" checked={useSaved} onChange={(event) => toggleSaved(event.target.checked)} />
+            <span>
+              <strong>{copy.useVerifiedAddress}</strong>
+              <small>{saved.phone} · {saved.address}</small>
+            </span>
+          </label>
+        ) : (
+          <p className="checkout-saved-hint">{copy.addAddressHint} <Link to="/app/account">{copy.updateProfile}</Link></p>
+        )}
         <div className="checkout-form__grid">
           <div className="field">
             <label htmlFor="deliveryName">{copy.nameLabel}</label>
@@ -93,12 +139,12 @@ export function CartPage() {
           </div>
           <div className="field">
             <label htmlFor="deliveryPhone">{copy.phoneLabel}</label>
-            <input id="deliveryPhone" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder={copy.phonePlaceholder} inputMode="tel" autoComplete="tel" />
+            <input id="deliveryPhone" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder={copy.phonePlaceholder} inputMode="tel" autoComplete="tel" disabled={useSaved} />
           </div>
         </div>
         <div className="field">
           <label htmlFor="deliveryAddress">{copy.addressLabel}</label>
-          <input id="deliveryAddress" value={address} onChange={(event) => setAddress(event.target.value)} placeholder={copy.addressPlaceholder} autoComplete="street-address" />
+          <input id="deliveryAddress" value={address} onChange={(event) => setAddress(event.target.value)} placeholder={copy.addressPlaceholder} autoComplete="street-address" disabled={useSaved} />
         </div>
         {error ? <p className="field-error">{error}</p> : null}
         <div className="checkout-summary">

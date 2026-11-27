@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { SheetCloseButton } from '../../components/SheetCloseButton'
 import { useAuth } from '../../lib/auth-context'
 import { useData } from '../../lib/data-store'
 import { formatDate, initials } from '../../lib/format'
@@ -99,7 +100,7 @@ export function AdminCustomersPage({ readOnly = false }: { readOnly?: boolean })
                 <p className="eyebrow">Customer details</p>
                 <h2 id="customer-sheet-title">{selected.name}</h2>
               </div>
-              <button className="admin-icon-button" type="button" onClick={close} aria-label="Close customer details">Close</button>
+              <SheetCloseButton label="Close customer details" onClick={close} />
             </div>
 
             <div className="customer-sheet__summary">
@@ -151,7 +152,6 @@ export function AdminCustomersPage({ readOnly = false }: { readOnly?: boolean })
                 <button className="btn btn--primary btn--block btn--large" type="button" onClick={() => void handleSave()} disabled={saving}>
                   {saving ? 'Saving…' : 'Save customer'}
                 </button>
-                <button className="btn btn--outline btn--block" type="button" onClick={close}>Close</button>
               </div>
             )}
           </div>

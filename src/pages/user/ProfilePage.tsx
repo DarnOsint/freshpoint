@@ -1,6 +1,9 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { PhoneField } from '../../components/PhoneField'
+import { SheetCloseButton } from '../../components/SheetCloseButton'
 import { useAuth } from '../../lib/auth-context'
+import { countries, defaultCountry, formatNationalNumber, isValidNationalNumber, toE164 } from '../../lib/countries'
 import { useData } from '../../lib/data-store'
 import { formatMoney, initials } from '../../lib/format'
 import { useSiteSettings } from '../../lib/site-content'
@@ -8,6 +11,14 @@ import { useSheetDismiss } from '../../lib/use-sheet-dismiss'
 import { supabase } from '../../lib/supabase'
 
 type ProfileModal = 'details' | 'password' | 'support' | null
+
+function splitPhone(value: string) {
+  const digits = value.replace(/\D/g, '')
+  const match = countries.find((item) => digits.startsWith(item.dial.slice(1))) ?? defaultCountry
+  const dialDigits = match.dial.slice(1)
+  const national = digits.startsWith(dialDigits) ? digits.slice(dialDigits.length) : digits
+  return { code: match.code, national: formatNationalNumber(national) }
+}
 
 export function ProfilePage() {
   const { user, session, signOut } = useAuth()
@@ -21,12 +32,19 @@ export function ProfilePage() {
   const username = (user?.user_metadata?.username as string | undefined) || common.notApplicable
   const email = user?.email || common.notApplicable
   const phone = user?.phone || common.notApplicable
+  const savedAddress = String(user?.user_metadata?.address ?? '').trim()
   const paidOrders = orders.filter((order) => order.status !== 'Cancelled')
   const itemsOrdered = paidOrders.reduce((total, order) => total + order.items.reduce((sum, item) => sum + item.quantity, 0), 0)
   const amountPaid = paidOrders.reduce((total, order) => total + order.total, 0)
 
+  const initialPhone = splitPhone(phone === common.notApplicable ? '' : phone)
   const [name, setName] = useState(fullName)
   const [handle, setHandle] = useState(username === common.notApplicable ? '' : username)
+  const [countryCode, setCountryCode] = useState(initialPhone.code)
+  const [phoneNumber, setPhoneNumber] = useState(initialPhone.national)
+  const [address, setAddress] = useState(savedAddress)
+  const [addressError, setAddressError] = useState('')
+  const [phoneError, setPhoneError] = useState('')
   const [detailsError, setDetailsError] = useState('')
   const [detailsSaved, setDetailsSaved] = useState('')
   const [savingDetails, setSavingDetails] = useState(false)
@@ -44,6 +62,9 @@ export function ProfilePage() {
       : modal === 'support'
         ? copy.contactSupport
         : ''
+  const whatsappNumber = settings.contact.whatsapp || settings.contact.phone || ''
+  const whatsappDigits = whatsappNumber.replace(/\D/g, '')
+  const whatsappUrl = whatsappDigits ? `https://wa.me/${whatsappDigits}` : ''
 
   function closeModal() {
     setModal(null)
@@ -53,8 +74,14 @@ export function ProfilePage() {
 
   function openModal(next: Exclude<ProfileModal, null>) {
     if (next === 'details') {
+      const currentPhone = splitPhone(user?.phone ?? '')
       setName(fullName)
       setHandle(username === common.notApplicable ? '' : username)
+      setCountryCode(currentPhone.code)
+      setPhoneNumber(currentPhone.national)
+      setAddress(savedAddress)
+      setAddressError('')
+      setPhoneError('')
       setDetailsError('')
       setDetailsSaved('')
     }
@@ -76,11 +103,18 @@ export function ProfilePage() {
     event.preventDefault()
     setDetailsError('')
     setDetailsSaved('')
+    setAddressError('')
+    setPhoneError('')
     const nextName = name.trim()
     const nextHandle = handle.trim().toLowerCase()
+    const nextAddress = address.trim()
     if (nextName.length < 2) { setDetailsError(copy.detailsError); return }
     if (!/^[a-z0-9_]{3,20}$/.test(nextHandle)) { setDetailsError(copy.usernameError); return }
+    if (phoneNumber.trim() && !isValidNationalNumber(phoneNumber)) { setPhoneError(common.validPhone); return }
+    if (nextAddress && nextAddress.length < 5) { setAddressError(copy.addressError); return }
 
+    const country = countries.find((item) => item.code === countryCode) ?? defaultCountry
+    const fullPhone = phoneNumber.trim() ? toE164(country.dial, phoneNumber) : ''
     setSavingDetails(true)
     try {
       const token = session?.access_token
@@ -90,13 +124,14 @@ export function ProfilePage() {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ fullName: nextName, username: nextHandle }),
+        body: JSON.stringify({ fullName: nextName, username: nextHandle, phone: fullPhone, address: nextAddress }),
       })
       const data = await response.json() as { error?: string }
       if (!response.ok) throw new Error(data.error || copy.detailsError)
       await supabase.auth.refreshSession()
       setName(nextName)
       setHandle(nextHandle)
+      setAddress(nextAddress)
       setDetailsSaved(copy.detailsSaved)
     } catch (caught) {
       setDetailsError(caught instanceof Error ? caught.message : copy.detailsError)
@@ -186,7 +221,7 @@ export function ProfilePage() {
                 <p className="eyebrow">{copy.eyebrow}</p>
                 <h2 id="profile-sheet-title">{modalTitle}</h2>
               </div>
-              <button className="admin-icon-button" type="button" onClick={closeModal} aria-label={`Close ${modalTitle}`}>Close</button>
+              <SheetCloseButton label={`Close ${modalTitle}`} onClick={closeModal} />
             </div>
 
             {modal === 'details' ? (
@@ -203,9 +238,26 @@ export function ProfilePage() {
                   <span>{copy.emailLabel}</span>
                   <strong>{email}</strong>
                 </div>
-                <div className="profile-readonly">
-                  <span>{copy.phoneLabel}</span>
-                  <strong>{phone}</strong>
+                <PhoneField
+                  id="profilePhone"
+                  countryCode={countryCode}
+                  onCountryChange={setCountryCode}
+                  value={phoneNumber}
+                  onChange={setPhoneNumber}
+                  error={phoneError}
+                  optional
+                />
+                <div className="field">
+                  <label htmlFor="profileAddress">{copy.addressLabel} <small>{copy.addressOptional}</small></label>
+                  <input
+                    id="profileAddress"
+                    value={address}
+                    onChange={(event) => setAddress(event.target.value)}
+                    placeholder={copy.addressPlaceholder}
+                    autoComplete="street-address"
+                    aria-invalid={Boolean(addressError)}
+                  />
+                  {addressError ? <p className="field-error">{addressError}</p> : null}
                 </div>
                 {detailsError ? <p className="field-error">{detailsError}</p> : null}
                 {detailsSaved ? <p className="profile-success">{detailsSaved}</p> : null}
@@ -236,17 +288,21 @@ export function ProfilePage() {
             {modal === 'support' ? (
               <div className="profile-support">
                 <p className="section-hint">{copy.contactSupportHint}</p>
+                {whatsappUrl ? (
+                  <div className="profile-readonly">
+                    <span>WhatsApp</span>
+                    <strong><a href={whatsappUrl} target="_blank" rel="noreferrer">{whatsappNumber}</a></strong>
+                  </div>
+                ) : null}
                 <div className="profile-readonly">
                   <span>{copy.emailLabel}</span>
                   <strong><a href={`mailto:${settings.contact.email}`}>{settings.contact.email}</a></strong>
                 </div>
-                <div className="profile-readonly">
-                  <span>{copy.phoneLabel}</span>
-                  <strong><a href={`tel:${settings.contact.phone.replace(/\s/g, '')}`}>{settings.contact.phone}</a></strong>
-                </div>
                 <p className="profile-support__detail">{settings.contact.location}</p>
                 <p className="profile-support__detail">{settings.contact.hours}</p>
-                <a className="btn btn--primary btn--block btn--large" href={`mailto:${settings.contact.email}`}>{copy.contactSupport}</a>
+                {whatsappUrl ? (
+                  <a className="btn btn--primary btn--block btn--large" href={whatsappUrl} target="_blank" rel="noreferrer">Chat on WhatsApp</a>
+                ) : null}
               </div>
             ) : null}
           </div>

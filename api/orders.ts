@@ -38,6 +38,37 @@ const statuses = new Set(['Pending', 'Preparing', 'Out for delivery', 'Delivered
 const orderColumns = 'id,customer,phone,address,total,status,created_at'
 const itemColumns = 'order_id,product_id,name,quantity,price,emoji,image'
 
+type AuditRow = {
+  id: number | string
+  created_at: string
+  action: string
+  target_id: string
+  details: Record<string, unknown>
+}
+
+const statusTitles: Record<string, string> = {
+  Pending: 'Order received',
+  Preparing: 'Order approved',
+  'Out for delivery': 'On the way',
+  Delivered: 'Delivered',
+  Cancelled: 'Order cancelled',
+}
+
+function mapNotification(row: AuditRow) {
+  const status = String(row.details?.status ?? '')
+  const orderId = row.target_id || ''
+  return {
+    id: String(row.id),
+    title: row.action === 'order.created' ? 'Order placed' : statusTitles[status] ?? 'Order update',
+    body: row.action === 'order.created'
+      ? `Order ${orderId} was received and is being reviewed.`
+      : `Order ${orderId} is now ${status.toLowerCase()}.`,
+    orderId,
+    status,
+    createdAt: row.created_at,
+  }
+}
+
 function mapOrder(row: OrderRow, items: ItemRow[] = []) {
   return {
     id: row.id,
@@ -69,6 +100,21 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   try {
     if (req.method === 'GET') {
       const user = await requireUser(req)
+      const url = new URL(req.url ?? '', 'http://localhost')
+      if (url.searchParams.get('view') === 'notifications') {
+        const ordersResponse = await dbFetch(`/orders?select=id&user_id=eq.${encodeURIComponent(user.id)}&limit=200`)
+        if (!ordersResponse.ok) throw new Error('Order lookup failed')
+        const orderRows = await ordersResponse.json() as Array<{ id: string }>
+        const orderIds = new Set(orderRows.map((row) => row.id))
+
+        const response = await dbFetch(
+          `/audit_logs?select=id,created_at,action,target_id,details&details->>userId=eq.${encodeURIComponent(user.id)}&action=in.(order.created,order.status_change)&order=created_at.desc&limit=100`,
+        )
+        if (!response.ok) throw new Error('Notification lookup failed')
+        const rows = await response.json() as AuditRow[]
+        return send(res, 200, rows.filter((row) => orderIds.has(row.target_id)).map(mapNotification))
+      }
+
       const role = roleFromUser(user)
       const filter = role === 'admin' || role === 'manager' ? '' : `&user_id=eq.${encodeURIComponent(user.id)}`
       const response = await dbFetch(`/orders?select=${orderColumns}${filter}&order=created_at.desc&limit=200`)
@@ -154,6 +200,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         await dbFetch(`/orders?id=eq.${encodeURIComponent(order.id)}`, { method: 'DELETE' }).catch(() => undefined)
         throw new Error('Order item creation failed')
       }
+      await recordAudit(user, 'order.created', 'order', order.id, { userId: user.id, status: 'Pending' })
 
       return send(res, 200, {
         order: mapOrder(
@@ -171,6 +218,12 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       if (!orderId) throw new InputError('Choose an order to update.')
       if (!statuses.has(status)) throw new InputError('Choose a valid order status.')
 
+      const existingResponse = await dbFetch(`/orders?select=user_id,status&id=eq.${encodeURIComponent(orderId)}`)
+      if (!existingResponse.ok) throw new Error('Order lookup failed')
+      const existingRows = await existingResponse.json() as Array<{ user_id: string; status: string }>
+      if (!existingRows.length) throw new InputError('That order could not be found.')
+      const previous = existingRows[0]
+
       const response = await dbFetch(`/orders?id=eq.${encodeURIComponent(orderId)}`, {
         method: 'PATCH',
         headers: { Prefer: 'return=representation' },
@@ -179,7 +232,11 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       if (!response.ok) throw new Error('Order update failed')
       const rows = await response.json() as OrderRow[]
       if (!rows.length) throw new InputError('That order could not be found.')
-      await recordAudit(actor, 'order.status_change', 'order', orderId, { status })
+      await recordAudit(actor, 'order.status_change', 'order', orderId, {
+        userId: previous.user_id,
+        from: previous.status,
+        status,
+      })
       return send(res, 200, { order: mapOrder(rows[0]) })
     }
 

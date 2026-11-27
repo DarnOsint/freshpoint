@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { StatusBadge } from '../../components/StatusBadge'
 import { useData } from '../../lib/data-store'
 import { formatDate, formatMoney } from '../../lib/format'
@@ -8,6 +9,16 @@ export function OrdersPage() {
   const { orders } = useData()
   const { settings } = useSiteSettings()
   const copy = settings.interface.app.orders
+  const [params] = useSearchParams()
+  const focusedOrder = params.get('order')
+
+  useEffect(() => {
+    if (!focusedOrder) return
+    const target = Array.from(document.querySelectorAll<HTMLElement>('[data-order-id]'))
+      .find((element) => element.dataset.orderId === focusedOrder)
+    target?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [focusedOrder, orders.length])
+
   const mine = orders
 
   return (
@@ -23,7 +34,11 @@ export function OrdersPage() {
       {mine.length ? (
         <div className="order-list">
           {mine.map((order) => (
-            <article className="order-card order-card--full" key={order.id}>
+            <article
+              className={`order-card order-card--full${focusedOrder === order.id ? ' order-card--focused' : ''}`}
+              data-order-id={order.id}
+              key={order.id}
+            >
               <div className="order-card__top">
                 <div><strong>{order.id}</strong><small>{formatDate(order.createdAt)}</small></div>
                 <StatusBadge status={order.status} />

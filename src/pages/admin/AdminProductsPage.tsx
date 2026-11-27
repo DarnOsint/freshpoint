@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { ImageUploadField } from '../../components/ImageUploadField'
 import { ProductImage } from '../../components/ProductImage'
+import { SheetCloseButton } from '../../components/SheetCloseButton'
 import { categories as defaultCategories } from '../../lib/categories'
 import { useData } from '../../lib/data-store'
 import { formatMoney } from '../../lib/format'
@@ -146,7 +147,7 @@ export function AdminProductsPage() {
                 <p className="eyebrow">Catalogue</p>
                 <h2 id="product-sheet-title">{editor === 'create' ? 'New product' : 'Edit product'}</h2>
               </div>
-              <button className="admin-icon-button" type="button" onClick={closeEditor} aria-label="Close product editor">Close</button>
+              <SheetCloseButton label="Close product editor" onClick={closeEditor} />
             </div>
 
             <form className="admin-form editor-form" onSubmit={(event) => void handleSubmit(event)} noValidate>

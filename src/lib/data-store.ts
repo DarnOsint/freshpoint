@@ -1,11 +1,12 @@
 import { createContext, useContext } from 'react'
-import type { CartLine, Customer, Order, OrderStatus, Product, Role } from './types'
+import type { AppNotification, CartLine, Customer, Order, OrderStatus, Product, Role } from './types'
 
 export type StoredData = {
   products: Product[]
   orders: Order[]
   customers: Customer[]
   cart: CartLine[]
+  notifications: AppNotification[]
 }
 
 export type DataContextValue = StoredData & {
@@ -19,6 +20,10 @@ export type DataContextValue = StoredData & {
   setCustomerRole: (customerId: string, role: Extract<Role, 'manager' | 'customer'>) => Promise<void>
   saveCustomer: (customer: Customer) => Promise<void>
   refreshOrders: () => Promise<void>
+  refreshNotifications: () => Promise<void>
+  markNotificationRead: (id: string) => void
+  markAllNotificationsRead: () => void
+  unreadNotificationCount: number
   saveProduct: (product: Product) => Promise<void>
   deleteProduct: (productId: string) => Promise<void>
 }

@@ -2,14 +2,21 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { useAuth } from './auth-context'
 import { DataContext, type DataContextValue, type StoredData } from './data-store'
 import { isStaff } from './roles'
-import type { CartLine, Customer, Order, OrderStatus, Product, Role } from './types'
+import type { AppNotification, CartLine, Customer, Order, OrderStatus, Product, Role } from './types'
 
 const LEGACY_STORAGE_KEY = 'freshpoint-data-v1'
 const CART_STORAGE_KEY = 'freshpoint-cart-v1'
+const NOTIFICATION_READS_KEY = 'freshpoint-notification-reads-v1'
 const CART_TTL_MS = 7 * 24 * 60 * 60 * 1000
+const NOTIFICATION_POLL_MS = 15 * 1000
 
 type StoredCart = { lines: CartLine[]; savedAt: number }
-type DataState = StoredData & { ordersToken: string; customersToken: string }
+type DataState = StoredData & {
+  ordersToken: string
+  customersToken: string
+  notificationsToken: string
+  notificationReads: string[]
+}
 
 function authHeaders(token?: string) {
   return token ? { Authorization: `Bearer ${token}` } : {}
@@ -59,6 +66,28 @@ function availableCart(cart: CartLine[], products: Product[]): CartLine[] {
   })
 }
 
+function notificationReadsKey(userId: string) {
+  return `${NOTIFICATION_READS_KEY}:${userId}`
+}
+
+function loadNotificationReads(userId: string): string[] {
+  try {
+    const raw = localStorage.getItem(notificationReadsKey(userId))
+    const parsed = raw ? JSON.parse(raw) : []
+    return Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === 'string') : []
+  } catch {
+    return []
+  }
+}
+
+function saveNotificationReads(userId: string, ids: string[]) {
+  try {
+    localStorage.setItem(notificationReadsKey(userId), JSON.stringify(ids))
+  } catch {
+    // Read state is a convenience; notifications remain available in memory.
+  }
+}
+
 export function DataProvider({ children }: { children: ReactNode }) {
   const { session, user } = useAuth()
   const token = session?.access_token
@@ -68,8 +97,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
     orders: [],
     customers: [],
     cart: loadCart(),
+    notifications: [],
     ordersToken: '',
     customersToken: '',
+    notificationsToken: '',
+    notificationReads: [],
   }))
 
   useEffect(() => {
@@ -99,6 +131,51 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const orders = await response.json() as Order[]
     setData((current) => ({ ...current, orders, ordersToken: token ?? '' }))
   }
+
+  async function refreshNotifications() {
+    if (!token || !user?.id) return
+    const response = await fetch('/api/orders?view=notifications', {
+      headers: authHeaders(token),
+      cache: 'no-store',
+    })
+    if (!response.ok) await fail(response, 'We could not load notifications. Please try again.')
+    const rows = await response.json() as AppNotification[]
+    const reads = loadNotificationReads(user.id)
+    setData((current) => ({
+      ...current,
+      notifications: rows.map((item) => ({ ...item, read: reads.includes(item.id) })),
+      notificationsToken: token,
+      notificationReads: reads,
+    }))
+  }
+
+  useEffect(() => {
+    if (!token || !user?.id) return
+    let active = true
+    const load = async () => {
+      try {
+        const response = await fetch('/api/orders?view=notifications', { headers: authHeaders(token), cache: 'no-store' })
+        if (!response.ok || !active) return
+        const rows = await response.json() as AppNotification[]
+        const reads = loadNotificationReads(user.id!)
+        if (!active) return
+        setData((current) => ({
+          ...current,
+          notifications: rows.map((item) => ({ ...item, read: reads.includes(item.id) })),
+          notificationsToken: token,
+          notificationReads: reads,
+        }))
+      } catch {
+        // Notifications are non-critical; the next poll will retry.
+      }
+    }
+    void load()
+    const timer = window.setInterval(() => { void load() }, NOTIFICATION_POLL_MS)
+    return () => {
+      active = false
+      window.clearInterval(timer)
+    }
+  }, [token, user?.id])
 
   useEffect(() => {
     if (!token) return
@@ -232,6 +309,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         username: customer.username,
         email: customer.email,
         phone: customer.phone,
+        address: customer.address ?? '',
         role: customer.role === 'manager' ? 'manager' : 'customer',
       }),
     })
@@ -272,8 +350,35 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }))
   }
 
+  function markNotificationRead(id: string) {
+    if (!user?.id) return
+    const reads = Array.from(new Set([...data.notificationReads, id]))
+    saveNotificationReads(user.id, reads)
+    setData((current) => ({
+      ...current,
+      notificationReads: reads,
+      notifications: current.notifications.map((item) => item.id === id ? { ...item, read: true } : item),
+    }))
+  }
+
+  function markAllNotificationsRead() {
+    if (!user?.id) return
+    const reads = Array.from(new Set([...data.notificationReads, ...data.notifications.map((item) => item.id)]))
+    saveNotificationReads(user.id, reads)
+    setData((current) => ({
+      ...current,
+      notificationReads: reads,
+      notifications: current.notifications.map((item) => ({ ...item, read: true })),
+    }))
+  }
+
+  const unreadNotificationCount = data.notificationsToken === token
+    ? data.notifications.filter((item) => !item.read).length
+    : 0
+
   const value: DataContextValue = {
     ...data,
+    notifications: data.notificationsToken === token ? data.notifications : [],
     orders: data.ordersToken === token ? data.orders : [],
     customers: staff && data.customersToken === token ? data.customers : [],
     cartCount,
@@ -286,6 +391,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setCustomerRole,
     saveCustomer,
     refreshOrders,
+    refreshNotifications,
+    markNotificationRead,
+    markAllNotificationsRead,
+    unreadNotificationCount,
     saveProduct,
     deleteProduct,
   }

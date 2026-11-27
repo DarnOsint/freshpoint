@@ -39,11 +39,22 @@ export type Order = {
   createdAt: string
 }
 
+export type AppNotification = {
+  id: string
+  title: string
+  body: string
+  orderId: string
+  status: string
+  createdAt: string
+  read?: boolean
+}
+
 export type Customer = {
   id: string
   name: string
   username: string
   phone: string
+  address?: string
   email: string
   joinedAt: string
   role?: Role

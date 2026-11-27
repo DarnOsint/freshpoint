@@ -27,7 +27,7 @@ export function AdminShell() {
   const { settings } = useSiteSettings()
   const navigate = useNavigate()
   const location = useLocation()
-  const pending = orders.filter((order) => order.status === 'Pending').length
+  const pending = orders.filter((order) => order.status !== 'Delivered' && order.status !== 'Cancelled').length
 
   async function handleSignOut() {
     await signOut()
