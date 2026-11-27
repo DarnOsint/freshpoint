@@ -26,7 +26,7 @@ export function AdminShell() {
   }
 
   return (
-    <div className="admin-shell">
+    <div className="admin-shell admin-shell--admin">
       <aside className="admin-sidebar">
         <div className="admin-sidebar__brand">
           <Logo light label={settings.brand.appName} />
@@ -50,7 +50,7 @@ export function AdminShell() {
       <div className="admin-body">
         <header className="admin-topbar">
           <div className="admin-topbar__brand"><Logo label={settings.brand.appName} /></div>
-          <span className="admin-topbar__label">Admin console</span>
+          <span className="admin-topbar__label"><span className="admin-topbar__pulse" /> Admin console</span>
           <button type="button" className="admin-topbar__signout" onClick={() => void handleSignOut()} aria-label="Sign out">
             <LogOut size={19} />
           </button>

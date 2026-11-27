@@ -1,5 +1,5 @@
 import { useId, useState } from 'react'
-import { Globe, Plus, RotateCcw, Save, Trash2 } from 'lucide-react'
+import { CheckCircle2, CircleAlert, Globe, Plus, RotateCcw, Save, Trash2 } from 'lucide-react'
 import { ImageUploadField } from '../../components/ImageUploadField'
 import {
   defaultSiteSettings, siteIcons, siteTones, useSiteSettings,
@@ -257,6 +257,8 @@ export function AdminWebsitePage() {
       </div>
     )
   }
+
+  const activeTab = tabs.find((item) => item.id === tab) ?? tabs[0]
 
   function renderTab() {
     if (tab === 'brand') {
@@ -806,7 +808,7 @@ export function AdminWebsitePage() {
   }
 
   return (
-    <div className="admin-page">
+    <div className="admin-page website-page">
       <header className="admin-page__head">
         <div>
           <p className="eyebrow">Site content</p>
@@ -818,43 +820,58 @@ export function AdminWebsitePage() {
         </button>
       </header>
 
-      <div className="settings-tabs" role="tablist" aria-label="Website sections">
-        {tabs.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            role="tab"
-            aria-selected={tab === item.id}
-            className={`settings-tab${tab === item.id ? ' settings-tab--active' : ''}`}
-            onClick={() => setTab(item.id)}
-          >
-            {item.label}
-          </button>
-        ))}
+      <div className="website-tabs-shell">
+        <div className="settings-tabs" role="tablist" aria-label="Website sections">
+          {tabs.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              role="tab"
+              aria-selected={tab === item.id}
+              className={`settings-tab${tab === item.id ? ' settings-tab--active' : ''}`}
+              onClick={() => setTab(item.id)}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <p className="settings-hint">
-        {dirty ? 'You have unsaved changes.' : saved ? 'Saved for every visitor.' : 'Changes are published to the live website when you save.'}
-      </p>
-      {error ? <p className="field-error">{error}</p> : null}
+      <div className={`website-status${dirty ? ' website-status--dirty' : saved ? ' website-status--saved' : ''}`} role="status" aria-live="polite">
+        {dirty ? <CircleAlert size={15} /> : <CheckCircle2 size={15} />}
+        <span>{dirty ? 'You have unsaved changes.' : saved ? 'Saved for every visitor.' : 'Changes publish when you save.'}</span>
+        <small>{activeTab.label}</small>
+      </div>
+      {error ? <p className="field-error admin-inline-error">{error}</p> : null}
 
-      {renderTab()}
+      <section className="website-workspace">
+        <div className="website-workspace__head">
+          <div>
+            <p className="eyebrow">Now editing</p>
+            <h2>{activeTab.label}</h2>
+            <p>Tap a field to edit it, then save to publish across the FreshPoint site.</p>
+          </div>
+          <span className="website-workspace__badge"><Globe size={14} /> Live site</span>
+        </div>
+        {renderTab()}
+      </section>
 
-      <button
-        className="btn btn--outline btn--small"
-        type="button"
-        onClick={() => {
-          if (!window.confirm('Replace all website content with the original defaults? Save to publish.')) return
-          setDraft(cloneDefaults())
-          setDirty(true)
-          setSaved(false)
-          setError('')
-        }}
-      >
-        <RotateCcw size={16} /> Restore defaults
-      </button>
-
-      <p className="settings-hint"><Globe size={14} /> Changes appear on the public site immediately after saving.</p>
+      <div className="website-footer">
+        <button
+          className="btn btn--outline btn--small"
+          type="button"
+          onClick={() => {
+            if (!window.confirm('Replace all website content with the original defaults? Save to publish.')) return
+            setDraft(cloneDefaults())
+            setDirty(true)
+            setSaved(false)
+            setError('')
+          }}
+        >
+          <RotateCcw size={16} /> Restore defaults
+        </button>
+        <p className="settings-hint"><Globe size={14} /> Changes appear on the public site immediately after saving.</p>
+      </div>
     </div>
   )
 }
