@@ -15,6 +15,11 @@ create table if not exists public.audit_logs (
 
 alter table public.audit_logs enable row level security;
 
+grant usage on schema public to service_role, authenticated;
+grant select, insert on public.audit_logs to service_role;
+grant select on public.audit_logs to authenticated;
+grant usage, select on sequence public.audit_logs_id_seq to service_role;
+
 drop policy if exists "Admins can read audit logs" on public.audit_logs;
 create policy "Admins can read audit logs"
   on public.audit_logs
