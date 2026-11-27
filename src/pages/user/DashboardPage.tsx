@@ -8,7 +8,7 @@ import { useSiteSettings } from '../../lib/site-content'
 
 export function DashboardPage() {
   const { user } = useAuth()
-  const { orders, products, cartCount, cartTotal } = useData()
+  const { orders } = useData()
   const { settings } = useSiteSettings()
   const copy = settings.interface.app.dashboard
   const name = firstName((user?.user_metadata?.full_name as string | undefined) ?? settings.interface.common.customerFallback)
@@ -23,29 +23,6 @@ export function DashboardPage() {
           <p>{copy.intro}</p>
         </div>
       </header>
-
-      <section className="app-banner">
-        <div>
-          <h2>{copy.bannerTitle}</h2>
-          <p>{cartCount} {copy.itemsInBasket} · {formatMoney(cartTotal)}</p>
-        </div>
-        <Link to="/app/cart" className="btn btn--light">{copy.bannerCta}</Link>
-      </section>
-
-      <div className="stat-grid">
-        <div className="stat-card">
-          <strong>{orders.length}</strong>
-          <small>{copy.ordersPlaced}</small>
-        </div>
-        <div className="stat-card">
-          <strong>{cartCount}</strong>
-          <small>{copy.itemsInBasket}</small>
-        </div>
-        <div className="stat-card">
-          <strong>{products.filter((product) => product.active !== false && product.stock > 0).length}</strong>
-          <small>{copy.productsAvailable}</small>
-        </div>
-      </div>
 
       <section className="app-section">
         <div className="app-section__head">

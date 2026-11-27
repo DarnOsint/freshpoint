@@ -3,6 +3,7 @@ import { useAuth } from '../lib/auth-context'
 import { useData } from '../lib/data-store'
 import { useSiteSettings } from '../lib/site-content'
 import { Logo } from './Logo'
+import { TabIcon } from './TabIcon'
 
 export function AppShell() {
   const { signOut } = useAuth()
@@ -36,6 +37,7 @@ export function AppShell() {
         <nav className="app-sidebar__nav" aria-label={copy.navigation}>
           {navItems.map(({ to, label, key }) => (
             <NavLink key={to} to={to} className={`app-nav-link${isActive(key, to) ? ' app-nav-link--active' : ''}`}>
+              <TabIcon name={key as 'home' | 'cart' | 'orders' | 'profile'} />
               <span>{label}</span>
               {key === 'cart' && cartCount > 0 ? <em>{cartCount}</em> : null}
             </NavLink>
@@ -65,6 +67,7 @@ export function AppShell() {
         <nav className="app-tabbar" aria-label={copy.navigation}>
           {navItems.map(({ to, label, key }) => (
             <NavLink key={to} to={to} className={`app-tab${isActive(key, to) ? ' app-tab--active' : ''}`}>
+              <TabIcon name={key as 'home' | 'cart' | 'orders' | 'profile'} />
               <span>
                 {label}
                 {key === 'cart' && cartCount > 0 ? <em>{cartCount}</em> : null}

@@ -81,7 +81,7 @@ export function ProductCatalogue() {
                         onClick={() => setCartQuantity(product.id, quantity - 1)}
                         aria-label={copy.decreaseLabel.replace('{name}', product.name)}
                       >
-                        Less
+                        -
                       </button>
                       <span aria-live="polite">{quantity}</span>
                       <button
@@ -90,7 +90,7 @@ export function ProductCatalogue() {
                         disabled={atMax}
                         aria-label={copy.increaseLabel.replace('{name}', product.name)}
                       >
-                        More
+                        +
                       </button>
                     </div>
                   ) : (
