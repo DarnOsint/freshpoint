@@ -69,7 +69,7 @@ Confirmation codes and the welcome email are sent by serverless API routes that 
 - `api/signup.ts` creates the Supabase Auth user, stores a hashed code in the server-only `email_confirmations` table, and emails the code.
 - `api/verify-email.ts` checks the code, confirms the email, saves the profile, starts a Supabase session and sends the branded welcome email.
 - `api/resend-code.ts` issues a fresh code with a 30-second cooldown.
-- Set `RESEND_API_KEY`, `SUPABASE_SECRET_KEY` (both sensitive), `RESEND_FROM_EMAIL` and `SITE_URL` in Vercel. `SITE_URL` builds the welcome email’s “Start shopping” link and password-reset links.
+- Set `RESEND_API_KEY`, `SUPABASE_SECRET_KEY` (both sensitive), `RESEND_FROM_EMAIL` and `SITE_URL` in Vercel. Use `FreshPoint <hello@freshpointltd.com>` as the verified sender and `https://freshpointltd.com` as `SITE_URL`; it builds account, welcome and password-reset links.
 - While testing, `RESEND_FROM_EMAIL` can be `FreshPoint <onboarding@resend.dev>`. Resend limits those messages to the account owner’s address, so verify a sending domain and switch to an address on it before launch.
 
 ### Password reset

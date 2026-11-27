@@ -21,8 +21,9 @@ const supabaseUrl = (process.env.VITE_SUPABASE_URL ?? '').replace(/\/+$/, '')
 const anonKey = process.env.VITE_SUPABASE_ANON_KEY ?? ''
 const secretKey = process.env.SUPABASE_SECRET_KEY ?? ''
 const resendKey = process.env.RESEND_API_KEY ?? ''
-const fromEmail = process.env.RESEND_FROM_EMAIL || 'FreshPoint <onboarding@resend.dev>'
-const siteUrl = (process.env.SITE_URL || 'https://freshpoint-omega.vercel.app').replace(/\/+$/, '')
+const fromEmail = process.env.RESEND_FROM_EMAIL || 'FreshPoint <hello@freshpointltd.com>'
+const siteUrl = (process.env.SITE_URL || 'https://freshpointltd.com').replace(/\/+$/, '')
+const siteHost = siteUrl.replace(/^https?:\/\//, '').split('/')[0]
 const r2Base = (process.env.VITE_R2_PUBLIC_BASE_URL ?? '').replace(/\/+$/, '')
 const heroKey = process.env.VITE_R2_HERO_KEY || 'hero-market.jpg'
 
@@ -114,20 +115,27 @@ function escapeHtml(value: string) {
   })[char] ?? char)
 }
 
-function layout(content: string) {
+function greeting(name: string) {
+  return escapeHtml(name.trim().split(/\s+/)[0] || 'there')
+}
+
+function layout(content: string, preheader: string) {
   return `<!doctype html>
-<html lang="en"><body style="margin:0;padding:0;background:#f4f8f5;font-family:Arial,Helvetica,sans-serif;color:#17301f;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f8f5;padding:24px 12px;">
+<html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>FreshPoint</title></head>
+<body style="margin:0;padding:0;background:#f1f5f2;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;color:#142b1d;">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;">${escapeHtml(preheader)}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f2;padding:28px 12px;">
 <tr><td align="center">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#ffffff;border-radius:18px;overflow:hidden;box-shadow:0 10px 30px rgba(22,101,52,.08);">
-<tr><td style="background:#166534;padding:22px 28px;">
-<img src="${logoUrl}" alt="FreshPoint" width="150" style="display:block;max-width:150px;height:auto;border:0;" />
-<p style="margin:10px 0 0;color:#dcfce7;font-size:12px;letter-spacing:.12em;text-transform:uppercase;">Your everyday fresh market</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 12px 32px rgba(20,75,40,.10);">
+<tr><td style="height:4px;background:#16a34a;"></td></tr>
+<tr><td style="background:#166534;padding:24px 32px;">
+<img src="${logoUrl}" alt="FreshPoint" width="140" style="display:block;max-width:140px;height:auto;border:0;" />
+<p style="margin:10px 0 0;color:#dcfce7;font-size:11px;letter-spacing:.14em;text-transform:uppercase;">Your everyday fresh market</p>
 </td></tr>
-<tr><td style="padding:32px 28px;">${content}</td></tr>
-<tr><td style="background:#f0fdf4;padding:20px 28px;color:#4b6b55;font-size:12px;line-height:1.6;">
-<strong>FreshPoint</strong> · Fresh vegetables, fruits, grains and everyday essentials delivered in Juba, South Sudan.<br />
-A OnePlan Enterprise brand · OrganicPoint / FreshPoint
+<tr><td style="padding:36px 32px 32px;">${content}</td></tr>
+<tr><td style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:22px 32px;color:#64748b;font-size:12px;line-height:1.6;">
+<strong style="color:#166534;">FreshPoint</strong> · Fresh vegetables, fruits, grains and everyday essentials.<br />
+Delivered across South Sudan · <a href="${siteUrl}" style="color:#166534;text-decoration:none;">${escapeHtml(siteHost)}</a>
 </td></tr>
 </table>
 </td></tr></table>
@@ -135,47 +143,55 @@ A OnePlan Enterprise brand · OrganicPoint / FreshPoint
 }
 
 function button(href: string, label: string) {
-  return `<a href="${href}" style="display:inline-block;background:#166534;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:10px;font-weight:bold;font-size:15px;">${escapeHtml(label)}</a>`
+  return `<a href="${escapeHtml(href)}" style="display:inline-block;background:#166534;color:#ffffff;text-decoration:none;padding:13px 26px;border-radius:9px;font-weight:600;font-size:15px;line-height:1.2;">${escapeHtml(label)}</a>`
+}
+
+function codeBlock(code: string) {
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 22px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;"><tr><td style="padding:18px 26px;font-family:'SFMono-Regular',Consolas,'Courier New',monospace;font-size:30px;letter-spacing:8px;color:#14532d;font-weight:700;">${escapeHtml(code)}</td></tr></table>`
+}
+
+function finePrint(text: string) {
+  return `<p style="margin:20px 0 0;color:#64748b;font-size:12px;line-height:1.6;">${text}</p>`
 }
 
 export async function sendConfirmationEmail(email: string, name: string, code: string) {
   const content = `
-<h1 style="margin:0 0 16px;font-size:24px;color:#166534;">Confirm your email</h1>
-<p style="margin:0 0 18px;font-size:15px;line-height:1.6;">Hi ${escapeHtml(name)}, use the code below to finish creating your FreshPoint account.</p>
-<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 18px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;"><tr><td style="padding:18px 26px;font-family:courier,monospace;font-size:30px;letter-spacing:8px;color:#14532d;font-weight:bold;">${code}</td></tr></table>
-<p style="margin:0 0 8px;font-size:13px;line-height:1.6;color:#4b6b55;">This code expires in 10 minutes. If you did not sign up, you can safely ignore this email.</p>`
-  await sendEmail(email, 'Your FreshPoint confirmation code', layout(content))
+<h1 style="margin:0 0 12px;font-size:24px;line-height:1.3;color:#14532d;">Confirm your email</h1>
+<p style="margin:0 0 22px;font-size:15px;line-height:1.7;">Hi ${greeting(name)}, use the code below to finish creating your FreshPoint account.</p>
+${codeBlock(code)}
+${finePrint('This code expires in 10 minutes. If you did not sign up, you can safely ignore this email.')}`
+  await sendEmail(email, 'Confirm your FreshPoint email', layout(content, 'Confirm your email to finish setting up your FreshPoint account.'))
 }
 
 export async function sendWelcomeEmail(email: string, name: string) {
   const content = `
-<img src="${heroUrl}" alt="Fresh produce at a market" width="544" style="display:block;width:100%;max-width:544px;height:auto;border-radius:12px;margin-bottom:22px;" />
-<h1 style="margin:0 0 14px;font-size:26px;color:#166534;">Welcome to FreshPoint, ${escapeHtml(name)}!</h1>
-<p style="margin:0 0 16px;font-size:15px;line-height:1.7;">Your account is ready. Browse quality-checked vegetables, fruits, grains and everyday essentials, then get them delivered to your door in Juba.</p>
-<p style="margin:0 0 24px;font-size:15px;line-height:1.7;">You can log in with your email, your username, or the phone number you added — whichever is easiest for you.</p>
-${button(`${siteUrl}/login`, 'Start shopping')}`
-  await sendEmail(email, 'Welcome to FreshPoint 🎉', layout(content))
+<img src="${heroUrl}" alt="Fresh produce at a market" width="536" style="display:block;width:100%;max-width:536px;height:auto;border-radius:12px;margin-bottom:24px;" />
+<h1 style="margin:0 0 12px;font-size:26px;line-height:1.3;color:#14532d;">Welcome to FreshPoint, ${greeting(name)}.</h1>
+<p style="margin:0 0 18px;font-size:15px;line-height:1.7;">Your account is ready. Browse fresh vegetables, fruits, grains and everyday essentials, then order for delivery in Juba.</p>
+<p style="margin:0 0 24px;font-size:15px;line-height:1.7;">You can sign in with your email, username or phone number — whichever is easiest for you.</p>
+${button(`${siteUrl}/app/shop`, 'Browse the shop')}
+${finePrint('Need help? Just reply to this email and our team will assist you.')}`
+  await sendEmail(email, 'Welcome to FreshPoint — your account is ready', layout(content, 'Your FreshPoint account is ready. Start shopping fresh produce today.'))
 }
 
 export async function sendPasswordResetEmail(email: string, name: string, code: string) {
   const resetUrl = `${siteUrl}/reset-password?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`
   const content = `
-<h1 style="margin:0 0 16px;font-size:24px;color:#166534;">Reset your password</h1>
-<p style="margin:0 0 18px;font-size:15px;line-height:1.7;">Hi ${escapeHtml(name)}, we received a request to reset your FreshPoint password. Use the code below or the button to choose a new one.</p>
-<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 22px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;"><tr><td style="padding:18px 26px;font-family:courier,monospace;font-size:30px;letter-spacing:8px;color:#14532d;font-weight:bold;">${code}</td></tr></table>
-<p style="margin:0 0 22px;">${button(resetUrl, 'Reset password')}</p>
-<p style="margin:0;font-size:13px;line-height:1.6;color:#4b6b55;">This code expires in 10 minutes and can be used once. If you did not request a reset, you can ignore this email — your password will stay unchanged.</p>`
-  await sendEmail(email, 'Reset your FreshPoint password', layout(content))
+<h1 style="margin:0 0 12px;font-size:24px;line-height:1.3;color:#14532d;">Reset your password</h1>
+<p style="margin:0 0 22px;font-size:15px;line-height:1.7;">Hi ${greeting(name)}, use the code below or the button to choose a new password for your FreshPoint account.</p>
+${codeBlock(code)}
+${button(resetUrl, 'Choose a new password')}
+${finePrint('This code expires in 10 minutes and can be used once. If you did not request a reset, no action is needed — your password stays unchanged.')}`
+  await sendEmail(email, 'Reset your FreshPoint password', layout(content, 'Use this code to choose a new FreshPoint password.'))
 }
 
 export async function sendPasswordChangedEmail(email: string, name: string) {
   const content = `
-<h1 style="margin:0 0 16px;font-size:24px;color:#166534;">Password updated</h1>
-<p style="margin:0 0 18px;font-size:15px;line-height:1.7;">Hi ${escapeHtml(name)}, your FreshPoint password has just been changed.</p>
-<p style="margin:0 0 24px;font-size:15px;line-height:1.7;">You can now log in with your email, username or phone number and your new password.</p>
+<h1 style="margin:0 0 12px;font-size:24px;line-height:1.3;color:#14532d;">Password updated</h1>
+<p style="margin:0 0 24px;font-size:15px;line-height:1.7;">Hi ${greeting(name)}, your FreshPoint password was changed successfully.</p>
 ${button(`${siteUrl}/login`, 'Go to login')}
-<p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#4b6b55;">If this wasn’t you, contact FreshPoint support immediately.</p>`
-  await sendEmail(email, 'Your FreshPoint password was changed', layout(content))
+${finePrint('If you did not make this change, reply to this email or contact FreshPoint support right away.')}`
+  await sendEmail(email, 'Your FreshPoint password was updated', layout(content, 'Your FreshPoint password was changed successfully.'))
 }
 
 async function sendEmail(to: string, subject: string, html: string) {
