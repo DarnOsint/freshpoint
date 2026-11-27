@@ -3,12 +3,12 @@ import { imageUrl } from '../lib/assets'
 
 type ProductImageProps = {
   image?: string | null
-  emoji: string
+  emoji?: string
   className?: string
   alt?: string
 }
 
-export function ProductImage({ image, emoji, className = '', alt = '' }: ProductImageProps) {
+export function ProductImage({ image, className = '', alt = '' }: ProductImageProps) {
   const [failed, setFailed] = useState(false)
   const src = !failed ? imageUrl(image) : ''
 
@@ -23,5 +23,5 @@ export function ProductImage({ image, emoji, className = '', alt = '' }: Product
       />
     )
   }
-  return <span className={className || undefined} aria-hidden="true">{emoji}</span>
+  return <span className={`product-image-placeholder ${className}`.trim()} aria-hidden="true" />
 }

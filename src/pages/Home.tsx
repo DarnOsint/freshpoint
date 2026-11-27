@@ -1,12 +1,10 @@
 import { useLayoutEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { ArrowRight, Leaf, MapPin } from 'lucide-react'
 import { ProductImage } from '../components/ProductImage'
 import { imageUrl } from '../lib/assets'
 import { useData } from '../lib/data-store'
 import { formatMoney } from '../lib/format'
 import { useSiteSettings } from '../lib/site-content'
-import { siteIcon } from '../lib/site-icons'
 
 export function Home() {
   const { hash } = useLocation()
@@ -37,20 +35,19 @@ export function Home() {
         <h1 className="mobile-only-heading">{settings.brand.appName} — {settings.hero.title} {settings.hero.highlight}</h1>
         <div className="container hero__grid">
           <div className="hero__copy">
-            <p className="eyebrow"><Leaf size={15} /> {settings.hero.eyebrow}</p>
+            <p className="eyebrow">{settings.hero.eyebrow}</p>
             <h1>{settings.hero.title} <span>{settings.hero.highlight}</span></h1>
             <p className="hero__lead">{settings.hero.lead}</p>
             <div className="hero__actions">
               <Link to="/signup" className="btn btn--primary btn--large">
-                {settings.hero.primaryLabel} <ArrowRight size={18} />
+                {settings.hero.primaryLabel}
               </Link>
               <Link to="/#categories" className="btn btn--outline btn--large">{settings.hero.secondaryLabel}</Link>
             </div>
             <ul className="hero__points">
-              {settings.hero.points.map((point, index) => {
-                const Icon = siteIcon(point.icon)
-                return <li key={`${point.text}-${index}`}><Icon size={18} /> {point.text}</li>
-              })}
+              {settings.hero.points.map((point, index) => (
+                <li key={`${point.text}-${index}`}>{point.text}</li>
+              ))}
             </ul>
           </div>
 
@@ -63,21 +60,13 @@ export function Home() {
                 onLoad={() => setHeroPhotoLoaded(true)}
                 onError={() => setHeroPhotoLoaded(false)}
               />
-              {!heroPhotoLoaded ? (
-                <div className="hero__harvest" aria-hidden="true">
-                  {settings.interface.home.harvest.split(/\s+/).filter(Boolean).map((emoji, index) => <span key={`${emoji}-${index}`}>{emoji}</span>)}
-                </div>
-              ) : null}
             </div>
             <div className="hero__float hero__float--top">
-              <span className="hero__float-icon">{settings.hero.floatTopIcon}</span>
               <div><strong>{settings.hero.floatTopTitle}</strong><small>{settings.hero.floatTopSubtitle}</small></div>
             </div>
             <div className="hero__float hero__float--bottom">
-              <span className="hero__float-icon">{settings.hero.floatBottomIcon}</span>
               <div><strong>{settings.hero.floatBottomTitle}</strong><small>{settings.hero.floatBottomSubtitle}</small></div>
             </div>
-            <div className="hero__produce" aria-hidden="true">{settings.hero.produce}</div>
           </div>
         </div>
       </section>
@@ -103,7 +92,6 @@ export function Home() {
           <div className="category-grid">
             {settings.categories.items.map((category, index) => (
               <article className={`category-card category-card--${category.tone}`} key={`${category.name}-${index}`}>
-                <div className="category-card__art" aria-hidden="true">{category.emoji}</div>
                 <h3>{category.name}</h3>
                 <p>{category.description}</p>
                 <small>{category.products}</small>
@@ -133,7 +121,7 @@ export function Home() {
                 <div className="product-card__body">
                   <h3>{product.name}</h3>
                   <p className="product-card__price"><strong>{formatMoney(product.price)}</strong> <span>{product.unit}</span></p>
-                  <Link to="/signup" className="product-card__link">{settings.interface.home.orderNow} <ArrowRight size={15} /></Link>
+                  <Link to="/signup" className="product-card__link">{settings.interface.home.orderNow}</Link>
                 </div>
               </article>
             ))}
@@ -151,16 +139,12 @@ export function Home() {
             </div>
           </div>
           <div className="reason-grid">
-            {settings.reasons.items.map((reason, index) => {
-              const Icon = siteIcon(reason.icon)
-              return (
-                <article className="reason-card" key={`${reason.title}-${index}`}>
-                  <span className="reason-card__icon"><Icon size={24} /></span>
-                  <h3>{reason.title}</h3>
-                  <p>{reason.text}</p>
-                </article>
-              )
-            })}
+            {settings.reasons.items.map((reason, index) => (
+              <article className="reason-card" key={`${reason.title}-${index}`}>
+                <h3>{reason.title}</h3>
+                <p>{reason.text}</p>
+              </article>
+            ))}
           </div>
         </div>
       </section>
@@ -174,30 +158,24 @@ export function Home() {
             </div>
           </div>
           <div className="steps-grid">
-            {settings.steps.items.map((step, index) => {
-              const Icon = siteIcon(step.icon)
-              return (
-                <article className="step-card" key={`${step.title}-${index}`}>
-                  <span className="step-card__number">0{index + 1}</span>
-                  <span className="step-card__icon"><Icon size={26} /></span>
-                  <h3>{step.title}</h3>
-                  <p>{step.text}</p>
-                  {index < settings.steps.items.length - 1 ? <ArrowRight className="step-card__arrow" size={20} /> : null}
-                </article>
-              )
-            })}
+            {settings.steps.items.map((step, index) => (
+              <article className="step-card" key={`${step.title}-${index}`}>
+                <span className="step-card__number">0{index + 1}</span>
+                <h3>{step.title}</h3>
+                <p>{step.text}</p>
+              </article>
+            ))}
           </div>
         </div>
       </section>
 
       <section className="section location-section">
         <div className="container location-card">
-          <span className="location-card__icon"><MapPin size={26} /></span>
           <div>
             <h2>{settings.location.titlePrefix} {settings.contact.location}</h2>
             <p>{settings.location.body}</p>
           </div>
-          <Link to="/signup" className="btn btn--primary">{settings.location.ctaLabel} <ArrowRight size={17} /></Link>
+          <Link to="/signup" className="btn btn--primary">{settings.location.ctaLabel}</Link>
         </div>
       </section>
     </div>

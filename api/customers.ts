@@ -1,6 +1,7 @@
 import {
-  AuthError, ForbiddenError, InputError, adminFetch, dbFetch, readJson,
-  requireStaff, requireUser, roleFromUser, send, type ApiRequest, type ApiResponse,
+  AuthError, ForbiddenError, InputError, adminFetch, dbFetch, listAuditLogs, readJson,
+  recordAudit, requireAdmin, requireStaff, requireUser, roleFromUser,
+  send, type ApiRequest, type ApiResponse,
 } from '../server/freshpoint.js'
 
 type ProfileRow = {
@@ -93,10 +94,31 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       })
       if (!profile.ok) throw new Error('Could not update profile')
 
+      if (userId && roleFromUser(actor) !== 'customer') {
+        await recordAudit(actor, 'customer.update', 'customer', targetId, {
+          name: fullName,
+          username,
+          email,
+          phone,
+        })
+        if (nextRole) {
+          await recordAudit(actor, 'customer.role_change', 'customer', targetId, {
+            from: target.app_metadata?.role ?? 'customer',
+            to: nextRole,
+          })
+        }
+      }
+
       return send(res, 200, { ok: true, fullName, username, email, phone, role: nextRole ?? target.app_metadata?.role ?? 'customer' })
     }
 
     if (req.method !== 'GET') return send(res, 405, { error: 'Method not allowed' })
+
+    const url = new URL(req.url ?? '', 'http://localhost')
+    if (url.searchParams.get('view') === 'audit') {
+      await requireAdmin(req)
+      return send(res, 200, await listAuditLogs())
+    }
 
     await requireStaff(req)
     const response = await dbFetch('/profiles?select=id,full_name,username,phone,email,role,created_at&order=created_at.desc')

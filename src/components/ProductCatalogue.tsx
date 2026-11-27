@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import { Minus, Plus, Search } from 'lucide-react'
 import { ProductImage } from './ProductImage'
 import { useData } from '../lib/data-store'
 import { formatMoney } from '../lib/format'
@@ -28,7 +27,6 @@ export function ProductCatalogue() {
   return (
     <>
       <label className="search-field">
-        <Search size={19} />
         <input
           type="search"
           placeholder={copy.searchPlaceholder}
@@ -66,7 +64,7 @@ export function ProductCatalogue() {
                   aria-label={copy.selectLabel.replace('{name}', product.name)}
                 >
                   <div className={`shop-card__art shop-card__art--${product.tone}`} aria-hidden="true">
-                    <ProductImage image={product.image} emoji={product.emoji} />
+                    <ProductImage image={product.image} />
                     {product.stock <= 10 ? <em>{copy.lowStock}</em> : null}
                   </div>
                   <div className="shop-card__meta">
@@ -83,7 +81,7 @@ export function ProductCatalogue() {
                         onClick={() => setCartQuantity(product.id, quantity - 1)}
                         aria-label={copy.decreaseLabel.replace('{name}', product.name)}
                       >
-                        <Minus size={16} />
+                        Less
                       </button>
                       <span aria-live="polite">{quantity}</span>
                       <button
@@ -92,7 +90,7 @@ export function ProductCatalogue() {
                         disabled={atMax}
                         aria-label={copy.increaseLabel.replace('{name}', product.name)}
                       >
-                        <Plus size={16} />
+                        More
                       </button>
                     </div>
                   ) : (
@@ -102,7 +100,7 @@ export function ProductCatalogue() {
                       onClick={() => setCartQuantity(product.id, 1)}
                       aria-label={`${copy.addToBasket}: ${product.name}`}
                     >
-                      <Plus size={16} /> {copy.addToBasket}
+                      {copy.addToBasket}
                     </button>
                   )}
                 </div>
@@ -112,7 +110,6 @@ export function ProductCatalogue() {
         </div>
       ) : (
         <div className="empty-state">
-          <Search size={28} />
           <h3>{copy.nothingFound}</h3>
           <p>{copy.nothingFoundHint}</p>
         </div>

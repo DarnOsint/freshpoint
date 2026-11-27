@@ -1,14 +1,13 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { ClipboardList, ExternalLink, LayoutDashboard, LogOut, UsersRound } from 'lucide-react'
 import { useAuth } from '../lib/auth-context'
 import { useData } from '../lib/data-store'
 import { useSiteSettings } from '../lib/site-content'
 import { Logo } from './Logo'
 
 const navItems = [
-  { to: '/manager', label: 'Overview', icon: LayoutDashboard, end: true },
-  { to: '/manager/orders', label: 'Orders', icon: ClipboardList, end: false },
-  { to: '/manager/customers', label: 'Customers', icon: UsersRound, end: false },
+  { to: '/manager', label: 'Overview', end: true },
+  { to: '/manager/orders', label: 'Orders', end: false },
+  { to: '/manager/customers', label: 'Customers', end: false },
 ]
 
 export function ManagerShell() {
@@ -31,17 +30,17 @@ export function ManagerShell() {
           <p>Manager console</p>
         </div>
         <nav className="admin-sidebar__nav" aria-label="Manager navigation">
-          {navItems.map(({ to, label, icon: Icon, end }) => (
+          {navItems.map(({ to, label, end }) => (
             <NavLink key={to} to={to} end={end}
               className={({ isActive }) => `admin-nav-link${isActive ? ' admin-nav-link--active' : ''}`}>
-              <Icon size={19} /> <span>{label}</span>
+              <span>{label}</span>
               {to === '/manager/orders' && pending > 0 ? <em>{pending}</em> : null}
             </NavLink>
           ))}
         </nav>
         <div className="admin-sidebar__bottom">
-          <a href="/" className="admin-nav-link"><ExternalLink size={18} /> <span>View website</span></a>
-          <button type="button" onClick={() => void handleSignOut()}><LogOut size={18} /> Sign out</button>
+          <a href="/" className="admin-nav-link"><span>View website</span></a>
+          <button type="button" onClick={() => void handleSignOut()}>Sign out</button>
         </div>
       </aside>
 
@@ -50,20 +49,19 @@ export function ManagerShell() {
           <div className="admin-topbar__brand"><Logo label={settings.brand.appName} /></div>
           <span className="admin-topbar__label">Manager console</span>
           <button type="button" className="admin-topbar__signout" onClick={() => void handleSignOut()} aria-label="Sign out">
-            <LogOut size={19} />
+            Sign out
           </button>
         </header>
 
         <main className="admin-main"><Outlet /></main>
 
         <nav className="admin-tabbar" aria-label="Manager navigation">
-          {navItems.map(({ to, label, icon: Icon, end }) => (
+          {navItems.map(({ to, label, end }) => (
             <NavLink key={to} to={to} end={end} className={({ isActive }) => `app-tab${isActive ? ' app-tab--active' : ''}`}>
-              <span className="app-tab__icon">
-                <Icon size={20} />
+              <span>
+                {label}
                 {to === '/manager/orders' && pending > 0 ? <em>{pending}</em> : null}
               </span>
-              <span>{label}</span>
             </NavLink>
           ))}
         </nav>

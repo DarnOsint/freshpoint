@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowRight, Minus, Plus, ShoppingBasket, Trash2 } from 'lucide-react'
 import { ProductImage } from '../../components/ProductImage'
 import { useAuth } from '../../lib/auth-context'
 import { useData } from '../../lib/data-store'
@@ -50,7 +49,6 @@ export function CartPage() {
           <div><p className="eyebrow">{copy.eyebrow}</p><h1>{copy.heading}</h1></div>
         </header>
         <div className="empty-state">
-          <ShoppingBasket size={30} />
           <h3>{copy.emptyHeading}</h3>
           <p>{copy.emptyBody}</p>
           <Link to="/app" className="btn btn--primary btn--small">{copy.browseProduce}</Link>
@@ -68,19 +66,19 @@ export function CartPage() {
       <div className="cart-list">
         {lines.map(({ product, quantity }) => (
           <article className="cart-line" key={product.id}>
-            <ProductImage image={product.image} emoji={product.emoji} className={`cart-line__art cart-line__art--${product.tone}`} />
+            <ProductImage image={product.image} className={`cart-line__art cart-line__art--${product.tone}`} />
             <div className="cart-line__info">
               <strong>{product.name}</strong>
               <small>{formatMoney(product.price)} · {product.unit}</small>
               <div className="qty-control">
-                <button type="button" onClick={() => setCartQuantity(product.id, quantity - 1)} aria-label={copy.removeOne.replace('{name}', product.name)}><Minus size={16} /></button>
+                <button type="button" onClick={() => setCartQuantity(product.id, quantity - 1)} aria-label={copy.removeOne.replace('{name}', product.name)}>Less</button>
                 <span>{quantity}</span>
-                <button type="button" onClick={() => setCartQuantity(product.id, quantity + 1)} disabled={quantity >= product.stock} aria-label={copy.addOne.replace('{name}', product.name)}><Plus size={16} /></button>
+                <button type="button" onClick={() => setCartQuantity(product.id, quantity + 1)} disabled={quantity >= product.stock} aria-label={copy.addOne.replace('{name}', product.name)}>More</button>
               </div>
             </div>
             <div className="cart-line__right">
               <strong>{formatMoney(product.price * quantity)}</strong>
-              <button type="button" className="cart-line__remove" onClick={() => setCartQuantity(product.id, 0)} aria-label={copy.remove.replace('{name}', product.name)}><Trash2 size={16} /></button>
+              <button type="button" className="cart-line__remove" onClick={() => setCartQuantity(product.id, 0)} aria-label={copy.remove.replace('{name}', product.name)}>Remove</button>
             </div>
           </article>
         ))}
@@ -108,7 +106,7 @@ export function CartPage() {
           <strong>{formatMoney(cartTotal)}</strong>
         </div>
         <button className="btn btn--primary btn--block btn--large" type="submit" disabled={busy}>
-          {busy ? 'Placing order…' : copy.placeOrder} <ArrowRight size={18} />
+          {busy ? 'Placing order…' : copy.placeOrder}
         </button>
         <p className="checkout-note">{copy.note}</p>
       </form>

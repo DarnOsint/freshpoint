@@ -1,5 +1,4 @@
 import { useState, type FormEvent } from 'react'
-import { Package, Pencil, Plus, Save, Trash2, X } from 'lucide-react'
 import { ImageUploadField } from '../../components/ImageUploadField'
 import { ProductImage } from '../../components/ProductImage'
 import { categories as defaultCategories } from '../../lib/categories'
@@ -8,10 +7,9 @@ import { formatMoney } from '../../lib/format'
 import type { Product } from '../../lib/types'
 
 const tones: Product['tone'][] = ['green', 'orange', 'amber', 'brown', 'red', 'teal']
-const emojis = ['🥬', '🥭', '🌾', '🥔', '🧄', '🍅', '🥕', '🍌', '🫘', '🥜']
 
 const emptyProduct: Product = {
-  id: '', name: '', category: 'Vegetables', price: 0, unit: 'per kg', emoji: '🥬', tone: 'green', stock: 0, image: '', active: true,
+  id: '', name: '', category: 'Vegetables', price: 0, unit: 'per kg', emoji: '', tone: 'green', stock: 0, image: '', active: true,
 }
 
 export function AdminProductsPage() {
@@ -88,7 +86,7 @@ export function AdminProductsPage() {
           <p>Add, edit or remove produce, prices and stock for every customer.</p>
         </div>
         <button className="btn btn--primary btn--small" type="button" onClick={showCreate}>
-          <Plus size={16} /> Add product
+          Add product
         </button>
       </header>
 
@@ -113,7 +111,7 @@ export function AdminProductsPage() {
                   aria-label={`Open ${product.name}`}
                 >
                   <span className="product-row__art">
-                    <ProductImage image={product.image} emoji={product.emoji} className={`cart-line__art cart-line__art--${product.tone}`} />
+                    <ProductImage image={product.image} emoji="" className={`cart-line__art cart-line__art--${product.tone}`} />
                   </span>
                   <span className="product-row__main">
                     <strong>{product.name}</strong>
@@ -125,14 +123,14 @@ export function AdminProductsPage() {
                   </span>
                 </button>
                 <div className="product-row__actions">
-                  <button type="button" onClick={() => showEdit(product)} aria-label={`Edit ${product.name}`} title="Edit product"><Pencil size={17} /></button>
-                  <button type="button" onClick={() => { setError(''); setConfirmProduct(product) }} aria-label={`Delete ${product.name}`} title="Delete product"><Trash2 size={17} /></button>
+                  <button type="button" onClick={() => showEdit(product)} aria-label={`Edit ${product.name}`} title="Edit product">Edit</button>
+                  <button type="button" onClick={() => { setError(''); setConfirmProduct(product) }} aria-label={`Delete ${product.name}`} title="Delete product">Delete</button>
                 </div>
               </article>
             ))}
           </div>
         ) : (
-          <div className="empty-state"><Package size={28} /><h3>No products yet</h3><p>Add your first product with the button above.</p></div>
+          <div className="empty-state"><h3>No products yet</h3><p>Add your first product with the button above.</p></div>
         )}
       </div>
 
@@ -144,7 +142,7 @@ export function AdminProductsPage() {
                 <p className="eyebrow">Catalogue</p>
                 <h2 id="product-sheet-title">{editor === 'create' ? 'New product' : 'Edit product'}</h2>
               </div>
-              <button className="admin-icon-button" type="button" onClick={closeEditor} aria-label="Close product editor"><X size={20} /></button>
+              <button className="admin-icon-button" type="button" onClick={closeEditor} aria-label="Close product editor">Close</button>
             </div>
 
             <form className="admin-form editor-form" onSubmit={(event) => void handleSubmit(event)} noValidate>
@@ -173,11 +171,6 @@ export function AdminProductsPage() {
                   onChange={(key) => setForm((current) => ({ ...current, image: key }))}
                   folder="products"
                 />
-                <div className="field"><label htmlFor="productEmoji">Icon</label>
-                  <select id="productEmoji" value={form.emoji} onChange={(event) => setForm({ ...form, emoji: event.target.value })}>
-                    {emojis.map((emoji) => <option key={emoji} value={emoji}>{emoji}</option>)}
-                  </select>
-                </div>
                 <div className="field"><label htmlFor="productTone">Colour</label>
                   <select id="productTone" value={form.tone} onChange={(event) => setForm({ ...form, tone: event.target.value as Product['tone'] })}>
                     {tones.map((tone) => <option key={tone} value={tone}>{tone}</option>)}
@@ -190,8 +183,8 @@ export function AdminProductsPage() {
               </label>
               {error ? <p className="field-error">{error}</p> : null}
               <div className="admin-form__actions">
-                <button className="btn btn--primary btn--block btn--large" type="submit" disabled={busy}><Save size={16} /> {busy ? 'Saving…' : 'Save product'}</button>
-                <button className="btn btn--outline btn--block" type="button" onClick={closeEditor}><X size={16} /> Cancel</button>
+                <button className="btn btn--primary btn--block btn--large" type="submit" disabled={busy}>{busy ? 'Saving…' : 'Save product'}</button>
+                <button className="btn btn--outline btn--block" type="button" onClick={closeEditor}>Cancel</button>
               </div>
             </form>
           </div>
@@ -201,7 +194,6 @@ export function AdminProductsPage() {
       {confirmProduct ? (
         <div className="sheet-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) setConfirmProduct(null) }}>
           <div className="confirm-sheet" role="alertdialog" aria-modal="true" aria-labelledby="delete-product-title">
-            <div className="confirm-sheet__icon"><Trash2 size={24} /></div>
             <h2 id="delete-product-title">Delete product?</h2>
             <p>Remove <strong>{confirmProduct.name}</strong> from the catalogue? Customers will no longer see it.</p>
             {error ? <p className="field-error">{error}</p> : null}

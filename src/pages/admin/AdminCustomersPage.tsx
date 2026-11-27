@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { ChevronRight, Mail, Phone, UsersRound, X } from 'lucide-react'
 import { useAuth } from '../../lib/auth-context'
 import { useData } from '../../lib/data-store'
 import { formatDate, initials } from '../../lib/format'
@@ -80,13 +79,12 @@ export function AdminCustomersPage({ readOnly = false }: { readOnly?: boolean })
                 </span>
                 <span className="account-chip">{roleLabel(customer.role ?? 'customer')}</span>
                 <small className="customer-row__orders">{count} order{count === 1 ? '' : 's'}</small>
-                <ChevronRight size={18} />
               </button>
             )
           })}
         </div>
       ) : (
-        <div className="empty-state"><UsersRound size={28} /><h3>No customers yet</h3><p>Customers will appear here once they create an account.</p></div>
+        <div className="empty-state"><h3>No customers yet</h3><p>Customers will appear here once they create an account.</p></div>
       )}
 
       {selected && draft ? (
@@ -97,7 +95,7 @@ export function AdminCustomersPage({ readOnly = false }: { readOnly?: boolean })
                 <p className="eyebrow">Customer details</p>
                 <h2 id="customer-sheet-title">{selected.name}</h2>
               </div>
-              <button className="admin-icon-button" type="button" onClick={close} aria-label="Close customer details"><X size={20} /></button>
+              <button className="admin-icon-button" type="button" onClick={close} aria-label="Close customer details">Close</button>
             </div>
 
             <div className="customer-sheet__summary">
@@ -119,11 +117,11 @@ export function AdminCustomersPage({ readOnly = false }: { readOnly?: boolean })
                 <input id="customerUsername" value={draft.username} onChange={(event) => update('username', event.target.value.toLowerCase())} disabled={readOnly} />
               </div>
               <div className="field">
-                <label htmlFor="customerEmail"><Mail size={15} /> Email address</label>
+                <label htmlFor="customerEmail">Email address</label>
                 <input id="customerEmail" type="email" value={draft.email} onChange={(event) => update('email', event.target.value.toLowerCase())} disabled={readOnly} />
               </div>
               <div className="field">
-                <label htmlFor="customerPhone"><Phone size={15} /> Phone number</label>
+                <label htmlFor="customerPhone">Phone number</label>
                 <input id="customerPhone" type="tel" value={draft.phone} onChange={(event) => update('phone', event.target.value)} disabled={readOnly} />
               </div>
               <div className="field">

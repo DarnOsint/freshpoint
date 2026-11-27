@@ -3,10 +3,9 @@ import defaults from './site-defaults.json'
 import type { OrderStatus } from './types'
 
 export type SiteTone = 'green' | 'orange' | 'amber' | 'brown' | 'red' | 'teal'
-export type SiteIcon = 'sprout' | 'badge' | 'store' | 'truck' | 'handshake' | 'clipboard' | 'basket' | 'package'
 
 export type SiteLink = { label: string; href: string }
-export type SitePoint = { text: string; icon: SiteIcon }
+export type SitePoint = { text: string }
 
 const phoneHiddenSections = new Set(['categories', 'why-us', 'how-it-works'])
 
@@ -16,14 +15,13 @@ export function isHiddenPhoneSection(href: string) {
 
 export type SiteStat = { value: string; label: string }
 export type SiteCategory = {
-  emoji: string
   name: string
   description: string
   products: string
   tone: SiteTone
 }
-export type SiteFeature = { icon: SiteIcon; title: string; text: string }
-export type SiteStep = { icon: SiteIcon; title: string; text: string }
+export type SiteFeature = { title: string; text: string }
+export type SiteStep = { title: string; text: string }
 
 export type SiteAppInterface = {
   shell: {
@@ -294,7 +292,7 @@ export type SiteInterface = {
     enterDetails: string
   }
   notFound: { eyebrow: string; heading: string; body: string; cta: string }
-  home: { orderNow: string; harvest: string }
+  home: { orderNow: string }
   app: SiteAppInterface
 }
 
@@ -329,13 +327,10 @@ export type SiteSettings = {
     primaryLabel: string
     secondaryLabel: string
     points: SitePoint[]
-    floatTopIcon: string
     floatTopTitle: string
     floatTopSubtitle: string
-    floatBottomIcon: string
     floatBottomTitle: string
     floatBottomSubtitle: string
-    produce: string
   }
   stats: { items: SiteStat[] }
   categories: {
@@ -364,7 +359,6 @@ export type SiteSettings = {
 export const defaultSiteSettings = defaults as unknown as SiteSettings
 
 export const siteTones: SiteTone[] = ['green', 'orange', 'amber', 'brown', 'red', 'teal']
-export const siteIcons: SiteIcon[] = ['sprout', 'badge', 'store', 'truck', 'handshake', 'clipboard', 'basket', 'package']
 
 function mergeValue<T>(base: T, incoming: unknown): T {
   if (Array.isArray(base)) return Array.isArray(incoming) ? incoming as T : base

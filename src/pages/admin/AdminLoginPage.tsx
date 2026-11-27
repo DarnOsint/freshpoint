@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
-import { ArrowRight, Eye, EyeOff, LockKeyhole } from 'lucide-react'
 import { AuthShell } from '../../components/AuthShell'
 import { useAuth } from '../../lib/auth-context'
 import { useSiteSettings } from '../../lib/site-content'
@@ -81,7 +80,7 @@ export function AdminLoginPage() {
       heading={copy.heading}
       footer={<>{copy.footer} <Link to="/login">{copy.goToLogin}</Link></>}
     >
-      <p className="auth-card__intro"><LockKeyhole size={15} /> {copy.intro}</p>
+      <p className="auth-card__intro">{copy.intro}</p>
 
       <div className="login-methods" role="tablist" aria-label={copy.methodLabel}>
         {methods.map((item) => (
@@ -123,14 +122,14 @@ export function AdminLoginPage() {
             />
             <button type="button" className="password-input__toggle" onClick={() => setShowPassword((value) => !value)}
               aria-label={showPassword ? common.hidePassword : common.showPassword}>
-              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              {showPassword ? common.hidePassword : common.showPassword}
             </button>
           </div>
         </div>
         <div className="auth-link-row"><Link to="/forgot-password">{common.forgotPassword}</Link></div>
         {error ? <p className="field-error">{error}</p> : null}
         <button className="btn btn--primary btn--block btn--large" type="submit" disabled={loading}>
-          {loading ? copy.signingIn : <>{copy.submit} <ArrowRight size={18} /></>}
+          {loading ? copy.signingIn : copy.submit}
         </button>
       </form>
     </AuthShell>

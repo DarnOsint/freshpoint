@@ -89,7 +89,7 @@ create table if not exists public.products (
   category text not null,
   price numeric(12, 2) not null check (price >= 0),
   unit text not null default 'per kg',
-  emoji text not null default '🥬',
+  emoji text not null default '',
   tone text not null default 'green'
     check (tone in ('red', 'orange', 'brown', 'green', 'amber', 'teal')),
   stock integer not null default 0 check (stock >= 0),

@@ -375,6 +375,7 @@ img, svg { display: block; }
 .admin-topbar__label { display: inline-flex; align-items: center; gap: 7px; margin-left: auto; padding: 6px 10px; border-radius: 999px; background: var(--green-50); color: var(--green-800); font-size: 0.7rem; font-weight: 800; }
 .admin-topbar__pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--green-600); box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15); }
 .admin-shell--admin .admin-topbar { border-top: 3px solid var(--green-700); }
+.admin-topbar__link { padding: 6px 8px; border-radius: 8px; color: var(--green-800); font-size: 0.7rem; font-weight: 800; text-decoration: none; }
 .admin-tabbar .app-tab { position: relative; }
 .admin-tabbar .app-tab--active::before { content: ''; position: absolute; top: -5px; left: 22%; right: 22%; height: 3px; border-radius: 0 0 4px 4px; background: var(--green-700); }
 .app-main, .admin-main { max-width: 1200px; margin-inline: auto; }
@@ -898,3 +899,16 @@ img, svg { display: block; }
   body.home-view .site-footer .footer__auth,
   body.home-view .site-footer .footer__cta { display: none; }
 }
+
+.product-image-placeholder { display: block; width: 100%; height: 100%; }
+
+.audit-list { display: grid; gap: 8px; }
+.audit-row { display: grid; gap: 6px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--white); }
+.audit-row__main { display: grid; gap: 2px; min-width: 0; }
+.audit-row__main strong { color: var(--green-900); font-size: 0.86rem; }
+.audit-row__main small { overflow: hidden; color: var(--muted); font-size: 0.7rem; text-overflow: ellipsis; white-space: nowrap; }
+.audit-row__meta { display: flex; flex-wrap: wrap; gap: 4px 12px; color: var(--muted); font-size: 0.7rem; }
+.audit-row__details { margin: 0; overflow-wrap: anywhere; color: var(--green-800); font-size: 0.7rem; }
+.audit-empty { display: grid; justify-items: center; gap: 4px; padding: 32px 18px; border: 1px dashed var(--line); border-radius: 14px; background: var(--white); color: var(--muted); text-align: center; }
+.audit-empty strong { color: var(--green-950); font-size: 0.9rem; }
+.audit-empty span { font-size: 0.74rem; }

@@ -1,6 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { ArrowRight, CheckCircle2, Eye, EyeOff, RefreshCw } from 'lucide-react'
 import { AuthShell } from '../components/AuthShell'
 import { OtpInput } from '../components/OtpInput'
 import { useSiteSettings } from '../lib/site-content'
@@ -100,11 +99,10 @@ export function ResetPasswordPage() {
       {done ? (
         <>
           <div className="auth-notice">
-            <CheckCircle2 size={26} />
             <p>{copy.doneNotice}</p>
           </div>
           <Link className="btn btn--primary btn--block btn--large" to="/login">
-            {copy.doneCta} <ArrowRight size={18} />
+            {copy.doneCta}
           </Link>
         </>
       ) : (
@@ -146,7 +144,7 @@ export function ResetPasswordPage() {
                   onClick={() => setShowPassword((value) => !value)}
                   aria-label={showPassword ? common.hidePassword : common.showPassword}
                 >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  {showPassword ? common.hidePassword : common.showPassword}
                 </button>
               </div>
             </div>
@@ -166,12 +164,11 @@ export function ResetPasswordPage() {
             {error ? <p className="field-error">{error}</p> : null}
 
             <button className="btn btn--primary btn--block btn--large" type="submit" disabled={loading}>
-              {loading ? copy.updating : <>{copy.submit} <ArrowRight size={18} /></>}
+              {loading ? copy.updating : copy.submit}
             </button>
           </form>
 
           <button className="resend-button" type="button" onClick={() => void handleResend()} disabled={countdown > 0}>
-            <RefreshCw size={15} />
             {countdown > 0 ? copy.resendIn.replace('{seconds}', String(countdown)) : copy.resend}
           </button>
         </>

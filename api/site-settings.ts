@@ -1,5 +1,5 @@
 import {
-  AuthError, ForbiddenError, InputError, adminFetch, readJson, requireAdmin, send,
+  AuthError, ForbiddenError, InputError, adminFetch, readJson, recordAudit, requireAdmin, send,
   type ApiRequest, type ApiResponse,
 } from '../server/freshpoint.js'
 
@@ -15,7 +15,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     }
 
     if (req.method === 'PUT') {
-      await requireAdmin(req)
+      const actor = await requireAdmin(req)
       const body = await readJson(req)
       if (!body.brand || !body.contact || !body.hero || !Array.isArray(body.navigation)) {
         throw new InputError('The website content is incomplete. Please try again.')
@@ -34,6 +34,9 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         console.error('Website content save failed:', response.status, await response.text())
         throw new Error('Website content save failed')
       }
+      await recordAudit(actor, 'website.save', 'website', 'site-settings', {
+        sections: Object.keys(body),
+      })
       return send(res, 200, { ok: true })
     }
 

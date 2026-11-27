@@ -1,4 +1,3 @@
-import { ChevronDown } from 'lucide-react'
 import { countries, formatNationalNumber } from '../lib/countries'
 import { useSiteSettings } from '../lib/site-content'
 
@@ -31,7 +30,6 @@ export function PhoneField({
       <label htmlFor={id}>{copy.phoneLabel} {optional ? <small>{copy.phoneOptional}</small> : null}</label>
       <div className="phone-field__row">
         <div className="phone-field__country">
-          <span className="phone-field__flag" aria-hidden="true">{country.flag}</span>
           <select
             aria-label={copy.countryCode}
             value={country.code}
@@ -39,12 +37,11 @@ export function PhoneField({
           >
             {countries.map((item) => (
               <option key={item.code} value={item.code}>
-                {item.flag} {item.name} ({item.dial})
+                {item.name} ({item.dial})
               </option>
             ))}
           </select>
           <span className="phone-field__dial">{country.dial}</span>
-          <ChevronDown className="phone-field__chevron" size={15} aria-hidden="true" />
         </div>
         <input
           id={id}

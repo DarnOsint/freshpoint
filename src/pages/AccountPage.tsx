@@ -1,5 +1,4 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowRight, LogOut, Mail, Phone, UserRound } from 'lucide-react'
 import { useAuth } from '../lib/auth-context'
 import { useSiteSettings } from '../lib/site-content'
 
@@ -26,7 +25,7 @@ export function AccountPage() {
           <h1>{settings.interface.login.heading}</h1>
           <p>{settings.interface.login.intro}</p>
           <div className="simple-page__actions">
-            <Link to="/login" className="btn btn--primary">{settings.footer.loginLabel} <ArrowRight size={17} /></Link>
+            <Link to="/login" className="btn btn--primary">{settings.footer.loginLabel}</Link>
             <Link to="/signup" className="btn btn--outline">{settings.footer.createAccountLabel}</Link>
           </div>
         </div>
@@ -47,32 +46,32 @@ export function AccountPage() {
     <section className="container simple-page">
       <div className="simple-page__card">
         <p className="eyebrow">{copy.eyebrow}</p>
-        <h1>{copy.heading}, {fullName.split(' ')[0]} 👋</h1>
+        <h1>{copy.heading}, {fullName.split(' ')[0]}</h1>
         <p>{settings.interface.app.dashboard.intro}</p>
 
         <div className="account-details">
           <div>
-            <span><UserRound size={17} /> {settings.interface.signup.fullNameLabel}</span>
+            <span>{settings.interface.signup.fullNameLabel}</span>
             <strong>{fullName}</strong>
           </div>
           <div>
-            <span><UserRound size={17} /> {common.usernameLabel}</span>
+            <span>{common.usernameLabel}</span>
             <strong>{username}</strong>
           </div>
           <div>
-            <span><Phone size={17} /> {copy.phoneLabel}</span>
+            <span>{copy.phoneLabel}</span>
             <strong>{user.phone ?? common.notApplicable}</strong>
           </div>
           <div>
-            <span><Mail size={17} /> {copy.emailLabel}</span>
+            <span>{copy.emailLabel}</span>
             <strong>{email}</strong>
           </div>
         </div>
 
         <div className="simple-page__actions">
-          <Link to="/app/shop" className="btn btn--primary">{settings.interface.app.dashboard.browseProduce} <ArrowRight size={17} /></Link>
+          <Link to="/app/shop" className="btn btn--primary">{settings.interface.app.dashboard.browseProduce}</Link>
           <button className="btn btn--outline" type="button" onClick={() => void handleSignOut()}>
-            <LogOut size={17} /> {copy.signOut}
+            {copy.signOut}
           </button>
         </div>
       </div>

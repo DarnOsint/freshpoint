@@ -1,8 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { Leaf } from 'lucide-react'
 import { useSiteSettings } from '../lib/site-content'
-import { siteIcon } from '../lib/site-icons'
 import { Logo } from './Logo'
 
 type AuthShellProps = {
@@ -21,14 +19,13 @@ export function AuthShell({ eyebrow, heading, children, footer }: AuthShellProps
       <aside className="auth-panel">
         <Logo light label={settings.brand.appName} />
         <div className="auth-panel__content">
-          <p className="eyebrow eyebrow--light"><Leaf size={15} /> {copy.eyebrow}</p>
+          <p className="eyebrow eyebrow--light">{copy.eyebrow}</p>
           <h2>{copy.heading}</h2>
           <p>{copy.body}</p>
           <ul>
-            {copy.points.map((point, index) => {
-              const Icon = siteIcon(point.icon)
-              return <li key={`${point.text}-${index}`}><Icon size={18} /> {point.text}</li>
-            })}
+            {copy.points.map((point, index) => (
+              <li key={`${point.text}-${index}`}>{point.text}</li>
+            ))}
           </ul>
         </div>
         <p className="auth-panel__brand">{copy.brandLine}</p>

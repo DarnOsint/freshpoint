@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, MailCheck } from 'lucide-react'
 import { AuthShell } from '../components/AuthShell'
 import { useSiteSettings } from '../lib/site-content'
 
@@ -48,14 +47,13 @@ export function ForgotPasswordPage() {
       {sent ? (
         <>
           <div className="auth-notice">
-            <MailCheck size={26} />
             <p>{copy.notice.replace('{email}', email.trim().toLowerCase())}</p>
           </div>
           <Link
             className="btn btn--primary btn--block btn--large"
             to={`/reset-password?email=${encodeURIComponent(email.trim().toLowerCase())}`}
           >
-            {copy.submitCode} <ArrowRight size={18} />
+            {copy.submitCode}
           </Link>
           <p className="auth-card__intro auth-card__intro--tight">{copy.noEmailHint}</p>
         </>
@@ -77,7 +75,7 @@ export function ForgotPasswordPage() {
               {error ? <p className="field-error">{error}</p> : null}
             </div>
             <button className="btn btn--primary btn--block btn--large" type="submit" disabled={loading}>
-              {loading ? copy.sending : <>{copy.send} <ArrowRight size={18} /></>}
+              {loading ? copy.sending : copy.send}
             </button>
           </form>
         </>

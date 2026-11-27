@@ -1,9 +1,8 @@
 import { useId, useState } from 'react'
-import { CheckCircle2, CircleAlert, Globe, Plus, RotateCcw, Save, Trash2 } from 'lucide-react'
 import { ImageUploadField } from '../../components/ImageUploadField'
 import {
-  defaultSiteSettings, siteIcons, siteTones, useSiteSettings,
-  type SiteAppInterface, type SiteCategory, type SiteFeature, type SiteIcon,
+  defaultSiteSettings, siteTones, useSiteSettings,
+  type SiteAppInterface, type SiteCategory, type SiteFeature,
   type SiteInterface, type SiteLink, type SitePoint, type SiteSettings,
   type SiteStat, type SiteStep, type SiteTone,
 } from '../../lib/site-content'
@@ -238,7 +237,7 @@ export function AdminWebsitePage() {
       if (section === 'navigation') return { ...current, navigation: [...current.navigation, { label: 'New link', href: '/#home' }] }
       if (section === 'stats') return { ...current, stats: { ...current.stats, items: [...current.stats.items, { value: '1', label: 'New stat' }] } }
       if (section === 'categories') {
-        return { ...current, categories: { ...current.categories, items: [...current.categories.items, { emoji: '🥬', name: 'New category', description: '', products: '', tone: 'green' }] } }
+        return { ...current, categories: { ...current.categories, items: [...current.categories.items, { emoji: '', name: 'New category', description: '', products: '', tone: 'green' }] } }
       }
       if (section === 'reasons') {
         return { ...current, reasons: { ...current.reasons, items: [...current.reasons.items, { icon: 'sprout', title: 'New reason', text: '' }] } }
@@ -253,7 +252,7 @@ export function AdminWebsitePage() {
   function itemActions(section: 'navigation' | 'stats' | 'categories' | 'reasons' | 'steps' | 'heroPoints' | 'authPoints', index: number) {
     return (
       <div className="settings-item__actions">
-        <button type="button" onClick={() => removeItem(section, index)} aria-label={`Remove item ${index + 1}`}><Trash2 size={15} /></button>
+        <button type="button" onClick={() => removeItem(section, index)} aria-label={`Remove item ${index + 1}`}>Remove</button>
       </div>
     )
   }
@@ -310,7 +309,7 @@ export function AdminWebsitePage() {
               </div>
             </div>
           ))}
-          <button className="btn btn--outline btn--small" type="button" onClick={() => addItem('navigation')}><Plus size={16} /> Add link</button>
+          <button className="btn btn--outline btn--small" type="button" onClick={() => addItem('navigation')}>Add link</button>
         </div>
       )
     }
@@ -325,24 +324,20 @@ export function AdminWebsitePage() {
             <TextField label="Description" value={draft.hero.lead} onChange={(value) => updateHero('lead', value)} multiline />
             <TextField label="Primary button" value={draft.hero.primaryLabel} onChange={(value) => updateHero('primaryLabel', value)} />
             <TextField label="Secondary button" value={draft.hero.secondaryLabel} onChange={(value) => updateHero('secondaryLabel', value)} />
-            <TextField label="Floating card icon (top)" value={draft.hero.floatTopIcon} onChange={(value) => updateHero('floatTopIcon', value)} />
             <TextField label="Floating card title (top)" value={draft.hero.floatTopTitle} onChange={(value) => updateHero('floatTopTitle', value)} />
             <TextField label="Floating card text (top)" value={draft.hero.floatTopSubtitle} onChange={(value) => updateHero('floatTopSubtitle', value)} />
-            <TextField label="Floating card icon (bottom)" value={draft.hero.floatBottomIcon} onChange={(value) => updateHero('floatBottomIcon', value)} />
             <TextField label="Floating card title (bottom)" value={draft.hero.floatBottomTitle} onChange={(value) => updateHero('floatBottomTitle', value)} />
             <TextField label="Floating card text (bottom)" value={draft.hero.floatBottomSubtitle} onChange={(value) => updateHero('floatBottomSubtitle', value)} />
-            <TextField label="Decorative produce" value={draft.hero.produce} onChange={(value) => updateHero('produce', value)} />
           </div>
           {draft.hero.points.map((point, index) => (
             <div className="settings-item" key={index}>
               <div className="settings-item__head"><strong>Point {index + 1}</strong>{itemActions('heroPoints', index)}</div>
               <div className="admin-form__grid">
                 <TextField label="Text" value={point.text} onChange={(value) => updatePoint(index, { text: value })} />
-                <SelectField label="Icon" value={point.icon} options={siteIcons} onChange={(value: SiteIcon) => updatePoint(index, { icon: value })} />
               </div>
             </div>
           ))}
-          <button className="btn btn--outline btn--small" type="button" onClick={() => addItem('heroPoints')}><Plus size={16} /> Add point</button>
+          <button className="btn btn--outline btn--small" type="button" onClick={() => addItem('heroPoints')}>Add point</button>
         </div>
       )
     }
@@ -359,7 +354,7 @@ export function AdminWebsitePage() {
               </div>
             </div>
           ))}
-          <button className="btn btn--outline btn--small" type="button" onClick={() => addItem('stats')}><Plus size={16} /> Add stat</button>
+          <button className="btn btn--outline btn--small" type="button" onClick={() => addItem('stats')}>Add stat</button>
         </div>
       )
     }
@@ -376,7 +371,6 @@ export function AdminWebsitePage() {
             <div className="settings-item" key={index}>
               <div className="settings-item__head"><strong>Category {index + 1}</strong>{itemActions('categories', index)}</div>
               <div className="admin-form__grid">
-                <TextField label="Emoji" value={category.emoji} onChange={(value) => updateCategory(index, { emoji: value })} />
                 <TextField label="Name" value={category.name} onChange={(value) => updateCategory(index, { name: value })} />
                 <TextField label="Description" value={category.description} onChange={(value) => updateCategory(index, { description: value })} />
                 <TextField label="Products" value={category.products} onChange={(value) => updateCategory(index, { products: value })} />
@@ -384,7 +378,7 @@ export function AdminWebsitePage() {
               </div>
             </div>
           ))}
-          <button className="btn btn--outline btn--small" type="button" onClick={() => addItem('categories')}><Plus size={16} /> Add category</button>
+          <button className="btn btn--outline btn--small" type="button" onClick={() => addItem('categories')}>Add category</button>
         </div>
       )
     }
@@ -410,11 +404,10 @@ export function AdminWebsitePage() {
               <div className="admin-form__grid">
                 <TextField label="Title" value={reason.title} onChange={(value) => updateReason(index, { title: value })} />
                 <TextField label="Text" value={reason.text} onChange={(value) => updateReason(index, { text: value })} multiline />
-                <SelectField label="Icon" value={reason.icon} options={siteIcons} onChange={(value: SiteIcon) => updateReason(index, { icon: value })} />
               </div>
             </div>
           ))}
-          <button className="btn btn--outline btn--small" type="button" onClick={() => addItem('reasons')}><Plus size={16} /> Add reason</button>
+          <button className="btn btn--outline btn--small" type="button" onClick={() => addItem('reasons')}>Add reason</button>
           <h2>How it works</h2>
           <div className="admin-form__grid">
             <TextField label="Eyebrow" value={draft.steps.eyebrow} onChange={(value) => updateSection('steps', 'eyebrow', value)} />
@@ -426,11 +419,10 @@ export function AdminWebsitePage() {
               <div className="admin-form__grid">
                 <TextField label="Title" value={step.title} onChange={(value) => updateStep(index, { title: value })} />
                 <TextField label="Text" value={step.text} onChange={(value) => updateStep(index, { text: value })} multiline />
-                <SelectField label="Icon" value={step.icon} options={siteIcons} onChange={(value: SiteIcon) => updateStep(index, { icon: value })} />
               </div>
             </div>
           ))}
-          <button className="btn btn--outline btn--small" type="button" onClick={() => addItem('steps')}><Plus size={16} /> Add step</button>
+          <button className="btn btn--outline btn--small" type="button" onClick={() => addItem('steps')}>Add step</button>
           <h2>Location</h2>
           <div className="admin-form__grid">
             <TextField label="Heading prefix" value={draft.location.titlePrefix} onChange={(value) => updateSection('location', 'titlePrefix', value)} />
@@ -521,7 +513,6 @@ export function AdminWebsitePage() {
               <div className="settings-item__head"><strong>Panel point {index + 1}</strong>{itemActions('authPoints', index)}</div>
               <div className="admin-form__grid">
                 <TextField label="Text" value={point.text} onChange={(value) => updateAuthPoint(index, { text: value })} />
-                <SelectField label="Icon" value={point.icon} options={siteIcons} onChange={(value: SiteIcon) => updateAuthPoint(index, { icon: value })} />
               </div>
             </div>
           ))}
@@ -534,7 +525,7 @@ export function AdminWebsitePage() {
                 points: [...current.interface.authPanel.points, { text: 'New point', icon: 'badge' }],
               },
             },
-          }))}><Plus size={16} /> Add panel point</button>
+          }))}>Add panel point</button>
 
           <h2>Login</h2>
           <div className="admin-form__grid">
@@ -653,7 +644,6 @@ export function AdminWebsitePage() {
             <TextField label="404 message" value={draft.interface.notFound.body} onChange={(value) => updateInterface('notFound', 'body', value)} multiline />
             <TextField label="404 button" value={draft.interface.notFound.cta} onChange={(value) => updateInterface('notFound', 'cta', value)} />
             <TextField label="Order now link" value={draft.interface.home.orderNow} onChange={(value) => updateInterface('home', 'orderNow', value)} />
-            <TextField label="Fallback produce" value={draft.interface.home.harvest} onChange={(value) => updateInterface('home', 'harvest', value)} />
           </div>
         </div>
       )
@@ -816,7 +806,7 @@ export function AdminWebsitePage() {
           <p>Edit every word, link and list your customers see on the public website.</p>
         </div>
         <button className="btn btn--primary btn--small" type="button" onClick={() => void handleSave()} disabled={saving || !dirty}>
-          <Save size={16} /> {saving ? 'Saving…' : dirty ? 'Save changes' : 'Saved'}
+          {saving ? 'Saving…' : dirty ? 'Save changes' : 'Saved'}
         </button>
       </header>
 
@@ -838,7 +828,6 @@ export function AdminWebsitePage() {
       </div>
 
       <div className={`website-status${dirty ? ' website-status--dirty' : saved ? ' website-status--saved' : ''}`} role="status" aria-live="polite">
-        {dirty ? <CircleAlert size={15} /> : <CheckCircle2 size={15} />}
         <span>{dirty ? 'You have unsaved changes.' : saved ? 'Saved for every visitor.' : 'Changes publish when you save.'}</span>
         <small>{activeTab.label}</small>
       </div>
@@ -851,7 +840,7 @@ export function AdminWebsitePage() {
             <h2>{activeTab.label}</h2>
             <p>Tap a field to edit it, then save to publish across the FreshPoint site.</p>
           </div>
-          <span className="website-workspace__badge"><Globe size={14} /> Live site</span>
+          <span className="website-workspace__badge">Live site</span>
         </div>
         {renderTab()}
       </section>
@@ -868,9 +857,9 @@ export function AdminWebsitePage() {
             setError('')
           }}
         >
-          <RotateCcw size={16} /> Restore defaults
+          Restore defaults
         </button>
-        <p className="settings-hint"><Globe size={14} /> Changes appear on the public site immediately after saving.</p>
+        <p className="settings-hint">Changes appear on the public site immediately after saving.</p>
       </div>
     </div>
   )

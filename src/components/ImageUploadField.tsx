@@ -1,5 +1,4 @@
 import { useRef, useState, type ChangeEvent } from 'react'
-import { ImagePlus, LoaderCircle, Trash2 } from 'lucide-react'
 import { imageUrl } from '../lib/assets'
 import { supabase } from '../lib/supabase'
 
@@ -49,7 +48,7 @@ export function ImageUploadField({ label, value, onChange, folder, hint }: Image
       <span className="image-upload__label">{label}</span>
       <div className="image-upload__body">
         <div className="image-upload__preview" aria-hidden="true">
-          {preview ? <img src={preview} alt="" /> : <ImagePlus size={28} />}
+          {preview ? <img src={preview} alt="" /> : <span>No image</span>}
         </div>
         <div className="image-upload__actions">
           <input
@@ -66,12 +65,11 @@ export function ImageUploadField({ label, value, onChange, folder, hint }: Image
             onClick={() => inputRef.current?.click()}
             disabled={uploading}
           >
-            {uploading ? <LoaderCircle className="spin" size={16} /> : <ImagePlus size={16} />}
             {uploading ? 'Uploading…' : value ? 'Replace image' : 'Upload image'}
           </button>
           {value ? (
             <button className="btn btn--ghost btn--small" type="button" onClick={() => onChange('')} disabled={uploading}>
-              <Trash2 size={15} /> Remove
+              Remove image
             </button>
           ) : null}
           <small>{value ? 'Image uploaded.' : hint ?? 'JPEG, PNG or WebP up to 4 MB.'}</small>

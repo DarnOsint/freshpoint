@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowRight, KeyRound, LogOut, Mail, Phone, ReceiptText, ShoppingBasket, Wallet } from 'lucide-react'
 import { useAuth } from '../../lib/auth-context'
 import { useData } from '../../lib/data-store'
 import { formatMoney, initials } from '../../lib/format'
@@ -108,17 +107,14 @@ export function ProfilePage() {
         <div className="app-section__head"><h2>{copy.summaryTitle}</h2></div>
         <div className="stat-grid profile-stats">
           <div className="stat-card">
-            <span><ReceiptText size={19} /></span>
             <strong>{orders.length}</strong>
             <small>{copy.ordersPlaced}</small>
           </div>
           <div className="stat-card">
-            <span><ShoppingBasket size={19} /></span>
             <strong>{itemsOrdered}</strong>
             <small>{copy.itemsOrdered}</small>
           </div>
           <div className="stat-card">
-            <span><Wallet size={19} /></span>
             <strong>{formatMoney(amountPaid)}</strong>
             <small>{copy.amountPaid}</small>
           </div>
@@ -138,11 +134,11 @@ export function ProfilePage() {
             <input id="profileUsername" value={handle} onChange={(event) => setHandle(event.target.value)} autoComplete="username" />
           </div>
           <div className="profile-readonly">
-            <span><Mail size={17} /> {copy.emailLabel}</span>
+            <span>{copy.emailLabel}</span>
             <strong>{email}</strong>
           </div>
           <div className="profile-readonly">
-            <span><Phone size={17} /> {copy.phoneLabel}</span>
+            <span>{copy.phoneLabel}</span>
             <strong>{phone}</strong>
           </div>
           {detailsError ? <p className="field-error">{detailsError}</p> : null}
@@ -168,7 +164,7 @@ export function ProfilePage() {
           {passwordError ? <p className="field-error">{passwordError}</p> : null}
           {passwordSuccess ? <p className="profile-success">{passwordSuccess}</p> : null}
           <button className="btn btn--outline btn--block btn--large" type="submit" disabled={changingPassword}>
-            <KeyRound size={17} /> {changingPassword ? copy.changingPassword : copy.changePassword}
+            {changingPassword ? copy.changingPassword : copy.changePassword}
           </button>
         </form>
       </section>
@@ -176,13 +172,13 @@ export function ProfilePage() {
       <section className="app-section">
         <div className="app-section__head"><h2>{copy.more}</h2></div>
         <div className="link-list">
-          <Link to="/app/orders" className="link-row"><span>{copy.myOrders} <small>{copy.myOrdersHint}</small></span><ArrowRight size={18} /></Link>
-          <Link to="/#contact" className="link-row"><span>{copy.contactSupport} <small>{copy.contactSupportHint}</small></span><ArrowRight size={18} /></Link>
+          <Link to="/app/orders" className="link-row"><span>{copy.myOrders} <small>{copy.myOrdersHint}</small></span></Link>
+          <Link to="/#contact" className="link-row"><span>{copy.contactSupport} <small>{copy.contactSupportHint}</small></span></Link>
         </div>
       </section>
 
       <button className="btn btn--outline btn--block btn--large" type="button" onClick={() => void handleSignOut()}>
-        <LogOut size={17} /> {copy.signOut}
+        {copy.signOut}
       </button>
     </div>
   )

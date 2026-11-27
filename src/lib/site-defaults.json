@@ -19,7 +19,7 @@
     "logoLightKey": ""
   },
   "announcement": {
-    "primary": "🌱 Farm-fresh produce, delivered across Juba",
+    "primary": "Farm-fresh produce, delivered across Juba",
     "secondary": "Fresh produce for every home"
   },
   "contact": {
@@ -29,10 +29,22 @@
     "hours": "Mon – Sat, 8:00 AM – 6:00 PM"
   },
   "navigation": [
-    { "label": "Home", "href": "/#home" },
-    { "label": "Categories", "href": "/#categories" },
-    { "label": "How it works", "href": "/#how-it-works" },
-    { "label": "Contact", "href": "/#contact" }
+    {
+      "label": "Home",
+      "href": "/#home"
+    },
+    {
+      "label": "Categories",
+      "href": "/#categories"
+    },
+    {
+      "label": "How it works",
+      "href": "/#how-it-works"
+    },
+    {
+      "label": "Contact",
+      "href": "/#contact"
+    }
   ],
   "hero": {
     "eyebrow": "OrganicPoint / FreshPoint · A OnePlan Enterprise brand",
@@ -42,24 +54,39 @@
     "primaryLabel": "Start shopping",
     "secondaryLabel": "Browse categories",
     "points": [
-      { "text": "Quality-checked produce", "icon": "badge" },
-      { "text": "Trusted local sourcing", "icon": "handshake" },
-      { "text": "Doorstep delivery", "icon": "truck" }
+      {
+        "text": "Quality-checked produce"
+      },
+      {
+        "text": "Trusted local sourcing"
+      },
+      {
+        "text": "Doorstep delivery"
+      }
     ],
-    "floatTopIcon": "🌿",
     "floatTopTitle": "100% fresh",
     "floatTopSubtitle": "Picked at its best",
-    "floatBottomIcon": "🚚",
     "floatBottomTitle": "Delivered in Juba",
-    "floatBottomSubtitle": "To your door",
-    "produce": "🍅 🥭 🥕 🥬 🍌 🌽"
+    "floatBottomSubtitle": "To your door"
   },
   "stats": {
     "items": [
-      { "value": "6", "label": "Product categories" },
-      { "value": "100+", "label": "Fresh everyday products" },
-      { "value": "3", "label": "Simple steps to order" },
-      { "value": "1", "label": "Goal: quality food for all" }
+      {
+        "value": "6",
+        "label": "Product categories"
+      },
+      {
+        "value": "100+",
+        "label": "Fresh everyday products"
+      },
+      {
+        "value": "3",
+        "label": "Simple steps to order"
+      },
+      {
+        "value": "1",
+        "label": "Goal: quality food for all"
+      }
     ]
   },
   "categories": {
@@ -67,11 +94,36 @@
     "title": "Everything fresh, all in one place",
     "intro": "From everyday vegetables to pantry staples, find the essentials your home needs.",
     "items": [
-      { "emoji": "🥬", "name": "Vegetables", "description": "Harvested fresh, packed with goodness.", "products": "Tomatoes · Onions · Carrots · Spinach · Cabbage · Green pepper", "tone": "green" },
-      { "emoji": "🥭", "name": "Fruits", "description": "Ripe, juicy and naturally sweet.", "products": "Mangoes · Bananas · Oranges · Lemons · Watermelon · Avocado", "tone": "orange" },
-      { "emoji": "🌾", "name": "Grains", "description": "Everyday staples for every kitchen.", "products": "Maize · Rice · Sorghum · Millet · Beans", "tone": "amber" },
-      { "emoji": "🥔", "name": "Tubers", "description": "Wholesome energy from the soil.", "products": "Irish potatoes · Sweet potatoes · Cassava · Yams", "tone": "brown" },
-      { "emoji": "🧄", "name": "Cooking essentials", "description": "The little things that make meals sing.", "products": "Garlic · Ginger · Chilli · Groundnuts", "tone": "red" }
+      {
+        "name": "Vegetables",
+        "description": "Harvested fresh, packed with goodness.",
+        "products": "Tomatoes · Onions · Carrots · Spinach · Cabbage · Green pepper",
+        "tone": "green"
+      },
+      {
+        "name": "Fruits",
+        "description": "Ripe, juicy and naturally sweet.",
+        "products": "Mangoes · Bananas · Oranges · Lemons · Watermelon · Avocado",
+        "tone": "orange"
+      },
+      {
+        "name": "Grains",
+        "description": "Everyday staples for every kitchen.",
+        "products": "Maize · Rice · Sorghum · Millet · Beans",
+        "tone": "amber"
+      },
+      {
+        "name": "Tubers",
+        "description": "Wholesome energy from the soil.",
+        "products": "Irish potatoes · Sweet potatoes · Cassava · Yams",
+        "tone": "brown"
+      },
+      {
+        "name": "Cooking essentials",
+        "description": "The little things that make meals sing.",
+        "products": "Garlic · Ginger · Chilli · Groundnuts",
+        "tone": "red"
+      }
     ]
   },
   "products": {
@@ -84,19 +136,40 @@
     "eyebrow": "Why FreshPoint",
     "title": "Food you can trust, service you can count on",
     "items": [
-      { "icon": "sprout", "title": "Direct from the farm", "text": "We source from our own production, local farmers and trusted suppliers — cutting out the middlemen." },
-      { "icon": "badge", "title": "Quality you can trust", "text": "Every order is selected, sorted and quality-checked before it reaches your doorstep." },
-      { "icon": "store", "title": "Everyday essentials", "text": "Fresh vegetables, fruits, grains and cooking essentials in one place." },
-      { "icon": "truck", "title": "Convenient delivery", "text": "Simple ordering and reliable doorstep delivery across Juba and surrounding areas." }
+      {
+        "title": "Direct from the farm",
+        "text": "We source from our own production, local farmers and trusted suppliers — cutting out the middlemen."
+      },
+      {
+        "title": "Quality you can trust",
+        "text": "Every order is selected, sorted and quality-checked before it reaches your doorstep."
+      },
+      {
+        "title": "Everyday essentials",
+        "text": "Fresh vegetables, fruits, grains and cooking essentials in one place."
+      },
+      {
+        "title": "Convenient delivery",
+        "text": "Simple ordering and reliable doorstep delivery across Juba and surrounding areas."
+      }
     ]
   },
   "steps": {
     "eyebrow": "How it works",
     "title": "Fresh food in three simple steps",
     "items": [
-      { "icon": "clipboard", "title": "Choose your produce", "text": "Browse fresh vegetables, fruits, grains and essentials by category." },
-      { "icon": "basket", "title": "Place your order", "text": "Create your account and choose the produce you need." },
-      { "icon": "package", "title": "We deliver fresh", "text": "Our team picks, packs and delivers your order — farm fresh and on time." }
+      {
+        "title": "Choose your produce",
+        "text": "Browse fresh vegetables, fruits, grains and essentials by category."
+      },
+      {
+        "title": "Place your order",
+        "text": "Create your account and choose the produce you need."
+      },
+      {
+        "title": "We deliver fresh",
+        "text": "Our team picks, packs and delivers your order — farm fresh and on time."
+      }
     ]
   },
   "location": {
@@ -120,12 +193,18 @@
       "heading": "Good food starts with a simple order.",
       "body": "Join FreshPoint to shop fresh produce and get quality essentials delivered to your door.",
       "points": [
-        { "text": "Quality-checked farm produce", "icon": "badge" },
-        { "text": "Sourced from local farmers & suppliers", "icon": "sprout" },
-        { "text": "Easy ordering and doorstep delivery", "icon": "truck" }
+        {
+          "text": "Quality-checked farm produce"
+        },
+        {
+          "text": "Sourced from local farmers & suppliers"
+        },
+        {
+          "text": "Easy ordering and doorstep delivery"
+        }
       ],
       "brandLine": "A OnePlan Enterprise brand · OrganicPoint / FreshPoint",
-      "backHome": "← Back to FreshPoint home"
+      "backHome": "Back to FreshPoint home"
     },
     "common": {
       "emailLabel": "Email address",
@@ -269,8 +348,7 @@
       "cta": "Back home"
     },
     "home": {
-      "orderNow": "Order now",
-      "harvest": "🥬 🍅 🥕 🥭 🍌 🌽 🥑 🍊 🧄"
+      "orderNow": "Order now"
     },
     "app": {
       "shell": {

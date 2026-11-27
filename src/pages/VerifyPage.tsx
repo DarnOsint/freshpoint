@@ -1,6 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { ArrowRight, RefreshCw } from 'lucide-react'
 import { AuthShell } from '../components/AuthShell'
 import { OtpInput } from '../components/OtpInput'
 import { homePathForUser } from '../lib/roles'
@@ -128,12 +127,11 @@ export function VerifyPage() {
         ) : null}
 
         <button className="btn btn--primary btn--block btn--large" type="submit" disabled={loading}>
-          {loading ? copy.verifying : <>{copy.submit} <ArrowRight size={18} /></>}
+          {loading ? copy.verifying : copy.submit}
         </button>
       </form>
 
       <button className="resend-button" type="button" onClick={() => void handleResend()} disabled={countdown > 0}>
-        <RefreshCw size={15} />
         {countdown > 0 ? copy.resendIn.replace('{seconds}', String(countdown)) : copy.resend}
       </button>
     </AuthShell>

@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { LogOut, Menu, ShieldCheck, UserRound, X } from 'lucide-react'
 import { useAuth } from '../lib/auth-context'
 import { isAdmin, homePathForUser } from '../lib/roles'
 import { isHiddenPhoneSection, useSiteSettings } from '../lib/site-content'
@@ -16,7 +15,6 @@ export function Header() {
     <header className="site-header">
       <div className="announcement">
         <span>{settings.announcement.primary}</span>
-        <span className="announcement__dot">•</span>
         <span>{settings.announcement.secondary}</span>
       </div>
 
@@ -39,11 +37,10 @@ export function Header() {
             {session ? (
               <>
                 <Link to={homePathForUser(user)} className="btn btn--outline btn--small" onClick={() => setOpen(false)}>
-                  {isAdmin(user) ? <ShieldCheck size={16} /> : <UserRound size={16} />}
                   {isAdmin(user) ? copy.adminConsole : copy.myAccount}
                 </Link>
                 <button className="btn btn--ghost btn--small" onClick={() => void signOut()} type="button">
-                  <LogOut size={16} /> {copy.signOut}
+                  {copy.signOut}
                 </button>
               </>
             ) : (
@@ -63,10 +60,9 @@ export function Header() {
           className="nav-toggle"
           type="button"
           onClick={() => setOpen((value) => !value)}
-          aria-label={open ? copy.closeMenu : copy.openMenu}
           aria-expanded={open}
         >
-          {open ? <X size={24} /> : <Menu size={24} />}
+          {open ? 'Close' : 'Menu'}
         </button>
       </div>
     </header>

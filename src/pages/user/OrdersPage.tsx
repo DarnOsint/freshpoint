@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, PackageCheck } from 'lucide-react'
 import { StatusBadge } from '../../components/StatusBadge'
 import { useData } from '../../lib/data-store'
 import { formatDate, formatMoney } from '../../lib/format'
@@ -31,7 +30,7 @@ export function OrdersPage() {
               </div>
               <div className="order-card__lines">
                 {order.items.map((item, index) => (
-                  <div key={`${item.name}-${index}`}><span>{item.emoji} {item.name} ×{item.quantity}</span><span>{formatMoney(item.price * item.quantity)}</span></div>
+                  <div key={`${item.name}-${index}`}><span>{item.name} ×{item.quantity}</span><span>{formatMoney(item.price * item.quantity)}</span></div>
                 ))}
               </div>
               <div className="order-card__bottom"><span>{order.address}</span><strong>{formatMoney(order.total)}</strong></div>
@@ -40,10 +39,9 @@ export function OrdersPage() {
         </div>
       ) : (
         <div className="empty-state">
-          <PackageCheck size={30} />
           <h3>{copy.emptyHeading}</h3>
           <p>{copy.emptyBody}</p>
-          <Link to="/app" className="btn btn--primary btn--small">{copy.browseProduce} <ArrowRight size={16} /></Link>
+          <Link to="/app" className="btn btn--primary btn--small">{copy.browseProduce}</Link>
         </div>
       )}
     </div>

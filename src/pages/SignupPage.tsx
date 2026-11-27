@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
-import { ArrowRight, Eye, EyeOff } from 'lucide-react'
 import { AuthShell } from '../components/AuthShell'
 import { PhoneField } from '../components/PhoneField'
 import { countries, defaultCountry, isValidNationalNumber, toE164 } from '../lib/countries'
@@ -155,7 +154,7 @@ export function SignupPage() {
               onChange={(event) => setPassword(event.target.value)} aria-invalid={Boolean(passwordError)} />
             <button type="button" className="password-input__toggle" onClick={() => setShowPassword((value) => !value)}
               aria-label={showPassword ? common.hidePassword : common.showPassword}>
-              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              {showPassword ? common.hidePassword : common.showPassword}
             </button>
           </div>
           {passwordError ? <p className="field-error">{passwordError}</p> : null}
@@ -170,7 +169,7 @@ export function SignupPage() {
             <button type="button" className="password-input__toggle"
               onClick={() => setShowConfirmPassword((value) => !value)}
               aria-label={showConfirmPassword ? common.hideConfirmation : common.showConfirmation}>
-              {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              {showConfirmPassword ? common.hideConfirmation : common.showConfirmation}
             </button>
           </div>
         </div>
@@ -183,7 +182,7 @@ export function SignupPage() {
         {formError ? <p className="field-error">{formError}</p> : null}
 
         <button className="btn btn--primary btn--block btn--large" type="submit" disabled={loading}>
-          {loading ? copy.creating : <>{copy.submit} <ArrowRight size={18} /></>}
+          {loading ? copy.creating : copy.submit}
         </button>
       </form>
     </AuthShell>

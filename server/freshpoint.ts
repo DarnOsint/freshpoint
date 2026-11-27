@@ -87,6 +87,7 @@ export function dbFetch(path: string, init: RequestInit = {}) {
 
 export type AuthUser = {
   id: string
+  email?: string | null
   app_metadata?: { role?: string; [key: string]: unknown }
 }
 
@@ -95,6 +96,66 @@ export type Role = 'admin' | 'manager' | 'customer'
 export function roleFromUser(user: AuthUser | null | undefined): Role {
   const role = user?.app_metadata?.role
   return role === 'admin' || role === 'manager' ? role : 'customer'
+}
+
+export type AuditEntry = {
+  id: string
+  createdAt: string
+  actorEmail: string
+  actorRole: Role
+  action: string
+  targetType: string
+  targetId: string
+  details: Record<string, unknown>
+}
+
+export async function recordAudit(
+  actor: AuthUser | null | undefined,
+  action: string,
+  targetType: string,
+  targetId: string,
+  details: Record<string, unknown> = {},
+) {
+  if (!actor) return
+  const response = await dbFetch('/audit_logs', {
+    method: 'POST',
+    headers: { Prefer: 'return=minimal' },
+    body: JSON.stringify({
+      actor_id: actor.id,
+      actor_email: actor.email ?? '',
+      actor_role: roleFromUser(actor),
+      action,
+      target_type: targetType,
+      target_id: targetId,
+      details,
+    }),
+  })
+  if (!response.ok) console.warn('Audit log write failed:', response.status)
+}
+
+export async function listAuditLogs(): Promise<AuditEntry[]> {
+  const response = await dbFetch('/audit_logs?select=id,created_at,actor_email,actor_role,action,target_type,target_id,details&order=created_at.desc&limit=200')
+  if (!response.ok) throw new Error('Audit log lookup failed')
+  const rows = await response.json() as Array<{
+    id: number | string
+    created_at: string
+    actor_email: string | null
+    actor_role: string | null
+    action: string
+    target_type: string
+    target_id: string | null
+    details: Record<string, unknown> | null
+  }>
+  return rows.map((row) => ({
+    id: String(row.id),
+    createdAt: row.created_at,
+    actorEmail: row.actor_email ?? '',
+    actorRole: roleFromUser({ id: '', app_metadata: { role: row.actor_role ?? undefined } }),
+    action: row.action,
+    targetType: row.target_type,
+    targetId: row.target_id ?? '',
+    details: row.details ?? {},
+  }))
 }
 
 function bearerToken(req: ApiRequest) {

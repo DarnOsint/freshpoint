@@ -1,6 +1,6 @@
 import { randomInt } from 'node:crypto'
 import {
-  AuthError, ForbiddenError, InputError, dbFetch, readJson, requireStaff, requireUser,
+  AuthError, ForbiddenError, InputError, dbFetch, readJson, recordAudit, requireStaff, requireUser,
   roleFromUser, send, type ApiRequest, type ApiResponse,
 } from '../server/freshpoint.js'
 
@@ -48,7 +48,7 @@ function mapOrder(row: OrderRow, items: ItemRow[] = []) {
       name: item.name,
       quantity: Number(item.quantity),
       price: Number(item.price),
-      emoji: item.emoji ?? '🥬',
+      emoji: '',
       image: item.image,
       productId: item.product_id,
     })),
@@ -121,7 +121,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
           name: product.name,
           quantity,
           price: Number(product.price),
-          emoji: product.emoji ?? '🥬',
+          emoji: '',
           image: product.image,
         }]
       })
@@ -164,7 +164,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     }
 
     if (req.method === 'PATCH') {
-      await requireStaff(req)
+      const actor = await requireStaff(req)
       const body = await readJson(req)
       const orderId = String(body.orderId ?? '').trim()
       const status = String(body.status ?? '').trim()
@@ -179,6 +179,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       if (!response.ok) throw new Error('Order update failed')
       const rows = await response.json() as OrderRow[]
       if (!rows.length) throw new InputError('That order could not be found.')
+      await recordAudit(actor, 'order.status_change', 'order', orderId, { status })
       return send(res, 200, { order: mapOrder(rows[0]) })
     }
 

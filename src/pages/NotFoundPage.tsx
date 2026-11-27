@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight } from 'lucide-react'
 import { useSiteSettings } from '../lib/site-content'
 
 export function NotFoundPage() {
@@ -13,7 +12,7 @@ export function NotFoundPage() {
         <h1>{copy.heading}</h1>
         <p>{copy.body}</p>
         <div className="simple-page__actions">
-          <Link to="/" className="btn btn--primary">{copy.cta} <ArrowRight size={17} /></Link>
+          <Link to="/" className="btn btn--primary">{copy.cta}</Link>
         </div>
       </div>
     </section>

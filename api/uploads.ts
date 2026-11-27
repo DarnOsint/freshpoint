@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import {
-  AuthError, ForbiddenError, InputError, requireAdmin, send,
+  AuthError, ForbiddenError, InputError, recordAudit, requireAdmin, send,
   type ApiRequest, type ApiResponse,
 } from '../server/freshpoint.js'
 
@@ -49,7 +49,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   try {
     if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed' })
 
-    await requireAdmin(req)
+    const actor = await requireAdmin(req)
 
     const accountId = process.env.R2_ACCOUNT_ID
     const bucket = process.env.R2_BUCKET
@@ -81,6 +81,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       CacheControl: 'public, max-age=31536000, immutable',
     }))
 
+    await recordAudit(actor, 'image.upload', folder, key, { contentType })
     return send(res, 200, { ok: true, key, url: publicBase ? `${publicBase}/${key}` : null })
   } catch (error) {
     if (error instanceof AuthError || error instanceof ForbiddenError) {

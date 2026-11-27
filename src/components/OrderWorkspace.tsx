@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Check, ChevronRight, ClipboardList, MapPin, Phone, UserRound, X } from 'lucide-react'
 import { StatusBadge } from './StatusBadge'
 import { useData } from '../lib/data-store'
 import { formatDate, formatMoney } from '../lib/format'
@@ -120,7 +119,6 @@ export function OrderWorkspace({ manager = false }: { manager?: boolean }) {
                   </span>
                   <StatusBadge status={order.status} />
                   <strong className="order-queue__total">{formatMoney(order.total)}</strong>
-                  <ChevronRight size={17} />
                 </button>
                 {manager && active ? (
                   <button
@@ -131,7 +129,7 @@ export function OrderWorkspace({ manager = false }: { manager?: boolean }) {
                     disabled={busyId === order.id}
                     onClick={() => void changeStatus(order.id, 'Delivered')}
                   >
-                    <Check size={19} />
+                    Fulfil
                   </button>
                 ) : null}
               </article>
@@ -140,7 +138,6 @@ export function OrderWorkspace({ manager = false }: { manager?: boolean }) {
         </div>
       ) : (
         <div className="empty-state">
-          <ClipboardList size={28} />
           <h3>No orders here</h3>
           <p>Orders with this status will appear here.</p>
         </div>
@@ -155,7 +152,7 @@ export function OrderWorkspace({ manager = false }: { manager?: boolean }) {
                 <h2 id="order-sheet-title">{selected.id}</h2>
                 <small>Placed {formatDate(selected.createdAt)}</small>
               </div>
-              <button className="admin-icon-button" type="button" onClick={closeOrder} aria-label="Close order details"><X size={20} /></button>
+              <button className="admin-icon-button" type="button" onClick={closeOrder} aria-label="Close order details">Close</button>
             </div>
 
             <div className="order-sheet__status">
@@ -166,15 +163,12 @@ export function OrderWorkspace({ manager = false }: { manager?: boolean }) {
             <div className="order-sheet__block">
               <h3>Customer</h3>
               <div className="order-sheet__detail">
-                <span><UserRound size={17} /></span>
                 <div><strong>{selected.customer}</strong><small>Delivery contact</small></div>
               </div>
               <div className="order-sheet__detail">
-                <span><Phone size={17} /></span>
                 <div><strong>{selected.phone}</strong><small>Phone number</small></div>
               </div>
               <div className="order-sheet__detail">
-                <span><MapPin size={17} /></span>
                 <div><strong>{selected.address}</strong><small>Delivery address</small></div>
               </div>
             </div>
@@ -184,7 +178,7 @@ export function OrderWorkspace({ manager = false }: { manager?: boolean }) {
               <div className="order-sheet__items">
                 {selected.items.map((item, index) => (
                   <div key={`${item.name}-${index}`}>
-                    <span>{item.emoji} {item.name} ×{item.quantity}</span>
+                    <span>{item.name} ×{item.quantity}</span>
                     <strong>{formatMoney(item.price * item.quantity)}</strong>
                   </div>
                 ))}

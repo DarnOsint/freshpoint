@@ -22,6 +22,7 @@ import { AdminOrdersPage } from './pages/admin/AdminOrdersPage'
 import { AdminProductsPage } from './pages/admin/AdminProductsPage'
 import { AdminCustomersPage } from './pages/admin/AdminCustomersPage'
 import { AdminWebsitePage } from './pages/admin/AdminWebsitePage'
+import { AdminAuditPage } from './pages/admin/AdminAuditPage'
 import { ManagerDashboardPage } from './pages/manager/ManagerDashboardPage'
 import { ManagerOrdersPage } from './pages/manager/ManagerOrdersPage'
 import { ManagerCustomersPage } from './pages/manager/ManagerCustomersPage'
@@ -51,6 +52,7 @@ export function App() {
         <Route path="products" element={<AdminProductsPage />} />
         <Route path="customers" element={<AdminCustomersPage />} />
         <Route path="website" element={<AdminWebsitePage />} />
+        <Route path="audit" element={<AdminAuditPage />} />
       </Route>
 
       <Route path="/manager" element={<RequireStaff><ManagerShell /></RequireStaff>}>

@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import { Globe, Mail, MapPin, MessageCircle, Phone } from 'lucide-react'
 import { isHiddenPhoneSection, useSiteSettings } from '../lib/site-content'
 import { Logo } from './Logo'
 
@@ -17,12 +16,8 @@ export function Footer() {
           <p>{settings.brand.footerAbout}</p>
           <small className="footer__tagline">{settings.brand.footerTagline}</small>
           <div className="footer__social">
-            <Link to="/" aria-label={`${settings.brand.appName} home`}>
-              <Globe size={18} />
-            </Link>
-            <a href={`mailto:${settings.contact.email}`} aria-label={copy.messageUs}>
-              <MessageCircle size={18} />
-            </a>
+            <Link to="/" aria-label={`${settings.brand.appName} home`}>Home</Link>
+            <a href={`mailto:${settings.contact.email}`} aria-label={copy.messageUs}>{copy.messageUs}</a>
           </div>
         </div>
 
@@ -42,9 +37,9 @@ export function Footer() {
         <div>
           <h3>{settings.footer.contactTitle}</h3>
           <ul className="footer__links footer__contact">
-            <li><MapPin size={16} /> {settings.contact.location}</li>
-            <li><Phone size={16} /> <a href={`tel:${settings.contact.phone.replace(/\s/g, '')}`}>{settings.contact.phone}</a></li>
-            <li><Mail size={16} /> <a href={`mailto:${settings.contact.email}`}>{settings.contact.email}</a></li>
+            <li>{settings.contact.location}</li>
+            <li><a href={`tel:${settings.contact.phone.replace(/\s/g, '')}`}>{settings.contact.phone}</a></li>
+            <li><a href={`mailto:${settings.contact.email}`}>{settings.contact.email}</a></li>
             <li>{settings.contact.hours}</li>
           </ul>
         </div>

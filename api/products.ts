@@ -1,5 +1,5 @@
 import {
-  AuthError, ForbiddenError, InputError, dbFetch, readJson, requireAdmin, send,
+  AuthError, ForbiddenError, InputError, dbFetch, readJson, recordAudit, requireAdmin, send,
   type ApiRequest, type ApiResponse,
 } from '../server/freshpoint.js'
 
@@ -52,7 +52,7 @@ function productFromBody(body: Record<string, unknown>) {
     category,
     price,
     unit: String(body.unit ?? 'per kg').trim() || 'per kg',
-    emoji: String(body.emoji ?? '🥬').trim() || '🥬',
+    emoji: '',
     tone,
     stock,
     image: String(body.image ?? '').trim() || null,
@@ -70,7 +70,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     }
 
     if (req.method === 'POST') {
-      await requireAdmin(req)
+      const actor = await requireAdmin(req)
       const product = productFromBody(await readJson(req))
       const response = await dbFetch('/products?on_conflict=id', {
         method: 'POST',
@@ -79,11 +79,17 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       })
       if (!response.ok) throw new Error('Product save failed')
       const rows = await response.json() as ProductRow[]
+      await recordAudit(actor, 'product.save', 'product', product.id, {
+        name: product.name,
+        price: product.price,
+        stock: product.stock,
+        active: product.is_active,
+      })
       return send(res, 200, { product: mapProduct(rows[0] ?? product) })
     }
 
     if (req.method === 'DELETE') {
-      await requireAdmin(req)
+      const actor = await requireAdmin(req)
       const url = new URL(req.url ?? '', 'http://localhost')
       const id = String(url.searchParams.get('id') ?? '').trim()
       if (!id) throw new InputError('Choose a product to delete.')
@@ -92,6 +98,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         headers: { Prefer: 'return=minimal' },
       })
       if (!response.ok) throw new Error('Product delete failed')
+      await recordAudit(actor, 'product.delete', 'product', id)
       return send(res, 200, { ok: true })
     }
 
