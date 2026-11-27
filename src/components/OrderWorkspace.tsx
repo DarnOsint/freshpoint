@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronRight, ClipboardList, MapPin, Phone, UserRound, X } from 'lucide-react'
+import { Check, ChevronRight, ClipboardList, MapPin, Phone, UserRound, X } from 'lucide-react'
 import { StatusBadge } from './StatusBadge'
 import { useData } from '../lib/data-store'
 import { formatDate, formatMoney } from '../lib/format'
@@ -114,27 +114,24 @@ export function OrderWorkspace({ manager = false }: { manager?: boolean }) {
                   onClick={() => openOrder(order.id)}
                   aria-label={`Open order ${order.id}`}
                 >
-                  <span className="order-queue__line">
+                  <span className="order-queue__main">
                     <strong>{order.id}</strong>
-                    <small>{formatDate(order.createdAt)}</small>
-                    <StatusBadge status={order.status} />
-                    <ChevronRight size={17} />
+                    <small>{order.customer} · {formatDate(order.createdAt)} · {itemCount} item{itemCount === 1 ? '' : 's'}</small>
                   </span>
-                  <span className="order-queue__line order-queue__line--muted">
-                    <span>{order.customer}</span>
-                    <span className="order-queue__dot">·</span>
-                    <span>{itemCount} item{itemCount === 1 ? '' : 's'}</span>
-                    <strong>{formatMoney(order.total)}</strong>
-                  </span>
+                  <StatusBadge status={order.status} />
+                  <strong className="order-queue__total">{formatMoney(order.total)}</strong>
+                  <ChevronRight size={17} />
                 </button>
                 {manager && active ? (
                   <button
                     type="button"
                     className="order-queue__action"
+                    aria-label="Mark fulfilled"
+                    title="Mark fulfilled"
                     disabled={busyId === order.id}
                     onClick={() => void changeStatus(order.id, 'Delivered')}
                   >
-                    Mark fulfilled
+                    <Check size={19} />
                   </button>
                 ) : null}
               </article>
