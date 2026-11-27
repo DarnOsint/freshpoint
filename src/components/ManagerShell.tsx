@@ -55,7 +55,7 @@ export function ManagerShell() {
 
         <main className="admin-main"><Outlet /></main>
 
-        <nav className="admin-tabbar" aria-label="Manager navigation">
+        <nav className="admin-tabbar admin-tabbar--manager" aria-label="Manager navigation">
           {navItems.map(({ to, label, end }) => (
             <NavLink key={to} to={to} end={end} className={({ isActive }) => `app-tab${isActive ? ' app-tab--active' : ''}`}>
               <span>

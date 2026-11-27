@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAuth } from '../../lib/auth-context'
 import { useData } from '../../lib/data-store'
 import { formatDate, initials } from '../../lib/format'
+import { useSheetDismiss } from '../../lib/use-sheet-dismiss'
 import type { Customer } from '../../lib/types'
 
 function roleLabel(role: Customer['role']) {
@@ -34,6 +35,8 @@ export function AdminCustomersPage({ readOnly = false }: { readOnly?: boolean })
     setSheetError('')
     setSheetSaved(false)
   }
+
+  useSheetDismiss(Boolean(selected && draft), close)
 
   function update(field: keyof Customer, value: string) {
     setDraft((current) => current ? { ...current, [field]: value } : current)
@@ -74,11 +77,12 @@ export function AdminCustomersPage({ readOnly = false }: { readOnly?: boolean })
               <button className="customer-row" key={customer.id} type="button" onClick={() => open(customer)}>
                 <span className="profile-avatar profile-avatar--small">{initials(customer.name)}</span>
                 <span className="customer-row__main">
-                  <strong>{customer.name}</strong>
-                  <small>@{customer.username}</small>
+                  <span className="customer-row__title">
+                    <strong>{customer.name}</strong>
+                    <span className="account-chip">{roleLabel(customer.role ?? 'customer')}</span>
+                  </span>
+                  <small>@{customer.username} · {count} order{count === 1 ? '' : 's'}</small>
                 </span>
-                <span className="account-chip">{roleLabel(customer.role ?? 'customer')}</span>
-                <small className="customer-row__orders">{count} order{count === 1 ? '' : 's'}</small>
               </button>
             )
           })}

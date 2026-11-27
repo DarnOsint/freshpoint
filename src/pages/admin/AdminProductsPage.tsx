@@ -4,6 +4,7 @@ import { ProductImage } from '../../components/ProductImage'
 import { categories as defaultCategories } from '../../lib/categories'
 import { useData } from '../../lib/data-store'
 import { formatMoney } from '../../lib/format'
+import { useSheetDismiss } from '../../lib/use-sheet-dismiss'
 import type { Product } from '../../lib/types'
 
 const tones: Product['tone'][] = ['green', 'orange', 'amber', 'brown', 'red', 'teal']
@@ -19,6 +20,9 @@ export function AdminProductsPage() {
   const [confirmProduct, setConfirmProduct] = useState<Product | null>(null)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+
+  useSheetDismiss(Boolean(editor), () => setEditor(null))
+  useSheetDismiss(Boolean(confirmProduct), () => { if (!busy) setConfirmProduct(null) })
 
   const categoryOptions = Array.from(new Set([...defaultCategories, ...products.map((product) => product.category)]))
   const activeCount = products.filter((product) => product.active !== false).length

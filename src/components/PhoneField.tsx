@@ -41,7 +41,11 @@ export function PhoneField({
               </option>
             ))}
           </select>
-          <span className="phone-field__dial">{country.dial}</span>
+          <span className="phone-field__country-main">
+            <span className="phone-field__country-code">{country.code}</span>
+            <span className="phone-field__dial">{country.dial}</span>
+          </span>
+          <span className="phone-field__change">Change</span>
         </div>
         <input
           id={id}

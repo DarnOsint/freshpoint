@@ -34,15 +34,17 @@ export function AdminDashboardPage() {
             <h2>Recent orders</h2>
             <Link to="/admin/orders" className="text-link">All orders</Link>
           </div>
-          <div className="admin-order-list">
-            {recent.map((order) => (
-              <div className="admin-order-row" key={order.id}>
-                <div><strong>{order.id}</strong><small>{order.customer} · {formatDate(order.createdAt)}</small></div>
-                <StatusBadge status={order.status} />
-                <strong>{formatMoney(order.total)}</strong>
-              </div>
-            ))}
-          </div>
+          {recent.length ? (
+            <div className="admin-order-list">
+              {recent.map((order) => (
+                <div className="admin-order-row" key={order.id}>
+                  <div><strong>{order.id}</strong><small>{order.customer} · {formatDate(order.createdAt)}</small></div>
+                  <StatusBadge status={order.status} />
+                  <strong>{formatMoney(order.total)}</strong>
+                </div>
+              ))}
+            </div>
+          ) : <p className="admin-muted">No orders yet. New orders will appear here.</p>}
         </section>
 
         <section className="admin-panel">

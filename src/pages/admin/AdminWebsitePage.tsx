@@ -50,7 +50,7 @@ function TextField({ label: name, value, onChange, multiline, placeholder }: Tex
     <div className="field">
       <label htmlFor={id}>{name}</label>
       {multiline ? (
-        <textarea id={id} rows={3} value={value} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} />
+        <textarea id={id} rows={Math.min(14, Math.max(3, Math.ceil(value.length / 30) + 1))} value={value} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} />
       ) : (
         <input id={id} value={value} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} />
       )}

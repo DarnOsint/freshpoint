@@ -33,6 +33,7 @@ export function Home() {
     <div className="home-page">
       <section className="hero" id="home">
         <h1 className="mobile-only-heading">{settings.brand.appName} — {settings.hero.title} {settings.hero.highlight}</h1>
+        <p className="mobile-only-lead">{settings.hero.lead}</p>
         <div className="container hero__grid">
           <div className="hero__copy">
             <p className="eyebrow">{settings.hero.eyebrow}</p>
@@ -111,22 +112,31 @@ export function Home() {
             <p className="section__intro">{settings.products.intro}</p>
           </div>
 
-          <div className="product-grid">
-            {featured.map((product) => (
-              <article className="product-card" key={product.id}>
-                <div className={`product-card__art product-card__art--${product.tone}`} aria-hidden="true">
-                  <ProductImage image={product.image} emoji={product.emoji} alt="" className="product-card__image" />
-                  <span className="product-card__badge">{product.category}</span>
-                </div>
-                <div className="product-card__body">
-                  <h3>{product.name}</h3>
-                  <p className="product-card__price"><strong>{formatMoney(product.price)}</strong> <span>{product.unit}</span></p>
-                  <Link to="/signup" className="product-card__link">{settings.interface.home.orderNow}</Link>
-                </div>
-              </article>
-            ))}
-          </div>
-          <p className="section__note">{settings.products.note}</p>
+          {featured.length ? (
+            <>
+              <div className="product-grid">
+                {featured.map((product) => (
+                  <article className="product-card" key={product.id}>
+                    <div className={`product-card__art product-card__art--${product.tone}`} aria-hidden="true">
+                      <ProductImage image={product.image} emoji={product.emoji} alt="" className="product-card__image" />
+                      <span className="product-card__badge">{product.category}</span>
+                    </div>
+                    <div className="product-card__body">
+                      <h3>{product.name}</h3>
+                      <p className="product-card__price"><strong>{formatMoney(product.price)}</strong> <span>{product.unit}</span></p>
+                      <Link to="/signup" className="product-card__link">{settings.interface.home.orderNow}</Link>
+                    </div>
+                  </article>
+                ))}
+              </div>
+              <p className="section__note">{settings.products.note}</p>
+            </>
+          ) : (
+            <div className="empty-state">
+              <h3>Fresh picks are on the way</h3>
+              <p>Our catalogue is being updated. Check back soon for what’s in season.</p>
+            </div>
+          )}
         </div>
       </section>
 

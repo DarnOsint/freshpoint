@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/auth-context'
 import { useData } from '../lib/data-store'
 import { useSiteSettings } from '../lib/site-content'
@@ -26,6 +26,7 @@ export function AdminShell() {
   const { orders } = useData()
   const { settings } = useSiteSettings()
   const navigate = useNavigate()
+  const location = useLocation()
   const pending = orders.filter((order) => order.status === 'Pending').length
 
   async function handleSignOut() {
@@ -59,7 +60,7 @@ export function AdminShell() {
         <header className="admin-topbar">
           <div className="admin-topbar__brand"><Logo label={settings.brand.appName} /></div>
           <span className="admin-topbar__label">Admin console</span>
-          <a href="/admin/website" className="admin-topbar__link">Website</a>
+          <a href="/admin/website" className={`admin-topbar__link${location.pathname === '/admin/website' ? ' admin-topbar__link--active' : ''}`} aria-current={location.pathname === '/admin/website' ? 'page' : undefined}>Website</a>
           <button type="button" className="admin-topbar__signout" onClick={() => void handleSignOut()} aria-label="Sign out">
             Sign out
           </button>

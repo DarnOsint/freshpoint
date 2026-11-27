@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { StatusBadge } from './StatusBadge'
 import { useData } from '../lib/data-store'
 import { formatDate, formatMoney } from '../lib/format'
+import { useSheetDismiss } from '../lib/use-sheet-dismiss'
 import type { OrderStatus } from '../lib/types'
 
 const statuses: Array<'All' | OrderStatus> = ['All', 'Pending', 'Preparing', 'Out for delivery', 'Delivered', 'Cancelled']
@@ -32,6 +33,8 @@ export function OrderWorkspace({ manager = false }: { manager?: boolean }) {
     setError('')
     setNotice('')
   }
+
+  useSheetDismiss(Boolean(selected), closeOrder)
 
   async function changeStatus(orderId: string, status: OrderStatus) {
     if (busyId) return
