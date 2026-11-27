@@ -1,20 +1,23 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { useAuth } from './auth-context'
-import { DataContext, type DataContextValue, type StoredData } from './data-store'
+import { DataContext, type DataContextValue, type StoredData, type TrackEventInput } from './data-store'
 import { isStaff } from './roles'
-import type { AppNotification, CartLine, Customer, Order, OrderStatus, Product, Role } from './types'
+import type { ActivityEvent, AppNotification, CartLine, Customer, Order, OrderStatus, Product, Role } from './types'
 
 const LEGACY_STORAGE_KEY = 'freshpoint-data-v1'
 const CART_STORAGE_KEY = 'freshpoint-cart-v1'
 const NOTIFICATION_READS_KEY = 'freshpoint-notification-reads-v1'
 const CART_TTL_MS = 7 * 24 * 60 * 60 * 1000
 const NOTIFICATION_POLL_MS = 15 * 1000
+const ACTIVITY_POLL_MS = 60 * 1000
+const PENDING_LOGIN_KEY = 'freshpoint:pending-login'
 
 type StoredCart = { lines: CartLine[]; savedAt: number }
 type DataState = StoredData & {
   ordersToken: string
   customersToken: string
   notificationsToken: string
+  eventsToken: string
   notificationReads: string[]
 }
 
@@ -98,11 +101,44 @@ export function DataProvider({ children }: { children: ReactNode }) {
     customers: [],
     cart: loadCart(),
     notifications: [],
+    events: [],
     ordersToken: '',
     customersToken: '',
     notificationsToken: '',
+    eventsToken: '',
     notificationReads: [],
   }))
+
+  const trackEvent = useCallback((input: TrackEventInput) => {
+    if (!token) return
+    void fetch('/api/customers?view=events', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
+      body: JSON.stringify(input),
+      keepalive: true,
+    }).catch(() => undefined)
+  }, [token])
+
+  useEffect(() => {
+    if (!token || !user?.id) return
+    const sessionKey = `freshpoint:session:${user.id}`
+    let seen = false
+    let pendingLogin = false
+    try {
+      seen = window.sessionStorage.getItem(sessionKey) === '1'
+      pendingLogin = window.sessionStorage.getItem(PENDING_LOGIN_KEY) === '1'
+      window.sessionStorage.removeItem(PENDING_LOGIN_KEY)
+      if (!seen) window.sessionStorage.setItem(sessionKey, '1')
+    } catch {
+      // Session storage may be unavailable; fall back to one event per mount.
+    }
+    if (seen) return
+    trackEvent({
+      action: pendingLogin ? 'session.login' : 'session.open',
+      targetType: 'session',
+      targetId: user.id,
+    })
+  }, [token, user?.id, trackEvent])
 
   useEffect(() => {
     let active = true
@@ -147,6 +183,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
       notificationsToken: token,
       notificationReads: reads,
     }))
+  }
+
+  async function refreshEvents() {
+    if (!token || user?.app_metadata?.role !== 'admin') return
+    const response = await fetch('/api/customers?view=events', { headers: authHeaders(token), cache: 'no-store' })
+    if (!response.ok) return
+    const rows = await response.json() as ActivityEvent[]
+    setData((current) => ({ ...current, events: rows, eventsToken: token }))
   }
 
   useEffect(() => {
@@ -202,6 +246,28 @@ export function DataProvider({ children }: { children: ReactNode }) {
       .catch(() => undefined)
     return () => { active = false }
   }, [token, staff])
+
+  useEffect(() => {
+    if (!token || user?.app_metadata?.role !== 'admin') return
+    let active = true
+    const load = async () => {
+      try {
+        const response = await fetch('/api/customers?view=events', { headers: authHeaders(token), cache: 'no-store' })
+        if (!response.ok || !active) return
+        const rows = await response.json() as ActivityEvent[]
+        if (!active) return
+        setData((current) => ({ ...current, events: rows, eventsToken: token }))
+      } catch {
+        // Activity is non-critical; the next poll will retry.
+      }
+    }
+    void load()
+    const timer = window.setInterval(() => { void load() }, ACTIVITY_POLL_MS)
+    return () => {
+      active = false
+      window.clearInterval(timer)
+    }
+  }, [token, user?.app_metadata?.role])
 
   useEffect(() => {
     try {
@@ -379,6 +445,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const value: DataContextValue = {
     ...data,
     notifications: data.notificationsToken === token ? data.notifications : [],
+    events: user?.app_metadata?.role === 'admin' && data.eventsToken === token ? data.events : [],
     orders: data.ordersToken === token ? data.orders : [],
     customers: staff && data.customersToken === token ? data.customers : [],
     cartCount,
@@ -392,6 +459,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     saveCustomer,
     refreshOrders,
     refreshNotifications,
+    refreshEvents,
+    trackEvent,
     markNotificationRead,
     markAllNotificationsRead,
     unreadNotificationCount,

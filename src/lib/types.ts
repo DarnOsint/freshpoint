@@ -49,6 +49,18 @@ export type AppNotification = {
   read?: boolean
 }
 
+export type ActivityEvent = {
+  id: string
+  createdAt: string
+  actorId: string
+  actorEmail: string
+  actorRole: Role
+  action: string
+  targetType: string
+  targetId: string
+  details: Record<string, unknown>
+}
+
 export type Customer = {
   id: string
   name: string

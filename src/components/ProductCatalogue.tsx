@@ -1,11 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ProductImage } from './ProductImage'
 import { useData } from '../lib/data-store'
 import { formatMoney } from '../lib/format'
 import { useSiteSettings } from '../lib/site-content'
 
 export function ProductCatalogue() {
-  const { products, cart, setCartQuantity } = useData()
+  const { products, cart, setCartQuantity, trackEvent } = useData()
   const { settings } = useSiteSettings()
   const copy = settings.interface.app.shop
   const [query, setQuery] = useState('')
@@ -20,8 +20,29 @@ export function ProductCatalogue() {
     return matchesCategory && matchesQuery
   }), [visible, activeCategory, query])
 
-  function increase(productId: string, quantity: number, stock: number) {
-    if (quantity < stock) setCartQuantity(productId, quantity + 1)
+  useEffect(() => {
+    const term = query.trim()
+    if (term.length < 2) return
+    const timer = window.setTimeout(() => {
+      trackEvent({
+        action: 'catalogue.search',
+        targetType: 'search',
+        targetId: term.slice(0, 120),
+        details: { results: filtered.length, category: activeCategory },
+      })
+    }, 700)
+    return () => window.clearTimeout(timer)
+  }, [query, filtered.length, activeCategory, trackEvent])
+
+  function increase(productId: string, quantity: number, stock: number, name: string) {
+    if (quantity >= stock) return
+    setCartQuantity(productId, quantity + 1)
+    trackEvent({
+      action: quantity > 0 ? 'catalogue.increase' : 'catalogue.add',
+      targetType: 'product',
+      targetId: productId,
+      details: { name, quantity: quantity + 1 },
+    })
   }
 
   return (
@@ -42,7 +63,10 @@ export function ProductCatalogue() {
             key={item}
             type="button"
             className={`filter-chip${activeCategory === item ? ' filter-chip--active' : ''}`}
-            onClick={() => setCategory(item)}
+            onClick={() => {
+              setCategory(item)
+              trackEvent({ action: 'catalogue.filter', targetType: 'filter', targetId: item, details: { from: activeCategory } })
+            }}
           >
             {item === 'All' ? copy.all : item}
           </button>
@@ -59,7 +83,7 @@ export function ProductCatalogue() {
                 <button
                   className="shop-card__pick"
                   type="button"
-                  onClick={() => increase(product.id, quantity, product.stock)}
+                  onClick={() => increase(product.id, quantity, product.stock, product.name)}
                   disabled={atMax}
                   aria-label={copy.selectLabel.replace('{name}', product.name)}
                 >
@@ -78,7 +102,15 @@ export function ProductCatalogue() {
                     <div className="qty-control qty-control--card">
                       <button
                         type="button"
-                        onClick={() => setCartQuantity(product.id, quantity - 1)}
+                        onClick={() => {
+                          setCartQuantity(product.id, quantity - 1)
+                          trackEvent({
+                            action: 'catalogue.decrease',
+                            targetType: 'product',
+                            targetId: product.id,
+                            details: { name: product.name, quantity: quantity - 1 },
+                          })
+                        }}
                         aria-label={copy.decreaseLabel.replace('{name}', product.name)}
                       >
                         -
@@ -86,7 +118,7 @@ export function ProductCatalogue() {
                       <span aria-live="polite">{quantity}</span>
                       <button
                         type="button"
-                        onClick={() => increase(product.id, quantity, product.stock)}
+                        onClick={() => increase(product.id, quantity, product.stock, product.name)}
                         disabled={atMax}
                         aria-label={copy.increaseLabel.replace('{name}', product.name)}
                       >
@@ -97,7 +129,15 @@ export function ProductCatalogue() {
                     <button
                       className="btn btn--primary btn--block btn--small"
                       type="button"
-                      onClick={() => setCartQuantity(product.id, 1)}
+                      onClick={() => {
+                        setCartQuantity(product.id, 1)
+                        trackEvent({
+                          action: 'catalogue.add',
+                          targetType: 'product',
+                          targetId: product.id,
+                          details: { name: product.name, quantity: 1 },
+                        })
+                      }}
                       aria-label={`${copy.addToBasket}: ${product.name}`}
                     >
                       {copy.addToBasket}

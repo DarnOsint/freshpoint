@@ -130,6 +130,10 @@ export function AdminCustomersPage({ readOnly = false }: { readOnly?: boolean })
                 <input id="customerPhone" type="tel" value={draft.phone} onChange={(event) => update('phone', event.target.value)} disabled={readOnly} />
               </div>
               <div className="field">
+                <label htmlFor="customerAddress">Delivery address</label>
+                <input id="customerAddress" value={draft.address ?? ''} onChange={(event) => update('address', event.target.value)} disabled={readOnly} />
+              </div>
+              <div className="field">
                 <label htmlFor="customerRole">Role</label>
                 {!readOnly && selected.id !== user?.id && selected.role !== 'admin' ? (
                   <select id="customerRole" value={draft.role === 'manager' ? 'manager' : 'customer'} onChange={(event) => update('role', event.target.value)}>

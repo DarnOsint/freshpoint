@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useData } from '../lib/data-store'
 import { formatDate } from '../lib/format'
@@ -8,17 +9,52 @@ import type { AppNotification } from '../lib/types'
 import { SheetCloseButton } from './SheetCloseButton'
 
 export function NotificationSheet({ onClose, ordersPath = '/app/orders' }: { onClose: () => void; ordersPath?: string }) {
-  const { notifications, markNotificationRead, markAllNotificationsRead, unreadNotificationCount } = useData()
+  const { notifications, markNotificationRead, markAllNotificationsRead, unreadNotificationCount, trackEvent } = useData()
   const { enabled: pushEnabled, busy: pushBusy, note: pushNote, enable: enablePush } = usePushNotifications()
   const copy = useSiteSettings().settings.interface.app.shell
   const navigate = useNavigate()
 
   useSheetDismiss(true, onClose)
 
+  const openedRef = useRef(false)
+  useEffect(() => {
+    if (openedRef.current) return
+    openedRef.current = true
+    trackEvent({
+      action: 'notification.open',
+      targetType: 'notification',
+      targetId: 'sheet',
+      details: { unread: unreadNotificationCount, total: notifications.length },
+    })
+  }, [trackEvent, unreadNotificationCount, notifications.length])
+
   function openNotification(notification: AppNotification) {
     markNotificationRead(notification.id)
+    trackEvent({
+      action: 'notification.read',
+      targetType: 'notification',
+      targetId: notification.id,
+      details: { status: notification.status, hasOrder: Boolean(notification.orderId) },
+    })
     onClose()
     if (notification.orderId) navigate(`${ordersPath}?order=${encodeURIComponent(notification.orderId)}`)
+  }
+
+  function markAll() {
+    trackEvent({
+      action: 'notification.read_all',
+      targetType: 'notification',
+      targetId: 'sheet',
+      details: { count: unreadNotificationCount },
+    })
+    markAllNotificationsRead()
+  }
+
+  async function handleEnable() {
+    const ok = await enablePush()
+    if (ok) {
+      trackEvent({ action: 'notification.enable', targetType: 'notification', targetId: 'device', details: { source: 'bell' } })
+    }
   }
 
   return (
@@ -37,7 +73,7 @@ export function NotificationSheet({ onClose, ordersPath = '/app/orders' }: { onC
             <strong>Device notifications</strong>
             <small>Get order updates even when FreshPoint is closed. On iPhone, add FreshPoint to your home screen first.</small>
           </div>
-          <button type="button" className="btn btn--primary btn--small" onClick={() => void enablePush()} disabled={pushEnabled || pushBusy}>
+          <button type="button" className="btn btn--primary btn--small" onClick={() => void handleEnable()} disabled={pushEnabled || pushBusy}>
             {pushEnabled ? 'Enabled' : pushBusy ? 'Enabling…' : 'Enable'}
           </button>
         </div>
@@ -48,7 +84,7 @@ export function NotificationSheet({ onClose, ordersPath = '/app/orders' }: { onC
             <div className="notification-sheet__head-row">
               <small>{notifications.length} {copy.notifications.toLowerCase()}</small>
               {unreadNotificationCount ? (
-                <button className="notification-mark-all" type="button" onClick={markAllNotificationsRead}>{copy.markAllRead}</button>
+                <button className="notification-mark-all" type="button" onClick={markAll}>{copy.markAllRead}</button>
               ) : null}
             </div>
             <div className="notification-list">

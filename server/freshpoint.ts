@@ -106,6 +106,7 @@ export function roleFromUser(user: AuthUser | null | undefined): Role {
 export type AuditEntry = {
   id: string
   createdAt: string
+  actorId: string
   actorEmail: string
   actorRole: Role
   action: string
@@ -138,12 +139,14 @@ export async function recordAudit(
   if (!response.ok) console.warn('Audit log write failed:', response.status)
 }
 
-export async function listAuditLogs(): Promise<AuditEntry[]> {
-  const response = await dbFetch('/audit_logs?select=id,created_at,actor_email,actor_role,action,target_type,target_id,details&order=created_at.desc&limit=200')
+export async function listAuditLogs(limit = 200): Promise<AuditEntry[]> {
+  const safeLimit = Math.min(Math.max(Math.floor(limit), 1), 1000)
+  const response = await dbFetch(`/audit_logs?select=id,created_at,actor_id,actor_email,actor_role,action,target_type,target_id,details&order=created_at.desc&limit=${safeLimit}`)
   if (!response.ok) throw new Error('Audit log lookup failed')
   const rows = await response.json() as Array<{
     id: number | string
     created_at: string
+    actor_id: string | null
     actor_email: string | null
     actor_role: string | null
     action: string
@@ -154,6 +157,7 @@ export async function listAuditLogs(): Promise<AuditEntry[]> {
   return rows.map((row) => ({
     id: String(row.id),
     createdAt: row.created_at,
+    actorId: row.actor_id ?? '',
     actorEmail: row.actor_email ?? '',
     actorRole: roleFromUser({ id: '', app_metadata: { role: row.actor_role ?? undefined } }),
     action: row.action,

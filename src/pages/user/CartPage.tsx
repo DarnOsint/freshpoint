@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ProductImage } from '../../components/ProductImage'
 import { useAuth } from '../../lib/auth-context'
@@ -8,7 +8,7 @@ import { useSiteSettings } from '../../lib/site-content'
 
 export function CartPage() {
   const { user, session } = useAuth()
-  const { cart, products, cartTotal, setCartQuantity, placeOrder } = useData()
+  const { cart, products, cartTotal, setCartQuantity, placeOrder, trackEvent } = useData()
   const { settings } = useSiteSettings()
   const copy = settings.interface.app.cart
   const navigate = useNavigate()
@@ -41,6 +41,16 @@ export function CartPage() {
     return () => { active = false }
   }, [session?.access_token])
 
+  const cartItemsRef = useRef(cart.reduce((sum, line) => sum + line.quantity, 0))
+  useEffect(() => {
+    trackEvent({
+      action: 'cart.open',
+      targetType: 'cart',
+      targetId: 'basket',
+      details: { items: cartItemsRef.current },
+    })
+  }, [trackEvent])
+
   function toggleSaved(next: boolean) {
     setUseSaved(next)
     if (next) {
@@ -62,6 +72,16 @@ export function CartPage() {
     if (phone.trim().length < 9) { setError(copy.phoneError); return }
     if (address.trim().length < 5) { setError(copy.addressError); return }
 
+    trackEvent({
+      action: 'checkout.start',
+      targetType: 'checkout',
+      targetId: 'basket',
+      details: {
+        items: lines.reduce((sum, line) => sum + line.quantity, 0),
+        value: cartTotal,
+        addressMode: useSaved ? 'saved' : 'custom',
+      },
+    })
     setBusy(true)
     try {
       await placeOrder({ customer: name.trim(), phone: phone.trim(), address: address.trim() })

@@ -1,6 +1,6 @@
 import {
   InputError, adminFetch, assertConfigured, dbFetch, hashCode, newCode, codeExpiry,
-  publicFetch, readJson, send, sendConfirmationEmail,
+  publicFetch, readJson, recordAudit, send, sendConfirmationEmail,
   type ApiRequest, type ApiResponse,
 } from '../server/freshpoint.js'
 
@@ -15,13 +15,14 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     const fullName = String(body.fullName ?? '').trim()
     const username = String(body.username ?? '').trim().toLowerCase()
     const rawPhone = String(body.phone ?? '').trim()
-    const phone = rawPhone ? (rawPhone.startsWith('+') ? rawPhone : `+${rawPhone.replace(/\D/g, '')}`) : null
+    const phoneDigits = rawPhone.replace(/\D/g, '')
+    const phone = phoneDigits ? `+${phoneDigits}` : null
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new InputError('Enter a valid email address.')
     if (password.length < 8) throw new InputError('Use a password of at least 8 characters.')
     if (fullName.length < 2) throw new InputError('Enter your full name.')
     if (!/^[a-z0-9_]{3,20}$/.test(username)) throw new InputError('Use 3–20 letters, numbers or underscores for your username.')
-    if (phone && !/^\+\d{7,15}$/.test(phone)) throw new InputError('Enter a valid phone number.')
+    if (phone && !/^\+[1-9]\d{6,14}$/.test(phone)) throw new InputError('Enter a valid phone number.')
 
     const takenResponse = await publicFetch('/rest/v1/rpc/username_exists', {
       method: 'POST',
@@ -62,6 +63,14 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     }
     const user = await createResponse.json() as { id?: string }
     if (!user.id) throw new Error('Supabase user creation returned no id')
+
+    await recordAudit(
+      { id: user.id, email, app_metadata: { role: 'customer' } },
+      'user.signup',
+      'user',
+      user.id,
+      { method: 'email' },
+    )
 
     const code = newCode()
     const confirmation = {

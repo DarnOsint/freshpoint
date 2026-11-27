@@ -55,9 +55,10 @@ export function toE164(dial: string, national: string): string {
   return `${dial}${digits}`
 }
 
-export function isValidNationalNumber(national: string): boolean {
-  const digits = national.replace(/\D/g, '')
-  return digits.length >= 6 && digits.length <= 14
+export function isValidNationalNumber(national: string, dial = defaultCountry.dial): boolean {
+  const digits = national.replace(/\D/g, '').replace(/^0+/, '')
+  const dialDigits = dial.replace(/\D/g, '')
+  return digits.length >= 6 && dialDigits.length + digits.length <= 15
 }
 
 export function formatNationalNumber(national: string): string {

@@ -22,7 +22,7 @@ function splitPhone(value: string) {
 
 export function ProfilePage() {
   const { user, session, signOut } = useAuth()
-  const { orders } = useData()
+  const { orders, trackEvent } = useData()
   const { settings } = useSiteSettings()
   const copy = settings.interface.app.profile
   const common = settings.interface.common
@@ -70,6 +70,10 @@ export function ProfilePage() {
     setModal(null)
   }
 
+  function trackSupport(channel: string) {
+    trackEvent({ action: 'support.contact', targetType: 'support', targetId: channel })
+  }
+
   useSheetDismiss(modal !== null, closeModal)
 
   function openModal(next: Exclude<ProfileModal, null>) {
@@ -110,10 +114,11 @@ export function ProfilePage() {
     const nextAddress = address.trim()
     if (nextName.length < 2) { setDetailsError(copy.detailsError); return }
     if (!/^[a-z0-9_]{3,20}$/.test(nextHandle)) { setDetailsError(copy.usernameError); return }
-    if (phoneNumber.trim() && !isValidNationalNumber(phoneNumber)) { setPhoneError(common.validPhone); return }
-    if (nextAddress && nextAddress.length < 5) { setAddressError(copy.addressError); return }
 
     const country = countries.find((item) => item.code === countryCode) ?? defaultCountry
+    if (phoneNumber.trim() && !isValidNationalNumber(phoneNumber, country.dial)) { setPhoneError(common.validPhone); return }
+    if (nextAddress && nextAddress.length < 5) { setAddressError(copy.addressError); return }
+
     const fullPhone = phoneNumber.trim() ? toE164(country.dial, phoneNumber) : ''
     setSavingDetails(true)
     try {
@@ -133,6 +138,12 @@ export function ProfilePage() {
       setHandle(nextHandle)
       setAddress(nextAddress)
       setDetailsSaved(copy.detailsSaved)
+      trackEvent({
+        action: 'profile.update',
+        targetType: 'profile',
+        targetId: user?.id ?? '',
+        details: { phone: Boolean(fullPhone), address: Boolean(nextAddress) },
+      })
     } catch (caught) {
       setDetailsError(caught instanceof Error ? caught.message : copy.detailsError)
     } finally {
@@ -291,17 +302,17 @@ export function ProfilePage() {
                 {whatsappUrl ? (
                   <div className="profile-readonly">
                     <span>WhatsApp</span>
-                    <strong><a href={whatsappUrl} target="_blank" rel="noreferrer">{whatsappNumber}</a></strong>
+                    <strong><a href={whatsappUrl} target="_blank" rel="noreferrer" onClick={() => trackSupport('whatsapp')}>{whatsappNumber}</a></strong>
                   </div>
                 ) : null}
                 <div className="profile-readonly">
                   <span>{copy.emailLabel}</span>
-                  <strong><a href={`mailto:${settings.contact.email}`}>{settings.contact.email}</a></strong>
+                  <strong><a href={`mailto:${settings.contact.email}`} onClick={() => trackSupport('email')}>{settings.contact.email}</a></strong>
                 </div>
                 <p className="profile-support__detail">{settings.contact.location}</p>
                 <p className="profile-support__detail">{settings.contact.hours}</p>
                 {whatsappUrl ? (
-                  <a className="btn btn--primary btn--block btn--large" href={whatsappUrl} target="_blank" rel="noreferrer">Chat on WhatsApp</a>
+                  <a className="btn btn--primary btn--block btn--large" href={whatsappUrl} target="_blank" rel="noreferrer" onClick={() => trackSupport('whatsapp')}>Chat on WhatsApp</a>
                 ) : null}
               </div>
             ) : null}

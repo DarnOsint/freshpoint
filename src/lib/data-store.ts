@@ -1,5 +1,12 @@
 import { createContext, useContext } from 'react'
-import type { AppNotification, CartLine, Customer, Order, OrderStatus, Product, Role } from './types'
+import type { ActivityEvent, AppNotification, CartLine, Customer, Order, OrderStatus, Product, Role } from './types'
+
+export type TrackEventInput = {
+  action: string
+  targetType?: string
+  targetId?: string
+  details?: Record<string, unknown>
+}
 
 export type StoredData = {
   products: Product[]
@@ -7,6 +14,7 @@ export type StoredData = {
   customers: Customer[]
   cart: CartLine[]
   notifications: AppNotification[]
+  events: ActivityEvent[]
 }
 
 export type DataContextValue = StoredData & {
@@ -21,6 +29,8 @@ export type DataContextValue = StoredData & {
   saveCustomer: (customer: Customer) => Promise<void>
   refreshOrders: () => Promise<void>
   refreshNotifications: () => Promise<void>
+  refreshEvents: () => Promise<void>
+  trackEvent: (event: TrackEventInput) => void
   markNotificationRead: (id: string) => void
   markAllNotificationsRead: () => void
   unreadNotificationCount: number

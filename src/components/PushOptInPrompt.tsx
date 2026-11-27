@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { useAuth } from '../lib/auth-context'
+import { useData } from '../lib/data-store'
 import { usePushNotifications } from '../lib/use-push-notifications'
 import { useSheetDismiss } from '../lib/use-sheet-dismiss'
 import { SheetCloseButton } from './SheetCloseButton'
 
 export function PushOptInPrompt() {
   const { user } = useAuth()
+  const { trackEvent } = useData()
   const { enabled, busy, note, enable } = usePushNotifications()
   const storageKey = user ? `freshpoint:push-prompt:${user.id}` : ''
   const [dismissed, setDismissed] = useState(() => {
@@ -17,7 +19,13 @@ export function PushOptInPrompt() {
     }
   })
 
-  function dismiss() {
+  function dismiss(reason = 'not-now') {
+    trackEvent({
+      action: 'notification.prompt_dismiss',
+      targetType: 'notification',
+      targetId: 'prompt',
+      details: { reason },
+    })
     if (!storageKey) return
     try {
       window.localStorage.setItem(storageKey, 'dismissed')
@@ -29,17 +37,18 @@ export function PushOptInPrompt() {
 
   async function handleEnable() {
     const ok = await enable()
-    if (ok && storageKey) {
-      try {
-        window.localStorage.setItem(storageKey, 'enabled')
-      } catch {
-        // The subscription itself is stored on the account.
-      }
+    if (!ok) return
+    trackEvent({ action: 'notification.enable', targetType: 'notification', targetId: 'device', details: { source: 'prompt' } })
+    if (!storageKey) return
+    try {
+      window.localStorage.setItem(storageKey, 'enabled')
+    } catch {
+      // The subscription itself is stored on the account.
     }
   }
 
   const open = Boolean(user) && !enabled && !dismissed
-  useSheetDismiss(open, dismiss)
+  useSheetDismiss(open, () => dismiss('escape'))
 
   if (!open) return null
 
@@ -51,7 +60,7 @@ export function PushOptInPrompt() {
             <p className="eyebrow">FreshPoint</p>
             <h2 id="push-prompt-title">Never miss an order update</h2>
           </div>
-          <SheetCloseButton label="Dismiss notification prompt" onClick={dismiss} />
+          <SheetCloseButton label="Dismiss notification prompt" onClick={() => dismiss('close')} />
         </div>
 
         <div className="push-prompt__icon" aria-hidden="true">
@@ -69,7 +78,7 @@ export function PushOptInPrompt() {
           <button type="button" className="btn btn--primary" onClick={() => void handleEnable()} disabled={busy}>
             {busy ? 'Enabling…' : 'Enable notifications'}
           </button>
-          <button type="button" className="btn btn--ghost" onClick={dismiss} disabled={busy}>Not now</button>
+          <button type="button" className="btn btn--ghost" onClick={() => dismiss('not-now')} disabled={busy}>Not now</button>
         </div>
         <small>On iPhone, add FreshPoint to your home screen before enabling.</small>
       </div>

@@ -20,10 +20,52 @@ type AuthUserRow = {
   user_metadata?: Record<string, unknown>
 }
 
+const CLIENT_EVENTS = new Set([
+  'session.open',
+  'session.login',
+  'catalogue.search',
+  'catalogue.filter',
+  'catalogue.add',
+  'catalogue.increase',
+  'catalogue.decrease',
+  'cart.open',
+  'checkout.start',
+  'order.view',
+  'notification.open',
+  'notification.read',
+  'notification.read_all',
+  'notification.enable',
+  'notification.prompt_dismiss',
+  'profile.update',
+  'support.contact',
+])
+
+function cleanEventDetails(input: unknown): Record<string, unknown> {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) return {}
+  return Object.fromEntries(
+    Object.entries(input as Record<string, unknown>)
+      .filter(([key, value]) => key.length <= 32 && (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'))
+      .slice(0, 10)
+      .map(([key, value]) => [key, typeof value === 'string' ? value.slice(0, 120) : value]),
+  )
+}
+
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   try {
     const requestUrl = new URL(req.url ?? '', 'http://localhost')
     const isPushView = requestUrl.searchParams.get('view') === 'push'
+    const isEventsView = requestUrl.searchParams.get('view') === 'events'
+
+    if (isEventsView && req.method === 'POST') {
+      const user = await requireUser(req)
+      const body = await readJson(req)
+      const action = String(body.action ?? '').trim()
+      const targetType = String(body.targetType ?? 'activity').trim().slice(0, 40) || 'activity'
+      const targetId = String(body.targetId ?? '').trim().slice(0, 200)
+      if (!CLIENT_EVENTS.has(action)) throw new InputError('That activity event is not supported.')
+      await recordAudit(user, action, targetType, targetId, cleanEventDetails(body.details))
+      return send(res, 200, { ok: true })
+    }
 
     if (isPushView && (req.method === 'POST' || req.method === 'DELETE')) {
       const user = await requireUser(req)
@@ -70,13 +112,14 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       const username = String(body.username ?? '').trim().toLowerCase()
       const email = String(body.email ?? '').trim().toLowerCase()
       const rawPhone = String(body.phone ?? '').trim()
-      const phone = rawPhone ? (rawPhone.startsWith('+') ? rawPhone : `+${rawPhone.replace(/\D/g, '')}`) : ''
+      const phoneDigits = rawPhone.replace(/\D/g, '')
+      const phone = phoneDigits ? `+${phoneDigits}` : ''
       const address = String(body.address ?? '').trim()
 
       if (fullName.length < 2 || fullName.length > 80) throw new InputError('Enter a name between 2 and 80 characters.')
       if (!/^[a-z0-9_]{3,20}$/.test(username)) throw new InputError('Use 3–20 letters, numbers or underscores for your username.')
       if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new InputError('Enter a valid email address.')
-      if (phone && !/^\+\d{7,15}$/.test(phone)) throw new InputError('Enter a valid phone number.')
+      if (phone && !/^\+[1-9]\d{6,14}$/.test(phone)) throw new InputError('Enter a valid phone number.')
       if (address.length > 200) throw new InputError('Enter a shorter delivery address.')
 
       const taken = await dbFetch(`/profiles?username=eq.${encodeURIComponent(username)}&id=neq.${encodeURIComponent(targetId)}&select=id&limit=1`)
@@ -181,6 +224,11 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         email: profile.email ?? '',
         address: String(user.user_metadata?.address ?? ''),
       })
+    }
+
+    if (url.searchParams.get('view') === 'events') {
+      await requireAdmin(req)
+      return send(res, 200, await listAuditLogs(1000))
     }
 
     if (url.searchParams.get('view') === 'audit') {

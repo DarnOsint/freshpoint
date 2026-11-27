@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { SheetCloseButton } from '../../components/SheetCloseButton'
 import { StatusBadge } from '../../components/StatusBadge'
@@ -8,7 +8,7 @@ import { useSiteSettings } from '../../lib/site-content'
 import { useSheetDismiss } from '../../lib/use-sheet-dismiss'
 
 export function OrdersPage() {
-  const { orders } = useData()
+  const { orders, trackEvent } = useData()
   const { settings } = useSiteSettings()
   const copy = settings.interface.app.orders
   const [params] = useSearchParams()
@@ -18,6 +18,23 @@ export function OrdersPage() {
 
   const sorted = [...orders].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
   const selected = selectedId ? sorted.find((order) => order.id === selectedId) ?? null : null
+  const trackedOrderRef = useRef('')
+
+  useEffect(() => {
+    if (!selected) {
+      trackedOrderRef.current = ''
+      return
+    }
+    const key = `${selected.id}:${selected.createdAt}`
+    if (trackedOrderRef.current === key) return
+    trackedOrderRef.current = key
+    trackEvent({
+      action: 'order.view',
+      targetType: 'order',
+      targetId: selected.id,
+      details: { status: selected.status, value: selected.total },
+    })
+  }, [selected, trackEvent])
 
   function closeOrder() {
     setOpenedId('')

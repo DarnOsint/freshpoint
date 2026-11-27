@@ -32,6 +32,14 @@ export function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
+  function flagLogin() {
+    try {
+      window.sessionStorage.setItem('freshpoint:pending-login', '1')
+    } catch {
+      // Activity tracking is best-effort.
+    }
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
     setError('')
@@ -41,7 +49,8 @@ export function LoginPage() {
       return
     }
 
-    if (method === 'phone' && !isValidNationalNumber(phone)) {
+    const selectedCountry = countries.find((item) => item.code === countryCode) ?? defaultCountry
+    if (method === 'phone' && !isValidNationalNumber(phone, selectedCountry.dial)) {
       setError(common.validPhone)
       return
     }
@@ -78,6 +87,7 @@ export function LoginPage() {
             if (!emailError) {
               signedInUser = signedIn.user
               setLoading(false)
+              flagLogin()
               navigate(homePathForUser(signedInUser), { replace: true })
               return
             }
@@ -108,6 +118,7 @@ export function LoginPage() {
     }
 
     setLoading(false)
+    flagLogin()
     navigate(homePathForUser(signedInUser), { replace: true })
   }
 
