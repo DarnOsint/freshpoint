@@ -562,7 +562,7 @@ img, svg { display: block; }
 .product-table__name small { color: var(--muted); font-size: 0.7rem; }
 .product-table__row > strong { color: var(--green-800); font-size: 0.82rem; white-space: nowrap; }
 .customer-list { display: grid; gap: 8px; }
-.customer-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 10px; width: 100%; min-height: 66px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--white); color: var(--ink); text-align: left; cursor: pointer; }
+.customer-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto auto; align-items: center; gap: 10px; width: 100%; min-height: 66px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--white); color: var(--ink); text-align: left; cursor: pointer; }
 .customer-row__main { display: grid; min-width: 0; }
 .customer-row__main strong { overflow: hidden; font-size: 0.9rem; text-overflow: ellipsis; white-space: nowrap; }
 .customer-row__main small { overflow: hidden; color: var(--muted); font-size: 0.72rem; text-overflow: ellipsis; white-space: nowrap; }
