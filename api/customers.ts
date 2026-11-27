@@ -1,6 +1,6 @@
 import {
   AuthError, ForbiddenError, InputError, adminFetch, dbFetch, readJson,
-  requireStaff, requireUser, send, type ApiRequest, type ApiResponse,
+  requireStaff, requireUser, roleFromUser, send, type ApiRequest, type ApiResponse,
 } from '../server/freshpoint.js'
 
 type ProfileRow = {
@@ -22,38 +22,78 @@ type AuthUserRow = {
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   try {
     if (req.method === 'PATCH') {
-      const user = await requireUser(req)
+      const actor = await requireUser(req)
       const body = await readJson(req)
+      const userId = String(body.userId ?? '').trim()
+      const targetId = userId || actor.id
       const fullName = String(body.fullName ?? '').trim()
       const username = String(body.username ?? '').trim().toLowerCase()
+      const email = String(body.email ?? '').trim().toLowerCase()
+      const rawPhone = String(body.phone ?? '').trim()
+      const phone = rawPhone ? (rawPhone.startsWith('+') ? rawPhone : `+${rawPhone.replace(/\D/g, '')}`) : ''
 
       if (fullName.length < 2 || fullName.length > 80) throw new InputError('Enter a name between 2 and 80 characters.')
       if (!/^[a-z0-9_]{3,20}$/.test(username)) throw new InputError('Use 3–20 letters, numbers or underscores for your username.')
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new InputError('Enter a valid email address.')
+      if (phone && !/^\+\d{7,15}$/.test(phone)) throw new InputError('Enter a valid phone number.')
 
-      const taken = await dbFetch(`/profiles?username=eq.${encodeURIComponent(username)}&id=neq.${encodeURIComponent(user.id)}&select=id&limit=1`)
+      const taken = await dbFetch(`/profiles?username=eq.${encodeURIComponent(username)}&id=neq.${encodeURIComponent(targetId)}&select=id&limit=1`)
       if (!taken.ok) throw new Error('Username lookup failed')
       if ((await taken.json() as unknown[]).length > 0) throw new InputError('That username is taken. Choose another.')
 
-      const lookup = await adminFetch(`/auth/v1/admin/users/${encodeURIComponent(user.id)}`)
+      if (phone) {
+        const phoneTaken = await dbFetch(`/profiles?phone=eq.${encodeURIComponent(phone)}&id=neq.${encodeURIComponent(targetId)}&select=id&limit=1`)
+        if (!phoneTaken.ok) throw new Error('Phone lookup failed')
+        if ((await phoneTaken.json() as unknown[]).length > 0) throw new InputError('That phone number is already in use.')
+      }
+
+      const lookup = await adminFetch(`/auth/v1/admin/users/${encodeURIComponent(targetId)}`)
       if (!lookup.ok) throw new Error('Account lookup failed')
       const target = await lookup.json() as AuthUserRow
 
-      const metadata = await adminFetch(`/auth/v1/admin/users/${encodeURIComponent(user.id)}`, {
-        method: 'PUT',
-        body: JSON.stringify({
-          user_metadata: { ...target.user_metadata, full_name: fullName, username },
-        }),
-      })
-      if (!metadata.ok) throw new Error('Could not update account details')
+      let nextRole: string | undefined
+      if (userId) {
+        if (roleFromUser(actor) !== 'admin') throw new ForbiddenError('Admin access required.')
+        if (body.role === 'manager' || body.role === 'customer') nextRole = body.role
+        if (targetId === actor.id || target.app_metadata?.role === 'admin') nextRole = undefined
+      }
 
-      const profile = await dbFetch(`/profiles?id=eq.${encodeURIComponent(user.id)}`, {
+      const userMetadata: Record<string, unknown> = { ...target.user_metadata, full_name: fullName, username }
+      if (email) userMetadata.email = email
+      if (phone) userMetadata.phone = phone
+
+      const authUpdate: Record<string, unknown> = { user_metadata: userMetadata }
+      if (email) {
+        authUpdate.email = email
+        authUpdate.email_confirm = true
+      }
+      if (phone) authUpdate.phone = phone
+      if (nextRole) authUpdate.app_metadata = { ...target.app_metadata, role: nextRole }
+
+      const metadata = await adminFetch(`/auth/v1/admin/users/${encodeURIComponent(targetId)}`, {
+        method: 'PUT',
+        body: JSON.stringify(authUpdate),
+      })
+      if (!metadata.ok) {
+        const detail = await metadata.text()
+        if (metadata.status === 409 || metadata.status === 422) throw new InputError('That email or phone number is already in use.')
+        console.error('Account update failed:', metadata.status, detail)
+        throw new Error('Could not update account details')
+      }
+
+      const profileUpdate: Record<string, unknown> = { full_name: fullName, username, updated_at: new Date().toISOString() }
+      if (email) profileUpdate.email = email
+      if (phone) profileUpdate.phone = phone
+      if (nextRole) profileUpdate.role = nextRole
+
+      const profile = await dbFetch(`/profiles?id=eq.${encodeURIComponent(targetId)}`, {
         method: 'PATCH',
         headers: { Prefer: 'return=minimal' },
-        body: JSON.stringify({ full_name: fullName, username, updated_at: new Date().toISOString() }),
+        body: JSON.stringify(profileUpdate),
       })
       if (!profile.ok) throw new Error('Could not update profile')
 
-      return send(res, 200, { ok: true, fullName, username })
+      return send(res, 200, { ok: true, fullName, username, email, phone, role: nextRole ?? target.app_metadata?.role ?? 'customer' })
     }
 
     if (req.method !== 'GET') return send(res, 405, { error: 'Method not allowed' })

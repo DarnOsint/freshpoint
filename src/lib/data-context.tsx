@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { useAuth } from './auth-context'
 import { DataContext, type DataContextValue, type StoredData } from './data-store'
 import { isStaff } from './roles'
-import type { CartLine, Order, OrderStatus, Product, Role } from './types'
+import type { CartLine, Customer, Order, OrderStatus, Product, Role } from './types'
 
 const LEGACY_STORAGE_KEY = 'freshpoint-data-v1'
 const CART_STORAGE_KEY = 'freshpoint-cart-v1'
@@ -222,6 +222,26 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }))
   }
 
+  async function saveCustomer(customer: Customer) {
+    const response = await fetch('/api/customers', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
+      body: JSON.stringify({
+        userId: customer.id,
+        fullName: customer.name,
+        username: customer.username,
+        email: customer.email,
+        phone: customer.phone,
+        role: customer.role === 'manager' ? 'manager' : 'customer',
+      }),
+    })
+    if (!response.ok) await fail(response, 'We could not save this customer. Please try again.')
+    setData((current) => ({
+      ...current,
+      customers: current.customers.map((item) => item.id === customer.id ? customer : item),
+    }))
+  }
+
   async function saveProduct(product: Product) {
     const response = await fetch('/api/products', {
       method: 'POST',
@@ -264,6 +284,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     placeOrder,
     updateOrderStatus,
     setCustomerRole,
+    saveCustomer,
     refreshOrders,
     saveProduct,
     deleteProduct,

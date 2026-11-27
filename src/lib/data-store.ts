@@ -17,6 +17,7 @@ export type DataContextValue = StoredData & {
   placeOrder: (details: { customer: string; phone: string; address: string }) => Promise<Order>
   updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<void>
   setCustomerRole: (customerId: string, role: Extract<Role, 'manager' | 'customer'>) => Promise<void>
+  saveCustomer: (customer: Customer) => Promise<void>
   refreshOrders: () => Promise<void>
   saveProduct: (product: Product) => Promise<void>
   deleteProduct: (productId: string) => Promise<void>
