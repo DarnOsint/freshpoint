@@ -2,7 +2,7 @@ import type { User } from '@supabase/supabase-js'
 import type { Role } from './types'
 
 function metadataRole(user: User | null | undefined): unknown {
-  return user?.app_metadata?.role ?? user?.user_metadata?.role
+  return user?.app_metadata?.role
 }
 
 export function roleForUser(user: User | null | undefined): Role {

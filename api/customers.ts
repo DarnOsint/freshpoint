@@ -16,7 +16,6 @@ type ProfileRow = {
 type AuthUserRow = {
   id: string
   app_metadata?: { role?: string }
-  user_metadata?: { role?: string }
 }
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
@@ -31,10 +30,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     const usersResponse = await adminFetch('/auth/v1/admin/users?per_page=500')
     if (!usersResponse.ok) throw new Error('Account lookup failed')
     const usersPayload = await usersResponse.json() as { users?: AuthUserRow[] }
-    const roles = new Map((usersPayload.users ?? []).map((user) => [
-      user.id,
-      user.app_metadata?.role ?? user.user_metadata?.role,
-    ]))
+    const roles = new Map((usersPayload.users ?? []).map((user) => [user.id, user.app_metadata?.role]))
 
     const customers = profiles.map((profile) => {
       const metadataRole = roles.get(profile.id)

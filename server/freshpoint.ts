@@ -88,13 +88,12 @@ export function dbFetch(path: string, init: RequestInit = {}) {
 export type AuthUser = {
   id: string
   app_metadata?: { role?: string; [key: string]: unknown }
-  user_metadata?: { role?: string; [key: string]: unknown }
 }
 
 export type Role = 'admin' | 'manager' | 'customer'
 
 export function roleFromUser(user: AuthUser | null | undefined): Role {
-  const role = user?.app_metadata?.role ?? user?.user_metadata?.role
+  const role = user?.app_metadata?.role
   return role === 'admin' || role === 'manager' ? role : 'customer'
 }
 
