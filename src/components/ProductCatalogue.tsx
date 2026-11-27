@@ -57,7 +57,7 @@ export function ProductCatalogue() {
             const quantity = cart.find((line) => line.productId === product.id)?.quantity ?? 0
             const atMax = quantity >= product.stock
             return (
-              <article className="shop-card" key={product.id}>
+              <article className={`shop-card${quantity > 0 ? ' shop-card--in-cart' : ''}`} key={product.id}>
                 <button
                   className="shop-card__pick"
                   type="button"
@@ -72,10 +72,10 @@ export function ProductCatalogue() {
                   <div className="shop-card__meta">
                     <h3>{product.name}</h3>
                     <small>{product.category} · {product.unit}</small>
+                    <strong>{formatMoney(product.price)}</strong>
                   </div>
                 </button>
                 <div className="shop-card__body">
-                  <strong>{formatMoney(product.price)}</strong>
                   {quantity > 0 ? (
                     <div className="qty-control qty-control--card">
                       <button
@@ -83,7 +83,7 @@ export function ProductCatalogue() {
                         onClick={() => setCartQuantity(product.id, quantity - 1)}
                         aria-label={copy.decreaseLabel.replace('{name}', product.name)}
                       >
-                        <Minus size={17} />
+                        <Minus size={16} />
                       </button>
                       <span aria-live="polite">{quantity}</span>
                       <button
@@ -92,7 +92,7 @@ export function ProductCatalogue() {
                         disabled={atMax}
                         aria-label={copy.increaseLabel.replace('{name}', product.name)}
                       >
-                        <Plus size={17} />
+                        <Plus size={16} />
                       </button>
                     </div>
                   ) : (
@@ -100,6 +100,7 @@ export function ProductCatalogue() {
                       className="btn btn--primary btn--block btn--small"
                       type="button"
                       onClick={() => setCartQuantity(product.id, 1)}
+                      aria-label={`${copy.addToBasket}: ${product.name}`}
                     >
                       <Plus size={16} /> {copy.addToBasket}
                     </button>
