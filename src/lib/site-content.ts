@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react'
 import defaults from './site-defaults.json'
-import type { AccountType, OrderStatus } from './types'
+import type { OrderStatus } from './types'
 
 export type SiteTone = 'green' | 'orange' | 'amber' | 'brown' | 'red' | 'teal'
 export type SiteIcon = 'sprout' | 'badge' | 'store' | 'truck' | 'handshake' | 'clipboard' | 'basket' | 'package'
@@ -8,7 +8,7 @@ export type SiteIcon = 'sprout' | 'badge' | 'store' | 'truck' | 'handshake' | 'c
 export type SiteLink = { label: string; href: string }
 export type SitePoint = { text: string; icon: SiteIcon }
 
-const phoneHiddenSections = new Set(['categories', 'why-us', 'how-it-works', 'wholesale'])
+const phoneHiddenSections = new Set(['categories', 'why-us', 'how-it-works'])
 
 export function isHiddenPhoneSection(href: string) {
   return phoneHiddenSections.has(href.replace(/^\/?#?/, ''))
@@ -36,7 +36,6 @@ export type SiteAppInterface = {
     signOut: string
     basketAria: string
   }
-  accountTypes: Record<AccountType, string>
   statuses: Record<OrderStatus, string>
   dashboard: {
     eyebrow: string
@@ -123,7 +122,6 @@ export type SiteAppInterface = {
     username: string
     phoneLabel: string
     emailLabel: string
-    accountType: string
   }
 }
 
@@ -198,7 +196,6 @@ export type SiteInterface = {
     passwordPlaceholder: string
     confirmPasswordLabel: string
     confirmPasswordPlaceholder: string
-    shoppingAs: string
     terms: string
     agreeError: string
     creating: string
@@ -206,7 +203,6 @@ export type SiteInterface = {
     error: string
     alreadyAccount: string
     loginLink: string
-    accountTypes: Record<AccountType, { label: string; description: string; icon: string }>
   }
   verify: {
     eyebrow: string
@@ -327,15 +323,6 @@ export type SiteSettings = {
   products: { eyebrow: string; title: string; intro: string; note: string }
   reasons: { eyebrow: string; title: string; items: SiteFeature[] }
   steps: { eyebrow: string; title: string; items: SiteStep[] }
-  wholesale: {
-    eyebrow: string
-    title: string
-    body: string
-    primaryLabel: string
-    secondaryLabel: string
-    subject: string
-    art: string
-  }
   location: { titlePrefix: string; body: string; ctaLabel: string }
   footer: {
     exploreTitle: string

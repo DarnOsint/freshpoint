@@ -74,8 +74,8 @@ export const demoOrders: Order[] = [
 ]
 
 export const demoCustomers: Customer[] = [
-  { id: 'c-1', name: 'Mary Achol', username: 'mary_achol', phone: '+211900123456', email: 'mary@example.com', accountType: 'household', joinedAt: '2026-10-12T10:00:00.000Z' },
-  { id: 'c-2', name: 'Daniel Garang', username: 'daniel_g', phone: '+211900234567', email: 'daniel@example.com', accountType: 'restaurant', joinedAt: '2026-10-20T11:30:00.000Z' },
-  { id: 'c-3', name: 'Grace Nyang', username: 'grace_n', phone: '+211900345678', email: 'grace@example.com', accountType: 'retailer', joinedAt: '2026-11-02T09:10:00.000Z' },
-  { id: 'c-4', name: 'John Deng', username: 'john_deng', phone: '+211900456789', email: 'john@example.com', accountType: 'wholesale', joinedAt: '2026-11-14T16:45:00.000Z' },
+  { id: 'c-1', name: 'Mary Achol', username: 'mary_achol', phone: '+211900123456', email: 'mary@example.com', joinedAt: '2026-10-12T10:00:00.000Z' },
+  { id: 'c-2', name: 'Daniel Garang', username: 'daniel_g', phone: '+211900234567', email: 'daniel@example.com', joinedAt: '2026-10-20T11:30:00.000Z' },
+  { id: 'c-3', name: 'Grace Nyang', username: 'grace_n', phone: '+211900345678', email: 'grace@example.com', joinedAt: '2026-11-02T09:10:00.000Z' },
+  { id: 'c-4', name: 'John Deng', username: 'john_deng', phone: '+211900456789', email: 'john@example.com', joinedAt: '2026-11-14T16:45:00.000Z' },
 ]

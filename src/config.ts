@@ -11,6 +11,5 @@ export const navigation = [
   { label: 'Home', href: '/#home' },
   { label: 'Categories', href: '/#categories' },
   { label: 'How it works', href: '/#how-it-works' },
-  { label: 'Wholesale', href: '/#wholesale' },
   { label: 'Contact', href: '/#contact' },
 ]

@@ -7,9 +7,9 @@ import {
   type SiteInterface, type SiteLink, type SitePoint, type SiteSettings,
   type SiteStat, type SiteStep, type SiteTone,
 } from '../../lib/site-content'
-import type { AccountType, OrderStatus } from '../../lib/types'
+import type { OrderStatus } from '../../lib/types'
 
-type Tab = 'brand' | 'navigation' | 'hero' | 'stats' | 'categories' | 'sections' | 'wholesale' | 'footer' | 'interface' | 'app'
+type Tab = 'brand' | 'navigation' | 'hero' | 'stats' | 'categories' | 'sections' | 'footer' | 'interface' | 'app'
 
 const tabs: Array<{ id: Tab; label: string }> = [
   { id: 'brand', label: 'Brand & contact' },
@@ -18,13 +18,11 @@ const tabs: Array<{ id: Tab; label: string }> = [
   { id: 'stats', label: 'Stats' },
   { id: 'categories', label: 'Categories' },
   { id: 'sections', label: 'Sections' },
-  { id: 'wholesale', label: 'Wholesale' },
   { id: 'footer', label: 'Footer' },
   { id: 'interface', label: 'Interface copy' },
   { id: 'app', label: 'Customer app' },
 ]
 
-const accountTypes: AccountType[] = ['household', 'retailer', 'restaurant', 'wholesale']
 const orderStatuses: OrderStatus[] = ['Pending', 'Preparing', 'Out for delivery', 'Delivered', 'Cancelled']
 
 function cloneDefaults(): SiteSettings {
@@ -131,7 +129,7 @@ export function AdminWebsitePage() {
     patch((current) => ({ ...current, hero: { ...current.hero, [field]: value } }))
   }
 
-  function updateSection<K extends 'categories' | 'products' | 'reasons' | 'steps' | 'wholesale' | 'location' | 'footer'>(
+  function updateSection<K extends 'categories' | 'products' | 'reasons' | 'steps' | 'location' | 'footer'>(
     section: K,
     field: keyof SiteSettings[K],
     value: string,
@@ -194,35 +192,6 @@ export function AdminWebsitePage() {
         authPanel: {
           ...current.interface.authPanel,
           points: updateAt(current.interface.authPanel.points, index, changes),
-        },
-      },
-    }))
-  }
-
-  function updateSignupAccountType(type: AccountType, changes: Partial<{ label: string; description: string; icon: string }>) {
-    patch((current) => ({
-      ...current,
-      interface: {
-        ...current.interface,
-        signup: {
-          ...current.interface.signup,
-          accountTypes: {
-            ...current.interface.signup.accountTypes,
-            [type]: { ...current.interface.signup.accountTypes[type], ...changes },
-          },
-        },
-      },
-    }))
-  }
-
-  function updateAppAccountType(type: AccountType, value: string) {
-    patch((current) => ({
-      ...current,
-      interface: {
-        ...current.interface,
-        app: {
-          ...current.interface.app,
-          accountTypes: { ...current.interface.app.accountTypes, [type]: value },
         },
       },
     }))
@@ -460,23 +429,6 @@ export function AdminWebsitePage() {
             </div>
           ))}
           <button className="btn btn--outline btn--small" type="button" onClick={() => addItem('steps')}><Plus size={16} /> Add step</button>
-        </div>
-      )
-    }
-
-    if (tab === 'wholesale') {
-      return (
-        <div className="admin-form settings-section">
-          <h2>Wholesale</h2>
-          <div className="admin-form__grid">
-            <TextField label="Eyebrow" value={draft.wholesale.eyebrow} onChange={(value) => updateSection('wholesale', 'eyebrow', value)} />
-            <TextField label="Heading" value={draft.wholesale.title} onChange={(value) => updateSection('wholesale', 'title', value)} />
-            <TextField label="Description" value={draft.wholesale.body} onChange={(value) => updateSection('wholesale', 'body', value)} multiline />
-            <TextField label="Primary button" value={draft.wholesale.primaryLabel} onChange={(value) => updateSection('wholesale', 'primaryLabel', value)} />
-            <TextField label="Secondary button" value={draft.wholesale.secondaryLabel} onChange={(value) => updateSection('wholesale', 'secondaryLabel', value)} />
-            <TextField label="Email subject" value={draft.wholesale.subject} onChange={(value) => updateSection('wholesale', 'subject', value)} />
-            <TextField label="Decorative produce" value={draft.wholesale.art} onChange={(value) => updateSection('wholesale', 'art', value)} />
-          </div>
           <h2>Location</h2>
           <div className="admin-form__grid">
             <TextField label="Heading prefix" value={draft.location.titlePrefix} onChange={(value) => updateSection('location', 'titlePrefix', value)} />
@@ -611,7 +563,6 @@ export function AdminWebsitePage() {
             <TextField label="Password placeholder" value={signup.passwordPlaceholder} onChange={(value) => updateInterface('signup', 'passwordPlaceholder', value)} />
             <TextField label="Confirm password label" value={signup.confirmPasswordLabel} onChange={(value) => updateInterface('signup', 'confirmPasswordLabel', value)} />
             <TextField label="Confirm password placeholder" value={signup.confirmPasswordPlaceholder} onChange={(value) => updateInterface('signup', 'confirmPasswordPlaceholder', value)} />
-            <TextField label="Account type question" value={signup.shoppingAs} onChange={(value) => updateInterface('signup', 'shoppingAs', value)} />
             <TextField label="Terms text" value={signup.terms} onChange={(value) => updateInterface('signup', 'terms', value)} multiline />
             <TextField label="Terms error" value={signup.agreeError} onChange={(value) => updateInterface('signup', 'agreeError', value)} />
             <TextField label="Loading text" value={signup.creating} onChange={(value) => updateInterface('signup', 'creating', value)} />
@@ -620,17 +571,6 @@ export function AdminWebsitePage() {
             <TextField label="Existing account text" value={signup.alreadyAccount} onChange={(value) => updateInterface('signup', 'alreadyAccount', value)} />
             <TextField label="Login link" value={signup.loginLink} onChange={(value) => updateInterface('signup', 'loginLink', value)} />
           </div>
-          {accountTypes.map((type) => (
-            <div className="settings-item" key={type}>
-              <div className="settings-item__head"><strong>{label(type)} account</strong></div>
-              <div className="admin-form__grid">
-                <TextField label="Label" value={signup.accountTypes[type].label} onChange={(value) => updateSignupAccountType(type, { label: value })} />
-                <TextField label="Description" value={signup.accountTypes[type].description} onChange={(value) => updateSignupAccountType(type, { description: value })} />
-                <TextField label="Icon" value={signup.accountTypes[type].icon} onChange={(value) => updateSignupAccountType(type, { icon: value })} />
-              </div>
-            </div>
-          ))}
-
           <h2>Email verification</h2>
           <div className="admin-form__grid">
             <TextField label="Eyebrow" value={verify.eyebrow} onChange={(value) => updateInterface('verify', 'eyebrow', value)} />
@@ -734,13 +674,6 @@ export function AdminWebsitePage() {
             <TextField label="Basket label" value={app.shell.basketAria} onChange={(value) => updateApp('shell', 'basketAria', value)} />
           </div>
 
-          <h2>Account types</h2>
-          <div className="admin-form__grid">
-            {accountTypes.map((type) => (
-              <TextField key={type} label={label(type)} value={app.accountTypes[type]} onChange={(value) => updateAppAccountType(type, value)} />
-            ))}
-          </div>
-
           <h2>Order statuses</h2>
           <div className="admin-form__grid">
             {orderStatuses.map((status) => (
@@ -842,7 +775,6 @@ export function AdminWebsitePage() {
             <TextField label="Username label" value={app.profile.username} onChange={(value) => updateApp('profile', 'username', value)} />
             <TextField label="Phone label" value={app.profile.phoneLabel} onChange={(value) => updateApp('profile', 'phoneLabel', value)} />
             <TextField label="Email label" value={app.profile.emailLabel} onChange={(value) => updateApp('profile', 'emailLabel', value)} />
-            <TextField label="Account type label" value={app.profile.accountType} onChange={(value) => updateApp('profile', 'accountType', value)} />
           </div>
         </div>
       )

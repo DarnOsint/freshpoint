@@ -2,14 +2,12 @@ import { createContext, useContext } from 'react'
 import type { Session, User } from '@supabase/supabase-js'
 
 export type AuthMode = 'login' | 'signup'
-export type AccountType = 'household' | 'retailer' | 'restaurant' | 'wholesale'
 
 export type SignupDetails = {
   fullName: string
   username: string
   email: string
   phone?: string
-  accountType: AccountType
 }
 
 export type VerifyState = {

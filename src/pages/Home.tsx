@@ -1,6 +1,6 @@
 import { useLayoutEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { ArrowRight, Building2, Leaf, MapPin } from 'lucide-react'
+import { ArrowRight, Leaf, MapPin } from 'lucide-react'
 import { ProductImage } from '../components/ProductImage'
 import { imageUrl } from '../lib/assets'
 import { useData } from '../lib/data-store'
@@ -186,28 +186,6 @@ export function Home() {
                 </article>
               )
             })}
-          </div>
-        </div>
-      </section>
-
-      <section className="wholesale" id="wholesale">
-        <div className="container wholesale__inner">
-          <div>
-            <p className="eyebrow eyebrow--light"><Building2 size={15} /> {settings.wholesale.eyebrow}</p>
-            <h2>{settings.wholesale.title}</h2>
-            <p>{settings.wholesale.body}</p>
-            <div className="wholesale__actions">
-              <Link to="/signup" className="btn btn--light btn--large">{settings.wholesale.primaryLabel} <ArrowRight size={18} /></Link>
-              <a
-                className="btn btn--outline-light btn--large"
-                href={`mailto:${settings.contact.email}?subject=${encodeURIComponent(settings.wholesale.subject)}`}
-              >
-                {settings.wholesale.secondaryLabel}
-              </a>
-            </div>
-          </div>
-          <div className="wholesale__art" aria-hidden="true">
-            {settings.wholesale.art.split(/\s+/).filter(Boolean).map((item, index) => <span key={`${item}-${index}`}>{item}</span>)}
           </div>
         </div>
       </section>

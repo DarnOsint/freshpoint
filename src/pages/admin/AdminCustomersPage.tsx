@@ -2,13 +2,6 @@ import { Mail, Phone, UsersRound } from 'lucide-react'
 import { useData } from '../../lib/data-store'
 import { formatDate, initials } from '../../lib/format'
 
-const accountTypeLabels: Record<string, string> = {
-  household: 'Household',
-  retailer: 'Retail shop',
-  restaurant: 'Restaurant / Hotel',
-  wholesale: 'Wholesale buyer',
-}
-
 export function AdminCustomersPage() {
   const { customers, orders } = useData()
 
@@ -37,7 +30,7 @@ export function AdminCustomersPage() {
                   <span><Mail size={15} /> {customer.email || 'No email on file'}</span>
                 </div>
                 <div className="customer-card__foot">
-                  <span className="account-chip">{accountTypeLabels[customer.accountType] ?? customer.accountType}</span>
+                  <span className="account-chip">Customer</span>
                   <small>{count} order{count === 1 ? '' : 's'} · joined {formatDate(customer.joinedAt)}</small>
                 </div>
               </article>

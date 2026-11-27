@@ -4,8 +4,6 @@ import {
   type ApiRequest, type ApiResponse,
 } from '../server/freshpoint.js'
 
-const accountTypes = new Set(['household', 'retailer', 'restaurant', 'wholesale'])
-
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed' })
 
@@ -16,7 +14,6 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     const password = String(body.password ?? '')
     const fullName = String(body.fullName ?? '').trim()
     const username = String(body.username ?? '').trim().toLowerCase()
-    const accountType = String(body.accountType ?? 'household')
     const rawPhone = String(body.phone ?? '').trim()
     const phone = rawPhone ? (rawPhone.startsWith('+') ? rawPhone : `+${rawPhone.replace(/\D/g, '')}`) : null
 
@@ -24,7 +21,6 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     if (password.length < 8) throw new InputError('Use a password of at least 8 characters.')
     if (fullName.length < 2) throw new InputError('Enter your full name.')
     if (!/^[a-z0-9_]{3,20}$/.test(username)) throw new InputError('Use 3–20 letters, numbers or underscores for your username.')
-    if (!accountTypes.has(accountType)) throw new InputError('Choose a valid account type.')
     if (phone && !/^\+\d{7,15}$/.test(phone)) throw new InputError('Enter a valid phone number.')
 
     const takenResponse = await publicFetch('/rest/v1/rpc/username_exists', {
@@ -54,7 +50,6 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
           username,
           email,
           phone,
-          account_type: accountType,
         },
       }),
     })
@@ -69,21 +64,31 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     if (!user.id) throw new Error('Supabase user creation returned no id')
 
     const code = newCode()
-    const confirmationResponse = await dbFetch('/email_confirmations?on_conflict=email', {
+    const confirmation = {
+      email,
+      user_id: user.id,
+      code_hash: hashCode(code),
+      full_name: fullName,
+      username,
+      phone,
+      attempts: 0,
+      expires_at: codeExpiry(),
+    }
+    const confirmationOptions = {
       method: 'POST',
       headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-      body: JSON.stringify({
-        email,
-        user_id: user.id,
-        code_hash: hashCode(code),
-        full_name: fullName,
-        username,
-        phone,
-        account_type: accountType,
-        attempts: 0,
-        expires_at: codeExpiry(),
-      }),
+    }
+    let confirmationResponse = await dbFetch('/email_confirmations?on_conflict=email', {
+      ...confirmationOptions,
+      body: JSON.stringify(confirmation),
     })
+    if (!confirmationResponse.ok) {
+      // Older databases still require the legacy account_type column.
+      confirmationResponse = await dbFetch('/email_confirmations?on_conflict=email', {
+        ...confirmationOptions,
+        body: JSON.stringify({ ...confirmation, account_type: 'household' }),
+      })
+    }
     if (!confirmationResponse.ok) {
       console.error('Confirmation storage failed:', confirmationResponse.status, await confirmationResponse.text())
       throw new Error('Could not store confirmation')

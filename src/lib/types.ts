@@ -1,5 +1,3 @@
-export type AccountType = 'household' | 'retailer' | 'restaurant' | 'wholesale'
-
 export type OrderStatus = 'Pending' | 'Preparing' | 'Out for delivery' | 'Delivered' | 'Cancelled'
 
 export type Product = {
@@ -44,6 +42,5 @@ export type Customer = {
   username: string
   phone: string
   email: string
-  accountType: AccountType
   joinedAt: string
 }

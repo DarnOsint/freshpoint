@@ -12,7 +12,6 @@ export function DashboardPage() {
   const { settings } = useSiteSettings()
   const copy = settings.interface.app.dashboard
   const name = firstName((user?.user_metadata?.full_name as string | undefined) ?? settings.interface.common.customerFallback)
-  const accountType = (user?.user_metadata?.account_type as keyof typeof settings.interface.app.accountTypes | undefined) ?? 'household'
   const myOrders = orders.filter((order) => !user?.phone || order.phone === user.phone)
   const recent = myOrders.slice(0, 3)
 
@@ -24,7 +23,6 @@ export function DashboardPage() {
           <h1>{copy.welcome.replace('{name}', name)}</h1>
           <p>{copy.intro}</p>
         </div>
-        <span className="account-chip">{settings.interface.app.accountTypes[accountType] ?? accountType}</span>
       </header>
 
       <section className="app-banner">

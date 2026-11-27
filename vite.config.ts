@@ -12,7 +12,7 @@ export default defineConfig({
         name: 'FreshPoint — Your Everyday Fresh Market',
         short_name: 'FreshPoint',
         description:
-          'Fresh vegetables, fruits, grains and everyday food essentials. Retail, wholesale and doorstep delivery in Juba, South Sudan.',
+          'Fresh vegetables, fruits, grains and everyday food essentials. Easy ordering and doorstep delivery in Juba, South Sudan.',
         theme_color: '#166534',
         background_color: '#ffffff',
         display: 'standalone',

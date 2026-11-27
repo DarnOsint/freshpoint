@@ -197,7 +197,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
         username: details.customer.toLowerCase().replace(/[^a-z0-9]+/g, '_'),
         phone: details.phone,
         email: '',
-        accountType: 'household',
         joinedAt: new Date().toISOString(),
       }
       return {

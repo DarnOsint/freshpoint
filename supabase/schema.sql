@@ -9,8 +9,6 @@ create table if not exists public.profiles (
   username text,
   phone text unique,
   email text unique,
-  account_type text not null default 'household'
-    check (account_type in ('household', 'retailer', 'restaurant', 'wholesale')),
   role text not null default 'customer' check (role in ('customer', 'admin')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -220,7 +218,6 @@ create table if not exists public.email_confirmations (
   full_name text not null,
   username text not null,
   phone text,
-  account_type text not null,
   attempts integer not null default 0,
   expires_at timestamptz not null,
   created_at timestamptz not null default now(),

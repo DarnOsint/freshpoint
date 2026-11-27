@@ -9,7 +9,6 @@ type Confirmation = {
   full_name: string
   username: string
   phone: string | null
-  account_type: string
   attempts: number
   expires_at: string
 }
@@ -63,7 +62,6 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         username: record.username,
         phone: record.phone,
         email,
-        account_type: record.account_type,
         role: 'customer',
         updated_at: new Date().toISOString(),
       }),

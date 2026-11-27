@@ -13,7 +13,6 @@ export function ProfilePage() {
   const fullName = (user?.user_metadata?.full_name as string | undefined) || common.customerFallback
   const username = (user?.user_metadata?.username as string | undefined) ?? common.notApplicable
   const email = (user?.user_metadata?.email as string | undefined) || user?.email || common.notApplicable
-  const accountType = (user?.user_metadata?.account_type as keyof typeof settings.interface.app.accountTypes | undefined) ?? 'household'
 
   async function handleSignOut() {
     await signOut()
@@ -28,7 +27,7 @@ export function ProfilePage() {
 
       <section className="profile-hero">
         <span className="profile-avatar">{initials(fullName)}</span>
-        <div><h2>{fullName}</h2><p>@{username} · {settings.interface.app.accountTypes[accountType] ?? accountType}</p></div>
+        <div><h2>{fullName}</h2><p>@{username}</p></div>
       </section>
 
       <section className="app-section">
@@ -37,7 +36,6 @@ export function ProfilePage() {
           <div><span><UserRound size={17} /> {common.usernameLabel}</span><strong>{username}</strong></div>
           <div><span><Phone size={17} /> {copy.phoneLabel}</span><strong>{user?.phone ?? common.notApplicable}</strong></div>
           <div><span><Mail size={17} /> {copy.emailLabel}</span><strong>{email}</strong></div>
-          <div><span><ArrowRight size={17} /> {copy.accountType}</span><strong>{settings.interface.app.accountTypes[accountType] ?? accountType}</strong></div>
         </div>
       </section>
 

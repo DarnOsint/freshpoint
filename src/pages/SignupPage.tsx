@@ -7,7 +7,7 @@ import { countries, defaultCountry, isValidNationalNumber, toE164 } from '../lib
 import { useAuth } from '../lib/auth-context'
 import { homePathForUser } from '../lib/roles'
 import { useSiteSettings } from '../lib/site-content'
-import type { AccountType, VerifyState } from '../lib/auth-context'
+import type { VerifyState } from '../lib/auth-context'
 
 export function SignupPage() {
   const navigate = useNavigate()
@@ -15,12 +15,6 @@ export function SignupPage() {
   const { settings } = useSiteSettings()
   const copy = settings.interface.signup
   const common = settings.interface.common
-  const accountTypes: Array<{ value: AccountType; label: string; description: string; icon: string }> = [
-    { value: 'household', ...copy.accountTypes.household },
-    { value: 'retailer', ...copy.accountTypes.retailer },
-    { value: 'restaurant', ...copy.accountTypes.restaurant },
-    { value: 'wholesale', ...copy.accountTypes.wholesale },
-  ]
   const [fullName, setFullName] = useState('')
   const [username, setUsername] = useState('')
   const [countryCode, setCountryCode] = useState(defaultCountry.code)
@@ -30,7 +24,6 @@ export function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [accountType, setAccountType] = useState<AccountType>('household')
   const [agreed, setAgreed] = useState(false)
   const [nameError, setNameError] = useState('')
   const [usernameError, setUsernameError] = useState('')
@@ -84,7 +77,6 @@ export function SignupPage() {
           fullName: fullName.trim(),
           username: cleanUsername,
           phone: fullPhone,
-          accountType,
         }),
       })
       const result = await response.json() as { ok?: boolean; error?: string }
@@ -105,7 +97,6 @@ export function SignupPage() {
             username: cleanUsername,
             email: cleanEmail,
             phone: fullPhone,
-            accountType,
           },
         } satisfies VerifyState,
       })
@@ -183,21 +174,6 @@ export function SignupPage() {
             </button>
           </div>
         </div>
-
-        <fieldset className="account-types">
-          <legend>{copy.shoppingAs}</legend>
-          <div className="account-types__grid">
-            {accountTypes.map((type) => (
-              <label className={`account-type${accountType === type.value ? ' account-type--active' : ''}`} key={type.value}>
-                <input type="radio" name="accountType" value={type.value} checked={accountType === type.value}
-                  onChange={() => setAccountType(type.value)} />
-                <span className="account-type__icon" aria-hidden="true">{type.icon}</span>
-                <strong>{type.label}</strong>
-                <small>{type.description}</small>
-              </label>
-            ))}
-          </div>
-        </fieldset>
 
         <label className="checkbox-row">
           <input type="checkbox" checked={agreed} onChange={(event) => setAgreed(event.target.checked)} />

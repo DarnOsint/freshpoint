@@ -37,7 +37,6 @@ export function AccountPage() {
   const fullName = (user.user_metadata?.full_name as string | undefined) || common.customerFallback
   const username = (user.user_metadata?.username as string | undefined) ?? common.notApplicable
   const email = (user.user_metadata?.email as string | undefined) || user.email || common.notApplicable
-  const accountType = (user.user_metadata?.account_type as keyof typeof settings.interface.app.accountTypes | undefined) ?? 'household'
 
   async function handleSignOut() {
     await signOut()
@@ -67,10 +66,6 @@ export function AccountPage() {
           <div>
             <span><Mail size={17} /> {copy.emailLabel}</span>
             <strong>{email}</strong>
-          </div>
-          <div>
-            <span><ArrowRight size={17} /> {copy.accountType}</span>
-            <strong>{settings.interface.app.accountTypes[accountType] ?? accountType}</strong>
           </div>
         </div>
 

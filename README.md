@@ -1,10 +1,10 @@
 # FreshPoint — Your Everyday Fresh Market
 
-A installable PWA and marketing site for **OrganicPoint / FreshPoint**, an agricultural marketplace operating under OnePlan Enterprise. FreshPoint connects farmers, trusted suppliers and consumers through retail and wholesale shopping, reliable sourcing and doorstep delivery across South Sudan.
+An installable PWA and marketing site for **OrganicPoint / FreshPoint**, an agricultural marketplace operating under OnePlan Enterprise. FreshPoint sells fresh produce directly to customers, with reliable sourcing and doorstep delivery across South Sudan.
 
 The app includes:
 
-- A full landing page: hero, product categories, fresh picks, why FreshPoint, how it works, wholesale CTA and contact details.
+- A full landing page: hero, product categories, fresh picks, why FreshPoint, how it works, service area and contact details.
 - Password login with **phone**, **email** or **username**, and signup that sets the password. The phone country selector defaults to **South Sudan (+211)**.
 - SMS one-time-code verification powered by Supabase Auth.
 - A mobile-first customer app after login: dashboard, shop, basket/checkout, order history and profile.
@@ -35,7 +35,7 @@ Without Supabase credentials the site still loads, but sending/verifying a code 
 
 ### Auth flow
 
-- **Signup:** email and password are required; phone is optional and may be added for phone sign-in later. After signup, Resend emails a 6-digit confirmation code. Entering it confirms the address, saves the profile, signs the user in, and sends a designed welcome email.
+- **Signup:** email and password are required; phone is optional and may be added for phone sign-in later. Every new account is a customer — there are no account types to choose. After signup, Resend emails a 6-digit confirmation code. Entering it confirms the address, saves the profile, signs the user in, and sends a designed welcome email.
 - **Login:** choose **Phone**, **Email** or **Username** and enter the password. Username is resolved to the linked email (or phone) through a safe SQL function. Phone login also resolves the linked email first, so it keeps working even if a project has not enabled Supabase phone sign-in; direct phone-password auth is used when no linked email exists.
 - **Role-based destination:** both the shared `/login` screen and the header send admins to `/admin` and customers to `/app`. `/admin/login` is reserved for staff.
 - **Password reset:** email-only via `/forgot-password` → emailed code → `/reset-password`; no SMS or username-based recovery.
@@ -85,7 +85,7 @@ Password recovery is email-only. Both login screens link to `/forgot-password`.
 - Signed-in customers land at `/app`. Tabs cover **Home** (overview), **Shop** (searchable catalogue), **Basket** (quantity controls and checkout), **Orders** and **Account**.
 - Placing an order adds it to order history and creates a customer record if needed. Orders and the basket persist in the browser via `localStorage`; the product catalogue lives in the public Supabase `products` table and is edited by admins for all customers.
 - `/admin/login` is a separate, chrome-free sign-in for staff. After sign-in, the console is at `/admin` with orders, products, customers and **Website** screens.
-- Products can be added, edited, hidden or deleted from the admin console. The **Website** screen edits every public section: brand/contact details, header links and announcements, hero, stats, categories, product section, reasons, steps, wholesale, location and footer content.
+- Products can be added, edited, hidden or deleted from the admin console. The **Website** screen edits every public section: brand/contact details, header links and announcements, hero, stats, categories, product section, reasons, steps, location and footer content.
 - Admin access is granted by setting `app_metadata.role = 'admin'` on the Supabase auth user (the `profiles.role` column mirrors it for reporting). Non-admin users are redirected away from `/admin`, and the content APIs reject non-admin sessions.
 
 ## Scripts
