@@ -38,6 +38,13 @@ export function send(res: ApiResponse, status: number, body: unknown) {
 }
 
 export async function readJson(req: ApiRequest): Promise<Record<string, unknown>> {
+  // Vercel's local dev server pre-parses the body; production streams it.
+  const parsed = (req as ApiRequest & { body?: unknown }).body
+  if (typeof parsed === 'string' || Buffer.isBuffer(parsed)) {
+    return JSON.parse(Buffer.isBuffer(parsed) ? parsed.toString('utf8') : parsed) as Record<string, unknown>
+  }
+  if (parsed && typeof parsed === 'object') return parsed as Record<string, unknown>
+
   const chunks: Buffer[] = []
   for await (const chunk of req) {
     chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk)
@@ -78,12 +85,27 @@ export function dbFetch(path: string, init: RequestInit = {}) {
   return adminFetch(`/rest/v1${path}`, init)
 }
 
-export type AdminUser = { id: string; app_metadata?: { role?: string } }
+export type AuthUser = {
+  id: string
+  app_metadata?: { role?: string; [key: string]: unknown }
+  user_metadata?: { role?: string; [key: string]: unknown }
+}
 
-export async function requireAdmin(req: ApiRequest): Promise<AdminUser> {
+export type Role = 'admin' | 'manager' | 'customer'
+
+export function roleFromUser(user: AuthUser | null | undefined): Role {
+  const role = user?.app_metadata?.role ?? user?.user_metadata?.role
+  return role === 'admin' || role === 'manager' ? role : 'customer'
+}
+
+function bearerToken(req: ApiRequest) {
   const raw = req.headers.authorization ?? req.headers.Authorization
   const header = Array.isArray(raw) ? raw[0] : raw
-  const token = header?.startsWith('Bearer ') ? header.slice(7).trim() : ''
+  return header?.startsWith('Bearer ') ? header.slice(7).trim() : ''
+}
+
+export async function requireUser(req: ApiRequest): Promise<AuthUser> {
+  const token = bearerToken(req)
   if (!token) throw new AuthError('Sign in to continue.')
   if (!supabaseUrl || !anonKey) throw new Error('Authentication is not configured')
 
@@ -91,9 +113,19 @@ export async function requireAdmin(req: ApiRequest): Promise<AdminUser> {
     headers: { Authorization: `Bearer ${token}` },
   })
   if (!response.ok) throw new AuthError('Your session has expired. Please sign in again.')
+  return await response.json() as AuthUser
+}
 
-  const user = await response.json() as AdminUser
-  if (user?.app_metadata?.role !== 'admin') throw new ForbiddenError('Admin access required.')
+export async function requireStaff(req: ApiRequest): Promise<AuthUser> {
+  const user = await requireUser(req)
+  const role = roleFromUser(user)
+  if (role !== 'admin' && role !== 'manager') throw new ForbiddenError('Staff access required.')
+  return user
+}
+
+export async function requireAdmin(req: ApiRequest): Promise<AuthUser> {
+  const user = await requireUser(req)
+  if (roleFromUser(user) !== 'admin') throw new ForbiddenError('Admin access required.')
   return user
 }
 

@@ -2,7 +2,8 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { Layout } from './components/Layout'
 import { AdminShell } from './components/AdminShell'
 import { AppShell } from './components/AppShell'
-import { RequireAdmin, RequireAuth } from './components/Guards'
+import { RequireAdmin, RequireAuth, RequireStaff } from './components/Guards'
+import { ManagerShell } from './components/ManagerShell'
 import { Home } from './pages/Home'
 import { LoginPage } from './pages/LoginPage'
 import { SignupPage } from './pages/SignupPage'
@@ -21,6 +22,9 @@ import { AdminOrdersPage } from './pages/admin/AdminOrdersPage'
 import { AdminProductsPage } from './pages/admin/AdminProductsPage'
 import { AdminCustomersPage } from './pages/admin/AdminCustomersPage'
 import { AdminWebsitePage } from './pages/admin/AdminWebsitePage'
+import { ManagerDashboardPage } from './pages/manager/ManagerDashboardPage'
+import { ManagerOrdersPage } from './pages/manager/ManagerOrdersPage'
+import { ManagerCustomersPage } from './pages/manager/ManagerCustomersPage'
 
 export function App() {
   return (
@@ -47,6 +51,12 @@ export function App() {
         <Route path="products" element={<AdminProductsPage />} />
         <Route path="customers" element={<AdminCustomersPage />} />
         <Route path="website" element={<AdminWebsitePage />} />
+      </Route>
+
+      <Route path="/manager" element={<RequireStaff><ManagerShell /></RequireStaff>}>
+        <Route index element={<ManagerDashboardPage />} />
+        <Route path="orders" element={<ManagerOrdersPage />} />
+        <Route path="customers" element={<ManagerCustomersPage />} />
       </Route>
 
       <Route element={<Layout />}>

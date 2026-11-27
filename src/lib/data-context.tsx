@@ -1,19 +1,23 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { demoCustomers, demoOrders, demoProducts } from './demo-data'
+import { useAuth } from './auth-context'
 import { DataContext, type DataContextValue, type StoredData } from './data-store'
-import { supabase } from './supabase'
-import type { CartLine, Customer, Order, OrderStatus, Product } from './types'
+import { isStaff } from './roles'
+import type { CartLine, Order, OrderStatus, Product, Role } from './types'
 
-const STORAGE_KEY = 'freshpoint-data-v1'
+const LEGACY_STORAGE_KEY = 'freshpoint-data-v1'
 const CART_STORAGE_KEY = 'freshpoint-cart-v1'
 const CART_TTL_MS = 7 * 24 * 60 * 60 * 1000
 
 type StoredCart = { lines: CartLine[]; savedAt: number }
+type DataState = StoredData & { ordersToken: string; customersToken: string }
 
-async function sessionHeaders() {
-  const { data } = await supabase.auth.getSession()
-  const token = data.session?.access_token
+function authHeaders(token?: string) {
   return token ? { Authorization: `Bearer ${token}` } : {}
+}
+
+async function fail(response: Response, fallback: string) {
+  const payload = await response.json().catch(() => ({})) as { error?: string }
+  throw new Error(payload.error ?? fallback)
 }
 
 function cleanCart(lines: unknown): CartLine[] {
@@ -30,26 +34,11 @@ function cleanCart(lines: unknown): CartLine[] {
   })
 }
 
-function loadLegacyCart(): CartLine[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return []
-    return cleanCart((JSON.parse(raw) as Partial<StoredData>).cart)
-  } catch {
-    return []
-  }
-}
-
 function loadCart(): CartLine[] {
   try {
+    localStorage.removeItem(LEGACY_STORAGE_KEY)
     const raw = localStorage.getItem(CART_STORAGE_KEY)
-    if (!raw) {
-      const legacy = loadLegacyCart()
-      if (legacy.length) {
-        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify({ lines: legacy, savedAt: Date.now() } satisfies StoredCart))
-      }
-      return legacy
-    }
+    if (!raw) return []
     const parsed = JSON.parse(raw) as Partial<StoredCart>
     const savedAt = Number(parsed.savedAt)
     if (!Number.isFinite(savedAt) || Date.now() - savedAt > CART_TTL_MS) {
@@ -62,26 +51,6 @@ function loadCart(): CartLine[] {
   }
 }
 
-function loadData(): StoredData {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) {
-      const parsed = JSON.parse(raw) as Partial<StoredData>
-      if (Array.isArray(parsed.products) && Array.isArray(parsed.orders)) {
-        return {
-          products: parsed.products,
-          orders: parsed.orders,
-          customers: Array.isArray(parsed.customers) ? parsed.customers : demoCustomers,
-          cart: [],
-        }
-      }
-    }
-  } catch {
-    // Fall through to the seeded catalogue.
-  }
-  return { products: demoProducts, orders: demoOrders, customers: demoCustomers, cart: [] }
-}
-
 function availableCart(cart: CartLine[], products: Product[]): CartLine[] {
   return cart.flatMap((line) => {
     const product = products.find((item) => item.id === line.productId)
@@ -91,24 +60,17 @@ function availableCart(cart: CartLine[], products: Product[]): CartLine[] {
 }
 
 export function DataProvider({ children }: { children: ReactNode }) {
-  const [data, setData] = useState<StoredData>(() => ({ ...loadData(), cart: loadCart() }))
-  const { products, orders, customers } = data
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ products, orders, customers }))
-    } catch {
-      // Storage can be unavailable in private browsing; the app still works in memory.
-    }
-  }, [products, orders, customers])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify({ lines: data.cart, savedAt: Date.now() } satisfies StoredCart))
-    } catch {
-      // Storage can be unavailable in private browsing; the app still works in memory.
-    }
-  }, [data.cart])
+  const { session, user } = useAuth()
+  const token = session?.access_token
+  const staff = isStaff(user)
+  const [data, setData] = useState<DataState>(() => ({
+    products: [],
+    orders: [],
+    customers: [],
+    cart: loadCart(),
+    ordersToken: '',
+    customersToken: '',
+  }))
 
   useEffect(() => {
     let active = true
@@ -123,11 +85,54 @@ export function DataProvider({ children }: { children: ReactNode }) {
           cart: availableCart(current.cart, available),
         }))
       })
-      .catch(() => {
-        // Keep the cached catalogue when the network is unavailable.
-      })
+      .catch(() => undefined)
     return () => { active = false }
   }, [])
+
+  async function refreshOrders() {
+    if (!token) return
+    const response = await fetch('/api/orders', {
+      headers: authHeaders(token),
+      cache: 'no-store',
+    })
+    if (!response.ok) await fail(response, 'We could not load orders. Please try again.')
+    const orders = await response.json() as Order[]
+    setData((current) => ({ ...current, orders, ordersToken: token ?? '' }))
+  }
+
+  useEffect(() => {
+    if (!token) return
+    let active = true
+    fetch('/api/orders', { headers: authHeaders(token), cache: 'no-store' })
+      .then((response) => response.ok ? response.json() : null)
+      .then((rows: unknown) => {
+        if (!active || !Array.isArray(rows)) return
+        setData((current) => ({ ...current, orders: rows as Order[], ordersToken: token }))
+      })
+      .catch(() => undefined)
+    return () => { active = false }
+  }, [token])
+
+  useEffect(() => {
+    if (!token || !staff) return
+    let active = true
+    fetch('/api/customers', { headers: authHeaders(token), cache: 'no-store' })
+      .then((response) => response.ok ? response.json() : null)
+      .then((rows: unknown) => {
+        if (!active || !Array.isArray(rows)) return
+        setData((current) => ({ ...current, customers: rows as StoredData['customers'], customersToken: token }))
+      })
+      .catch(() => undefined)
+    return () => { active = false }
+  }, [token, staff])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify({ lines: data.cart, savedAt: Date.now() } satisfies StoredCart))
+    } catch {
+      // Storage can be unavailable in private browsing; the cart still works in memory.
+    }
+  }, [data.cart])
 
   const cartCount = data.cart.reduce((sum, line) => sum + line.quantity, 0)
   const cartTotal = data.cart.reduce((sum, line) => {
@@ -168,65 +173,62 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setData((current) => ({ ...current, cart: [] }))
   }
 
-  function placeOrder(details: { customer: string; phone: string; address: string }) {
-    const orderLines = availableCart(data.cart, data.products)
-    const items = orderLines.flatMap((line) => {
-      const product = data.products.find((item) => item.id === line.productId)
-      return product ? [{ name: product.name, quantity: line.quantity, price: product.price, emoji: product.emoji, image: product.image }] : []
-    })
-    const total = orderLines.reduce((sum, line) => {
-      const product = data.products.find((item) => item.id === line.productId)
-      return sum + (product?.price ?? 0) * line.quantity
-    }, 0)
-    const order: Order = {
-      id: `FP-${Math.floor(3000 + Math.random() * 6999)}`,
-      customer: details.customer,
-      phone: details.phone,
-      address: details.address,
-      items,
-      total,
-      status: 'Pending',
-      createdAt: new Date().toISOString(),
-    }
+  async function placeOrder(details: { customer: string; phone: string; address: string }) {
+    const lines = availableCart(data.cart, data.products)
+    if (!lines.length) throw new Error('Your basket is empty. Add a product first.')
 
-    setData((current) => {
-      const existingCustomer = current.customers.find((item) => item.phone === details.phone)
-      const customer: Customer = existingCustomer ?? {
-        id: `c-${Date.now()}`,
-        name: details.customer,
-        username: details.customer.toLowerCase().replace(/[^a-z0-9]+/g, '_'),
-        phone: details.phone,
-        email: '',
-        joinedAt: new Date().toISOString(),
-      }
-      return {
-        ...current,
-        orders: [order, ...current.orders],
-        customers: existingCustomer ? current.customers : [customer, ...current.customers],
-        cart: [],
-      }
+    const response = await fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
+      body: JSON.stringify({
+        ...details,
+        items: lines.map((line) => ({ productId: line.productId, quantity: line.quantity })),
+      }),
     })
-
+    if (!response.ok) await fail(response, 'We could not place your order. Please try again.')
+    const payload = await response.json() as { order: Order }
+    const order = payload.order
+    setData((current) => ({
+      ...current,
+      orders: [order, ...current.orders.filter((item) => item.id !== order.id)],
+      cart: [],
+    }))
     return order
   }
 
-  function updateOrderStatus(orderId: string, status: OrderStatus) {
+  async function updateOrderStatus(orderId: string, status: OrderStatus) {
+    const response = await fetch('/api/orders', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
+      body: JSON.stringify({ orderId, status }),
+    })
+    if (!response.ok) await fail(response, 'We could not update this order. Please try again.')
     setData((current) => ({
       ...current,
       orders: current.orders.map((order) => order.id === orderId ? { ...order, status } : order),
     }))
   }
 
+  async function setCustomerRole(customerId: string, role: Extract<Role, 'manager' | 'customer'>) {
+    const response = await fetch('/api/roles', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
+      body: JSON.stringify({ userId: customerId, role }),
+    })
+    if (!response.ok) await fail(response, 'We could not change this role. Please try again.')
+    setData((current) => ({
+      ...current,
+      customers: current.customers.map((customer) => customer.id === customerId ? { ...customer, role } : customer),
+    }))
+  }
+
   async function saveProduct(product: Product) {
     const response = await fetch('/api/products', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...await sessionHeaders() },
+      headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
       body: JSON.stringify(product),
     })
-    if (!response.ok) {
-      const payload = await response.json().catch(() => ({})) as { error?: string }
-      throw new Error(payload.error ?? 'We could not save the product. Please try again.')
-    }
+    if (!response.ok) await fail(response, 'We could not save the product. Please try again.')
     const payload = await response.json() as { product: Product }
     const saved = payload.product
     setData((current) => {
@@ -240,12 +242,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
   async function deleteProduct(productId: string) {
     const response = await fetch(`/api/products?id=${encodeURIComponent(productId)}`, {
       method: 'DELETE',
-      headers: await sessionHeaders(),
+      headers: authHeaders(token),
     })
-    if (!response.ok) {
-      const payload = await response.json().catch(() => ({})) as { error?: string }
-      throw new Error(payload.error ?? 'We could not delete the product. Please try again.')
-    }
+    if (!response.ok) await fail(response, 'We could not delete the product. Please try again.')
     setData((current) => ({
       ...current,
       products: current.products.filter((item) => item.id !== productId),
@@ -255,6 +254,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const value: DataContextValue = {
     ...data,
+    orders: data.ordersToken === token ? data.orders : [],
+    customers: staff && data.customersToken === token ? data.customers : [],
     cartCount,
     cartTotal,
     addToCart,
@@ -262,6 +263,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     clearCart,
     placeOrder,
     updateOrderStatus,
+    setCustomerRole,
+    refreshOrders,
     saveProduct,
     deleteProduct,
   }

@@ -17,21 +17,30 @@ export function CartPage() {
   const [phone, setPhone] = useState(user?.phone ?? '')
   const [address, setAddress] = useState('')
   const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
 
   const lines = cart.flatMap((line) => {
     const product = products.find((item) => item.id === line.productId)
     return product ? [{ ...line, product }] : []
   })
 
-  function handleSubmit(event: FormEvent) {
+  async function handleSubmit(event: FormEvent) {
     event.preventDefault()
     setError('')
-    if (!lines.length) return
+    if (busy || !lines.length) return
     if (name.trim().length < 2) { setError(copy.nameError); return }
     if (phone.trim().length < 9) { setError(copy.phoneError); return }
     if (address.trim().length < 5) { setError(copy.addressError); return }
-    placeOrder({ customer: name.trim(), phone: phone.trim(), address: address.trim() })
-    navigate('/app/orders')
+
+    setBusy(true)
+    try {
+      await placeOrder({ customer: name.trim(), phone: phone.trim(), address: address.trim() })
+      navigate('/app/orders')
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'We could not place your order. Please try again.')
+    } finally {
+      setBusy(false)
+    }
   }
 
   if (!lines.length) {
@@ -77,7 +86,7 @@ export function CartPage() {
         ))}
       </div>
 
-      <form className="checkout-form" onSubmit={handleSubmit} noValidate>
+      <form className="checkout-form" onSubmit={(event) => void handleSubmit(event)} noValidate>
         <h2>{copy.deliveryTitle}</h2>
         <div className="checkout-form__grid">
           <div className="field">
@@ -98,8 +107,8 @@ export function CartPage() {
           <span>{copy.total}</span>
           <strong>{formatMoney(cartTotal)}</strong>
         </div>
-        <button className="btn btn--primary btn--block btn--large" type="submit">
-          {copy.placeOrder} <ArrowRight size={18} />
+        <button className="btn btn--primary btn--block btn--large" type="submit" disabled={busy}>
+          {busy ? 'Placing order…' : copy.placeOrder} <ArrowRight size={18} />
         </button>
         <p className="checkout-note">{copy.note}</p>
       </form>

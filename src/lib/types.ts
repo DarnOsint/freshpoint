@@ -1,3 +1,5 @@
+export type Role = 'admin' | 'manager' | 'customer'
+
 export type OrderStatus = 'Pending' | 'Preparing' | 'Out for delivery' | 'Delivered' | 'Cancelled'
 
 export type Product = {
@@ -23,6 +25,7 @@ export type OrderLine = {
   price: number
   emoji: string
   image?: string | null
+  productId?: string | null
 }
 
 export type Order = {
@@ -43,4 +46,5 @@ export type Customer = {
   phone: string
   email: string
   joinedAt: string
+  role?: Role
 }

@@ -11,9 +11,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let active = true
 
     supabase.auth.getSession().then(({ data }) => {
-      if (active) {
-        setSession(data.session)
-        setLoading(false)
+      if (!active) return
+      setSession(data.session)
+      setLoading(false)
+      if (data.session) {
+        // Refresh so a role change made by an admin takes effect on the next visit.
+        supabase.auth.refreshSession().then(({ data: refreshed }) => {
+          if (active && refreshed.session) setSession(refreshed.session)
+        }).catch(() => undefined)
       }
     })
 

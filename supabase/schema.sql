@@ -9,7 +9,7 @@ create table if not exists public.profiles (
   username text,
   phone text unique,
   email text unique,
-  role text not null default 'customer' check (role in ('customer', 'admin')),
+  role text not null default 'customer' check (role in ('customer', 'manager', 'admin')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -17,7 +17,7 @@ create table if not exists public.profiles (
 -- Idempotent upgrade for databases created before the role column existed.
 alter table public.profiles
   add column if not exists role text not null default 'customer'
-    check (role in ('customer', 'admin'));
+    check (role in ('customer', 'manager', 'admin'));
 
 create unique index if not exists profiles_username_key on public.profiles (lower(username));
 
@@ -54,10 +54,26 @@ $$;
 revoke all on function public.is_admin() from public;
 grant execute on function public.is_admin() to anon, authenticated;
 
+-- Staff access covers admins and managers. Managers can work orders but never
+-- edit products, website content, site settings or roles.
+create or replace function public.is_staff()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select coalesce((auth.jwt() -> 'app_metadata' ->> 'role') in ('admin', 'manager'), false);
+$$;
+
+revoke all on function public.is_staff() from public;
+grant execute on function public.is_staff() to anon, authenticated;
+
 drop policy if exists "Admins can read all profiles" on public.profiles;
-create policy "Admins can read all profiles"
+drop policy if exists "Staff can read all profiles" on public.profiles;
+create policy "Staff can read all profiles"
   on public.profiles for select
-  using (public.is_admin());
+  using (public.is_staff());
 
 drop policy if exists "Admins can update profiles" on public.profiles;
 create policy "Admins can update profiles"
@@ -121,9 +137,10 @@ create policy "Users can read own orders"
   using (auth.uid() = user_id);
 
 drop policy if exists "Admins can read all orders" on public.orders;
-create policy "Admins can read all orders"
+drop policy if exists "Staff can read all orders" on public.orders;
+create policy "Staff can read all orders"
   on public.orders for select
-  using (public.is_admin());
+  using (public.is_staff());
 
 drop policy if exists "Users can create own orders" on public.orders;
 create policy "Users can create own orders"
@@ -163,9 +180,10 @@ create policy "Users can read own order items"
   );
 
 drop policy if exists "Admins can read all order items" on public.order_items;
-create policy "Admins can read all order items"
+drop policy if exists "Staff can read all order items" on public.order_items;
+create policy "Staff can read all order items"
   on public.order_items for select
-  using (public.is_admin());
+  using (public.is_staff());
 
 drop policy if exists "Users can create own order items" on public.order_items;
 create policy "Users can create own order items"

@@ -5,7 +5,7 @@ import { AuthShell } from '../../components/AuthShell'
 import { useAuth } from '../../lib/auth-context'
 import { useSiteSettings } from '../../lib/site-content'
 import { supabase } from '../../lib/supabase'
-import { isAdmin } from '../../lib/roles'
+import { homePathForUser, isAdmin } from '../../lib/roles'
 
 type Method = 'email' | 'username'
 type UsernameLookup = { identifier: string; kind: 'phone' | 'email' }
@@ -24,7 +24,7 @@ export function AdminLoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  if (user && isAdmin(user)) return <Navigate to="/admin" replace />
+  if (user) return <Navigate to={isAdmin(user) ? '/admin' : homePathForUser(user)} replace />
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()

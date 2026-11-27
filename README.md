@@ -8,7 +8,8 @@ The app includes:
 - Password login with **phone**, **email** or **username**, and signup that sets the password. The phone country selector defaults to **South Sudan (+211)**.
 - SMS one-time-code verification powered by Supabase Auth.
 - A mobile-first customer app after login: dashboard, shop, basket/checkout, order history and profile.
-- A separate admin console at `/admin`: overview, order management, products and customers.
+- A separate admin console at `/admin`: overview, order management, products, customers and website editing.
+- A manager workspace at `/manager`: incoming orders, fulfillment and read-only customer context.
 - Installable PWA support with an offline-capable service worker, web manifest and app icons.
 
 ## Quick start
@@ -37,7 +38,7 @@ Without Supabase credentials the site still loads, but sending/verifying a code 
 
 - **Signup:** email and password are required; phone is optional and may be added for phone sign-in later. Every new account is a customer — there are no account types to choose. After signup, Resend emails a 6-digit confirmation code. Entering it confirms the address, saves the profile, signs the user in, and sends a designed welcome email.
 - **Login:** choose **Phone**, **Email** or **Username** and enter the password. Username is resolved to the linked email (or phone) through a safe SQL function. Phone login also resolves the linked email first, so it keeps working even if a project has not enabled Supabase phone sign-in; direct phone-password auth is used when no linked email exists.
-- **Role-based destination:** both the shared `/login` screen and the header send admins to `/admin` and customers to `/app`. `/admin/login` is reserved for staff.
+- **Role-based destination:** the shared `/login` screen sends admins to `/admin`, managers to `/manager` and customers to `/app/shop`. `/admin/login` is reserved for admins.
 - **Password reset:** email-only via `/forgot-password` → emailed code → `/reset-password`; no SMS or username-based recovery.
 - Authentication errors are never shown verbatim to customers — the UI uses friendly, generic messages.
 - The country selector builds E.164 numbers (for example `+211900123456`). South Sudan is the default; 40+ countries are included in [`src/lib/countries.ts`](src/lib/countries.ts).
@@ -83,10 +84,10 @@ Password recovery is email-only. Both login screens link to `/forgot-password`.
 ### Customer app and admin console
 
 - Signed-in customers land at `/app`. Tabs cover **Home** (overview), **Shop** (searchable catalogue), **Basket** (quantity controls and checkout), **Orders** and **Account**.
-- Placing an order adds it to order history and creates a customer record if needed. Orders and the basket persist in the browser via `localStorage`; the product catalogue lives in the public Supabase `products` table and is edited by admins for all customers.
-- `/admin/login` is a separate, chrome-free sign-in for staff. After sign-in, the console is at `/admin` with orders, products, customers and **Website** screens.
+- Checkout writes the order and its line items to the Supabase `orders` and `order_items` tables, so customers, admins and managers see the same incoming orders from any device. The basket stays in `localStorage` with a 7-day expiry; the catalogue comes from the public `products` table and starts empty.
+- `/admin/login` is a separate, chrome-free sign-in for admins. After sign-in, the console is at `/admin` with orders, products, customers and **Website** screens.
 - Products can be added, edited, hidden or deleted from the admin console. The **Website** screen edits every public section: brand/contact details, header links and announcements, hero, stats, categories, product section, reasons, steps, location and footer content.
-- Admin access is granted by setting `app_metadata.role = 'admin'` on the Supabase auth user (the `profiles.role` column mirrors it for reporting). Non-admin users are redirected away from `/admin`, and the content APIs reject non-admin sessions.
+- Roles are `admin`, `manager` and `customer`, stored in `app_metadata.role` and mirrored in `profiles.role`. Admins promote ordinary accounts to manager from **Customers**; managers sign in at `/login`, land at `/manager`, can update order statuses and mark orders fulfilled, and have no access to products, website, settings or role changes. Existing databases can run [`supabase/manager-roles.sql`](supabase/manager-roles.sql) to align the role constraint and RLS policies.
 
 ## Scripts
 
