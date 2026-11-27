@@ -51,8 +51,8 @@ export function ProfilePage() {
     setSavingDetails(true)
     try {
       const token = session?.access_token
-      const response = await fetch('/api/profile', {
-        method: 'POST',
+      const response = await fetch('/api/customers', {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
