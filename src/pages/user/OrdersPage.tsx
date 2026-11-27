@@ -1,17 +1,15 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, PackageCheck } from 'lucide-react'
 import { StatusBadge } from '../../components/StatusBadge'
-import { useAuth } from '../../lib/auth-context'
 import { useData } from '../../lib/data-store'
 import { formatDate, formatMoney } from '../../lib/format'
 import { useSiteSettings } from '../../lib/site-content'
 
 export function OrdersPage() {
-  const { user } = useAuth()
   const { orders } = useData()
   const { settings } = useSiteSettings()
   const copy = settings.interface.app.orders
-  const mine = orders.filter((order) => !user?.phone || order.phone === user.phone)
+  const mine = orders
 
   return (
     <div className="app-page">
@@ -45,7 +43,7 @@ export function OrdersPage() {
           <PackageCheck size={30} />
           <h3>{copy.emptyHeading}</h3>
           <p>{copy.emptyBody}</p>
-          <Link to="/app/shop" className="btn btn--primary btn--small">{copy.browseProduce} <ArrowRight size={16} /></Link>
+          <Link to="/app" className="btn btn--primary btn--small">{copy.browseProduce} <ArrowRight size={16} /></Link>
         </div>
       )}
     </div>

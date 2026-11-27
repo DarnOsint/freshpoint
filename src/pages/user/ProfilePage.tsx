@@ -1,22 +1,96 @@
+import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowRight, LogOut, Mail, Phone, UserRound } from 'lucide-react'
+import { ArrowRight, KeyRound, LogOut, Mail, Phone, ReceiptText, ShoppingBasket, Wallet } from 'lucide-react'
 import { useAuth } from '../../lib/auth-context'
-import { initials } from '../../lib/format'
+import { useData } from '../../lib/data-store'
+import { formatMoney, initials } from '../../lib/format'
 import { useSiteSettings } from '../../lib/site-content'
+import { supabase } from '../../lib/supabase'
 
 export function ProfilePage() {
-  const { user, signOut } = useAuth()
+  const { user, session, signOut } = useAuth()
+  const { orders } = useData()
   const { settings } = useSiteSettings()
   const copy = settings.interface.app.profile
   const common = settings.interface.common
   const navigate = useNavigate()
+
   const fullName = (user?.user_metadata?.full_name as string | undefined) || common.customerFallback
-  const username = (user?.user_metadata?.username as string | undefined) ?? common.notApplicable
-  const email = (user?.user_metadata?.email as string | undefined) || user?.email || common.notApplicable
+  const username = (user?.user_metadata?.username as string | undefined) || common.notApplicable
+  const email = user?.email || common.notApplicable
+  const phone = user?.phone || common.notApplicable
+  const paidOrders = orders.filter((order) => order.status !== 'Cancelled')
+  const itemsOrdered = paidOrders.reduce((total, order) => total + order.items.reduce((sum, item) => sum + item.quantity, 0), 0)
+  const amountPaid = paidOrders.reduce((total, order) => total + order.total, 0)
+
+  const [name, setName] = useState(fullName)
+  const [handle, setHandle] = useState(username === common.notApplicable ? '' : username)
+  const [detailsError, setDetailsError] = useState('')
+  const [detailsSaved, setDetailsSaved] = useState('')
+  const [savingDetails, setSavingDetails] = useState(false)
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordError, setPasswordError] = useState('')
+  const [passwordSuccess, setPasswordSuccess] = useState('')
+  const [changingPassword, setChangingPassword] = useState(false)
 
   async function handleSignOut() {
     await signOut()
     navigate('/')
+  }
+
+  async function handleDetails(event: FormEvent) {
+    event.preventDefault()
+    setDetailsError('')
+    setDetailsSaved('')
+    const nextName = name.trim()
+    const nextHandle = handle.trim().toLowerCase()
+    if (nextName.length < 2) { setDetailsError(copy.detailsError); return }
+    if (!/^[a-z0-9_]{3,20}$/.test(nextHandle)) { setDetailsError(copy.usernameError); return }
+
+    setSavingDetails(true)
+    try {
+      const token = session?.access_token
+      const response = await fetch('/api/profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ fullName: nextName, username: nextHandle }),
+      })
+      const data = await response.json() as { error?: string }
+      if (!response.ok) throw new Error(data.error || copy.detailsError)
+      await supabase.auth.refreshSession()
+      setName(nextName)
+      setHandle(nextHandle)
+      setDetailsSaved(copy.detailsSaved)
+    } catch (caught) {
+      setDetailsError(caught instanceof Error ? caught.message : copy.detailsError)
+    } finally {
+      setSavingDetails(false)
+    }
+  }
+
+  async function handlePassword(event: FormEvent) {
+    event.preventDefault()
+    setPasswordError('')
+    setPasswordSuccess('')
+    if (password.length < 8) { setPasswordError(copy.passwordMin); return }
+    if (password !== confirmPassword) { setPasswordError(copy.passwordMismatch); return }
+
+    setChangingPassword(true)
+    try {
+      const { error } = await supabase.auth.updateUser({ password })
+      if (error) throw error
+      setPassword('')
+      setConfirmPassword('')
+      setPasswordSuccess(copy.passwordSuccess)
+    } catch (caught) {
+      setPasswordError(caught instanceof Error ? caught.message : copy.passwordError)
+    } finally {
+      setChangingPassword(false)
+    }
   }
 
   return (
@@ -31,12 +105,72 @@ export function ProfilePage() {
       </section>
 
       <section className="app-section">
-        <div className="app-section__head"><h2>{copy.accountDetails}</h2></div>
-        <div className="account-details">
-          <div><span><UserRound size={17} /> {common.usernameLabel}</span><strong>{username}</strong></div>
-          <div><span><Phone size={17} /> {copy.phoneLabel}</span><strong>{user?.phone ?? common.notApplicable}</strong></div>
-          <div><span><Mail size={17} /> {copy.emailLabel}</span><strong>{email}</strong></div>
+        <div className="app-section__head"><h2>{copy.summaryTitle}</h2></div>
+        <div className="stat-grid profile-stats">
+          <div className="stat-card">
+            <span><ReceiptText size={19} /></span>
+            <strong>{orders.length}</strong>
+            <small>{copy.ordersPlaced}</small>
+          </div>
+          <div className="stat-card">
+            <span><ShoppingBasket size={19} /></span>
+            <strong>{itemsOrdered}</strong>
+            <small>{copy.itemsOrdered}</small>
+          </div>
+          <div className="stat-card">
+            <span><Wallet size={19} /></span>
+            <strong>{formatMoney(amountPaid)}</strong>
+            <small>{copy.amountPaid}</small>
+          </div>
         </div>
+      </section>
+
+      <section className="app-section">
+        <div className="app-section__head"><h2>{copy.accountDetails}</h2></div>
+        <p className="section-hint">{copy.readOnlyHint}</p>
+        <form className="profile-form" onSubmit={(event) => void handleDetails(event)} noValidate>
+          <div className="field">
+            <label htmlFor="profileName">{copy.fullNameLabel}</label>
+            <input id="profileName" value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" />
+          </div>
+          <div className="field">
+            <label htmlFor="profileUsername">{copy.username}</label>
+            <input id="profileUsername" value={handle} onChange={(event) => setHandle(event.target.value)} autoComplete="username" />
+          </div>
+          <div className="profile-readonly">
+            <span><Mail size={17} /> {copy.emailLabel}</span>
+            <strong>{email}</strong>
+          </div>
+          <div className="profile-readonly">
+            <span><Phone size={17} /> {copy.phoneLabel}</span>
+            <strong>{phone}</strong>
+          </div>
+          {detailsError ? <p className="field-error">{detailsError}</p> : null}
+          {detailsSaved ? <p className="profile-success">{detailsSaved}</p> : null}
+          <button className="btn btn--primary btn--block btn--large" type="submit" disabled={savingDetails}>
+            {savingDetails ? copy.savingDetails : copy.saveDetails}
+          </button>
+        </form>
+      </section>
+
+      <section className="app-section">
+        <div className="app-section__head"><h2>{copy.passwordTitle}</h2></div>
+        <p className="section-hint">{copy.passwordHint}</p>
+        <form className="profile-form" onSubmit={(event) => void handlePassword(event)} noValidate>
+          <div className="field">
+            <label htmlFor="newPassword">{copy.newPassword}</label>
+            <input id="newPassword" type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="new-password" />
+          </div>
+          <div className="field">
+            <label htmlFor="confirmPassword">{copy.confirmPassword}</label>
+            <input id="confirmPassword" type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} autoComplete="new-password" />
+          </div>
+          {passwordError ? <p className="field-error">{passwordError}</p> : null}
+          {passwordSuccess ? <p className="profile-success">{passwordSuccess}</p> : null}
+          <button className="btn btn--outline btn--block btn--large" type="submit" disabled={changingPassword}>
+            <KeyRound size={17} /> {changingPassword ? copy.changingPassword : copy.changePassword}
+          </button>
+        </form>
       </section>
 
       <section className="app-section">

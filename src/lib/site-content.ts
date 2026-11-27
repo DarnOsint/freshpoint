@@ -33,6 +33,7 @@ export type SiteAppInterface = {
     basket: string
     orders: string
     account: string
+    profile: string
     signOut: string
     basketAria: string
   }
@@ -44,6 +45,8 @@ export type SiteAppInterface = {
     bannerTitle: string
     bannerText: string
     bannerCta: string
+    catalogueTitle: string
+    catalogueIntro: string
     ordersPlaced: string
     itemsInBasket: string
     productsAvailable: string
@@ -122,6 +125,27 @@ export type SiteAppInterface = {
     username: string
     phoneLabel: string
     emailLabel: string
+    fullNameLabel: string
+    readOnlyHint: string
+    summaryTitle: string
+    ordersPlaced: string
+    itemsOrdered: string
+    amountPaid: string
+    detailsError: string
+    usernameError: string
+    saveDetails: string
+    savingDetails: string
+    detailsSaved: string
+    passwordTitle: string
+    passwordHint: string
+    newPassword: string
+    confirmPassword: string
+    changePassword: string
+    changingPassword: string
+    passwordMin: string
+    passwordMismatch: string
+    passwordSuccess: string
+    passwordError: string
   }
 }
 

@@ -1,5 +1,5 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, LogOut, ReceiptText, ShoppingBasket, Store, UserRound } from 'lucide-react'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { House, LogOut, ReceiptText, ShoppingBasket, UserRound } from 'lucide-react'
 import { useAuth } from '../lib/auth-context'
 import { useData } from '../lib/data-store'
 import { useSiteSettings } from '../lib/site-content'
@@ -11,14 +11,19 @@ export function AppShell() {
   const { settings } = useSiteSettings()
   const copy = settings.interface.app.shell
   const navigate = useNavigate()
+  const location = useLocation()
 
   const navItems = [
-    { to: '/app', label: copy.home, icon: LayoutDashboard, end: true },
-    { to: '/app/shop', label: copy.shop, icon: Store, end: false },
-    { to: '/app/cart', label: copy.basket, icon: ShoppingBasket, end: false },
-    { to: '/app/orders', label: copy.orders, icon: ReceiptText, end: false },
-    { to: '/app/account', label: copy.account, icon: UserRound, end: false },
+    { to: '/app', label: copy.home, icon: House, key: 'home' },
+    { to: '/app/cart', label: copy.basket, icon: ShoppingBasket, key: 'cart' },
+    { to: '/app/orders', label: copy.orders, icon: ReceiptText, key: 'orders' },
+    { to: '/app/account', label: copy.profile, icon: UserRound, key: 'profile' },
   ]
+
+  function isActive(key: string, to: string) {
+    if (key === 'home') return location.pathname === '/app' || location.pathname === '/app/shop'
+    return location.pathname === to || location.pathname.startsWith(`${to}/`)
+  }
 
   async function handleSignOut() {
     await signOut()
@@ -30,10 +35,10 @@ export function AppShell() {
       <aside className="app-sidebar">
         <div className="app-sidebar__brand"><Logo light label={settings.brand.appName} /></div>
         <nav className="app-sidebar__nav" aria-label={copy.navigation}>
-          {navItems.map(({ to, label, icon: Icon, end }) => (
-            <NavLink key={to} to={to} end={end} className={({ isActive }) => `app-nav-link${isActive ? ' app-nav-link--active' : ''}`}>
+          {navItems.map(({ to, label, icon: Icon, key }) => (
+            <NavLink key={to} to={to} className={`app-nav-link${isActive(key, to) ? ' app-nav-link--active' : ''}`}>
               <Icon size={19} /> <span>{label}</span>
-              {to === '/app/cart' && cartCount > 0 ? <em>{cartCount}</em> : null}
+              {key === 'cart' && cartCount > 0 ? <em>{cartCount}</em> : null}
             </NavLink>
           ))}
         </nav>
@@ -59,11 +64,11 @@ export function AppShell() {
         <main className="app-main"><Outlet /></main>
 
         <nav className="app-tabbar" aria-label={copy.navigation}>
-          {navItems.map(({ to, label, icon: Icon, end }) => (
-            <NavLink key={to} to={to} end={end} className={({ isActive }) => `app-tab${isActive ? ' app-tab--active' : ''}`}>
+          {navItems.map(({ to, label, icon: Icon, key }) => (
+            <NavLink key={to} to={to} className={`app-tab${isActive(key, to) ? ' app-tab--active' : ''}`}>
               <span className="app-tab__icon">
                 <Icon size={20} />
-                {to === '/app/cart' && cartCount > 0 ? <em>{cartCount}</em> : null}
+                {key === 'cart' && cartCount > 0 ? <em>{cartCount}</em> : null}
               </span>
               <span>{label}</span>
             </NavLink>

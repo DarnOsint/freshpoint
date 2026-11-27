@@ -372,7 +372,7 @@ img, svg { display: block; }
 .app-topbar__badge { position: absolute; top: 2px; right: 1px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 999px; background: var(--green-700); color: var(--white); font-size: 0.65rem; font-weight: 800; line-height: 18px; text-align: center; }
 .admin-topbar__label { margin-left: auto; color: var(--muted); font-size: 0.75rem; font-weight: 700; }
 .app-main, .admin-main { max-width: 1200px; margin-inline: auto; }
-.app-tabbar, .admin-tabbar { position: fixed; right: 0; bottom: 0; left: 0; z-index: 40; display: grid; grid-template-columns: repeat(5, 1fr); min-height: 64px; padding: 5px 3px calc(5px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: rgba(255, 255, 255, 0.97); backdrop-filter: blur(10px); }
+.app-tabbar, .admin-tabbar { position: fixed; right: 0; bottom: 0; left: 0; z-index: 40; display: grid; grid-template-columns: repeat(4, 1fr); min-height: 64px; padding: 5px 3px calc(5px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: rgba(255, 255, 255, 0.97); backdrop-filter: blur(10px); }
 .admin-tabbar { grid-template-columns: repeat(5, 1fr); }
 .app-tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 52px; color: var(--muted); font-size: 0.66rem; font-weight: 700; }
 .app-tab--active { color: var(--green-800); }
@@ -493,6 +493,14 @@ img, svg { display: block; }
 .link-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--white); color: var(--green-800); font-size: 0.9rem; font-weight: 700; }
 .link-row small { display: block; margin-top: 3px; color: var(--muted); font-size: 0.72rem; font-weight: 400; }
 .auth-card__intro svg { flex: 0 0 auto; margin-top: 2px; }
+
+.section-hint { margin: -4px 0 0; color: var(--muted); font-size: 0.78rem; line-height: 1.5; }
+.profile-stats .stat-card strong { font-size: 1rem; overflow-wrap: anywhere; }
+.profile-form { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--white); }
+.profile-readonly { display: grid; gap: 4px; padding: 12px 0; border-top: 1px solid var(--line); }
+.profile-readonly span { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 0.78rem; font-weight: 700; }
+.profile-readonly strong { overflow-wrap: anywhere; font-size: 0.88rem; }
+.profile-success { margin: 0; color: var(--green-700); font-size: 0.8rem; font-weight: 600; }
 
 .admin-columns { display: grid; gap: 14px; }
 .admin-panel { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--white); }

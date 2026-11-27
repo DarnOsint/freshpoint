@@ -53,7 +53,7 @@ export function CartPage() {
           <ShoppingBasket size={30} />
           <h3>{copy.emptyHeading}</h3>
           <p>{copy.emptyBody}</p>
-          <Link to="/app/shop" className="btn btn--primary btn--small">{copy.browseProduce}</Link>
+          <Link to="/app" className="btn btn--primary btn--small">{copy.browseProduce}</Link>
         </div>
       </div>
     )

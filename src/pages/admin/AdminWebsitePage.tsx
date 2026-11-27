@@ -666,10 +666,9 @@ export function AdminWebsitePage() {
           <div className="admin-form__grid">
             <TextField label="Navigation label" value={app.shell.navigation} onChange={(value) => updateApp('shell', 'navigation', value)} />
             <TextField label="Home" value={app.shell.home} onChange={(value) => updateApp('shell', 'home', value)} />
-            <TextField label="Shop" value={app.shell.shop} onChange={(value) => updateApp('shell', 'shop', value)} />
-            <TextField label="Basket" value={app.shell.basket} onChange={(value) => updateApp('shell', 'basket', value)} />
+            <TextField label="Profile" value={app.shell.profile} onChange={(value) => updateApp('shell', 'profile', value)} />
+            <TextField label="Cart" value={app.shell.basket} onChange={(value) => updateApp('shell', 'basket', value)} />
             <TextField label="Orders" value={app.shell.orders} onChange={(value) => updateApp('shell', 'orders', value)} />
-            <TextField label="Account" value={app.shell.account} onChange={(value) => updateApp('shell', 'account', value)} />
             <TextField label="Sign out" value={app.shell.signOut} onChange={(value) => updateApp('shell', 'signOut', value)} />
             <TextField label="Basket label" value={app.shell.basketAria} onChange={(value) => updateApp('shell', 'basketAria', value)} />
           </div>
@@ -689,6 +688,8 @@ export function AdminWebsitePage() {
             <TextField label="Banner title" value={app.dashboard.bannerTitle} onChange={(value) => updateApp('dashboard', 'bannerTitle', value)} />
             <TextField label="Banner text" value={app.dashboard.bannerText} onChange={(value) => updateApp('dashboard', 'bannerText', value)} multiline />
             <TextField label="Banner button" value={app.dashboard.bannerCta} onChange={(value) => updateApp('dashboard', 'bannerCta', value)} />
+            <TextField label="Catalogue title" value={app.dashboard.catalogueTitle} onChange={(value) => updateApp('dashboard', 'catalogueTitle', value)} />
+            <TextField label="Catalogue text" value={app.dashboard.catalogueIntro} onChange={(value) => updateApp('dashboard', 'catalogueIntro', value)} multiline />
             <TextField label="Orders stat" value={app.dashboard.ordersPlaced} onChange={(value) => updateApp('dashboard', 'ordersPlaced', value)} />
             <TextField label="Basket stat" value={app.dashboard.itemsInBasket} onChange={(value) => updateApp('dashboard', 'itemsInBasket', value)} />
             <TextField label="Products stat" value={app.dashboard.productsAvailable} onChange={(value) => updateApp('dashboard', 'productsAvailable', value)} />
@@ -775,6 +776,27 @@ export function AdminWebsitePage() {
             <TextField label="Username label" value={app.profile.username} onChange={(value) => updateApp('profile', 'username', value)} />
             <TextField label="Phone label" value={app.profile.phoneLabel} onChange={(value) => updateApp('profile', 'phoneLabel', value)} />
             <TextField label="Email label" value={app.profile.emailLabel} onChange={(value) => updateApp('profile', 'emailLabel', value)} />
+            <TextField label="Full name label" value={app.profile.fullNameLabel} onChange={(value) => updateApp('profile', 'fullNameLabel', value)} />
+            <TextField label="Read-only hint" value={app.profile.readOnlyHint} onChange={(value) => updateApp('profile', 'readOnlyHint', value)} multiline />
+            <TextField label="Activity heading" value={app.profile.summaryTitle} onChange={(value) => updateApp('profile', 'summaryTitle', value)} />
+            <TextField label="Orders stat" value={app.profile.ordersPlaced} onChange={(value) => updateApp('profile', 'ordersPlaced', value)} />
+            <TextField label="Items stat" value={app.profile.itemsOrdered} onChange={(value) => updateApp('profile', 'itemsOrdered', value)} />
+            <TextField label="Amount stat" value={app.profile.amountPaid} onChange={(value) => updateApp('profile', 'amountPaid', value)} />
+            <TextField label="Details error" value={app.profile.detailsError} onChange={(value) => updateApp('profile', 'detailsError', value)} />
+            <TextField label="Username error" value={app.profile.usernameError} onChange={(value) => updateApp('profile', 'usernameError', value)} />
+            <TextField label="Save button" value={app.profile.saveDetails} onChange={(value) => updateApp('profile', 'saveDetails', value)} />
+            <TextField label="Saving text" value={app.profile.savingDetails} onChange={(value) => updateApp('profile', 'savingDetails', value)} />
+            <TextField label="Saved message" value={app.profile.detailsSaved} onChange={(value) => updateApp('profile', 'detailsSaved', value)} />
+            <TextField label="Password heading" value={app.profile.passwordTitle} onChange={(value) => updateApp('profile', 'passwordTitle', value)} />
+            <TextField label="Password hint" value={app.profile.passwordHint} onChange={(value) => updateApp('profile', 'passwordHint', value)} multiline />
+            <TextField label="New password label" value={app.profile.newPassword} onChange={(value) => updateApp('profile', 'newPassword', value)} />
+            <TextField label="Confirm password label" value={app.profile.confirmPassword} onChange={(value) => updateApp('profile', 'confirmPassword', value)} />
+            <TextField label="Change password button" value={app.profile.changePassword} onChange={(value) => updateApp('profile', 'changePassword', value)} />
+            <TextField label="Changing text" value={app.profile.changingPassword} onChange={(value) => updateApp('profile', 'changingPassword', value)} />
+            <TextField label="Password too short" value={app.profile.passwordMin} onChange={(value) => updateApp('profile', 'passwordMin', value)} />
+            <TextField label="Password mismatch" value={app.profile.passwordMismatch} onChange={(value) => updateApp('profile', 'passwordMismatch', value)} />
+            <TextField label="Password success" value={app.profile.passwordSuccess} onChange={(value) => updateApp('profile', 'passwordSuccess', value)} />
+            <TextField label="Password error" value={app.profile.passwordError} onChange={(value) => updateApp('profile', 'passwordError', value)} />
           </div>
         </div>
       )
