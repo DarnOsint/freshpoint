@@ -2,7 +2,7 @@ export const config = {
   appName: 'FreshPoint',
   tagline: 'Your Everyday Fresh Market',
   location: 'Juba, South Sudan',
-  email: 'hello@freshpoint.ss',
+  email: 'hello@freshpointltd.com',
   phone: '+211 900 000 000',
   hours: 'Mon – Sat, 8:00 AM – 6:00 PM',
 }

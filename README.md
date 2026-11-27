@@ -46,7 +46,7 @@ Without Supabase credentials the site still loads, but sending/verifying a code 
 
 ### Cloudflare R2 images
 
-- Create an R2 bucket and enable public access through a custom domain (recommended, e.g. `https://images.freshpoint.ss`) or its `r2.dev` URL.
+- Create an R2 bucket and enable public access through a custom domain (recommended, e.g. `https://images.freshpointltd.com`) or its `r2.dev` URL.
 - Set `VITE_R2_PUBLIC_BASE_URL` to that base URL, with no trailing slash, in `.env` and in Vercel’s build-time environment variables.
 - Upload the hero photo as `hero-market.jpg` and set `VITE_R2_HERO_KEY` to that key. If either variable is blank, the bundled `/images/hero-market.jpg` is used instead.
 - Product images are R2 object keys such as `products/tomatoes.jpg`. Enter the key in the admin product form; a full `https://` URL also works. With no key, the emoji tile is shown.
@@ -70,7 +70,7 @@ Confirmation codes and the welcome email are sent by serverless API routes that 
 - `api/verify-email.ts` checks the code, confirms the email, saves the profile, starts a Supabase session and sends the branded welcome email.
 - `api/resend-code.ts` issues a fresh code with a 30-second cooldown.
 - Set `RESEND_API_KEY`, `SUPABASE_SECRET_KEY` (both sensitive), `RESEND_FROM_EMAIL` and `SITE_URL` in Vercel. Use `FreshPoint <hello@freshpointltd.com>` as the verified sender and `https://freshpointltd.com` as `SITE_URL`; it builds account, welcome and password-reset links.
-- While testing, `RESEND_FROM_EMAIL` can be `FreshPoint <onboarding@resend.dev>`. Resend limits those messages to the account owner’s address, so verify a sending domain and switch to an address on it before launch.
+- While testing, `RESEND_FROM_EMAIL` can be `FreshPoint <onboarding@resend.dev>`. Production uses `FreshPoint <hello@freshpointltd.com>` on the verified Resend domain.
 
 ### Password reset
 
