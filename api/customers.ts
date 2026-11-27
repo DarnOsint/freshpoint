@@ -1,6 +1,6 @@
 import {
   AuthError, ForbiddenError, InputError, adminFetch, dbFetch, listAuditLogs, readJson,
-  recordAudit, requireAdmin, requireStaff, requireUser, roleFromUser,
+  recordAudit, requireAdmin, requireStaff, requireUser, roleFromUser, vapidPublicKeyForClient,
   send, type ApiRequest, type ApiResponse,
 } from '../server/freshpoint.js'
 
@@ -22,6 +22,45 @@ type AuthUserRow = {
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   try {
+    const requestUrl = new URL(req.url ?? '', 'http://localhost')
+    const isPushView = requestUrl.searchParams.get('view') === 'push'
+
+    if (isPushView && (req.method === 'POST' || req.method === 'DELETE')) {
+      const user = await requireUser(req)
+      const body = req.method === 'POST' ? await readJson(req) : {}
+      const endpoint = String(body.endpoint ?? '').trim()
+      const keys = body.keys as { p256dh?: unknown; auth?: unknown } | undefined
+      const p256dh = String(keys?.p256dh ?? '').trim()
+      const auth = String(keys?.auth ?? '').trim()
+      if (req.method === 'POST' && (!endpoint.startsWith('https://') || !p256dh || !auth)) {
+        throw new InputError('That notification subscription is not valid.')
+      }
+
+      const lookup = await adminFetch(`/auth/v1/admin/users/${encodeURIComponent(user.id)}`)
+      if (!lookup.ok) throw new Error('Account lookup failed')
+      const target = await lookup.json() as AuthUserRow
+      const stored = Array.isArray(target.user_metadata?.pushSubscriptions)
+        ? target.user_metadata.pushSubscriptions as Array<Record<string, unknown>>
+        : []
+
+      let next: Array<Record<string, unknown>>
+      if (req.method === 'DELETE') {
+        next = stored.filter((entry) => String(entry.endpoint ?? '') !== endpoint)
+      } else {
+        next = [
+          ...stored.filter((entry) => String(entry.endpoint ?? '') !== endpoint),
+          { endpoint, keys: { p256dh, auth }, createdAt: new Date().toISOString() },
+        ]
+      }
+
+      const metadata = await adminFetch(`/auth/v1/admin/users/${encodeURIComponent(user.id)}`, {
+        method: 'PUT',
+        body: JSON.stringify({ user_metadata: { ...target.user_metadata, pushSubscriptions: next } }),
+      })
+      if (!metadata.ok) throw new Error('Could not save the notification subscription')
+      return send(res, 200, { ok: true, count: next.length })
+    }
+
     if (req.method === 'PATCH') {
       const actor = await requireUser(req)
       const body = await readJson(req)
@@ -120,6 +159,15 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     if (req.method !== 'GET') return send(res, 405, { error: 'Method not allowed' })
 
     const url = new URL(req.url ?? '', 'http://localhost')
+    if (url.searchParams.get('view') === 'push') {
+      const user = await requireUser(req)
+      const stored = user.user_metadata?.pushSubscriptions
+      return send(res, 200, {
+        publicKey: vapidPublicKeyForClient(),
+        subscriptions: Array.isArray(stored) ? stored : [],
+      })
+    }
+
     if (url.searchParams.get('view') === 'me') {
       const user = await requireUser(req)
       const response = await dbFetch(`/profiles?id=eq.${encodeURIComponent(user.id)}&select=full_name,username,phone,email`)

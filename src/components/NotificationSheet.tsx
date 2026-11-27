@@ -2,12 +2,14 @@ import { useNavigate } from 'react-router-dom'
 import { useData } from '../lib/data-store'
 import { formatDate } from '../lib/format'
 import { useSiteSettings } from '../lib/site-content'
+import { usePushNotifications } from '../lib/use-push-notifications'
 import { useSheetDismiss } from '../lib/use-sheet-dismiss'
 import type { AppNotification } from '../lib/types'
 import { SheetCloseButton } from './SheetCloseButton'
 
-export function NotificationSheet({ onClose }: { onClose: () => void }) {
+export function NotificationSheet({ onClose, ordersPath = '/app/orders' }: { onClose: () => void; ordersPath?: string }) {
   const { notifications, markNotificationRead, markAllNotificationsRead, unreadNotificationCount } = useData()
+  const { enabled: pushEnabled, busy: pushBusy, note: pushNote, enable: enablePush } = usePushNotifications()
   const copy = useSiteSettings().settings.interface.app.shell
   const navigate = useNavigate()
 
@@ -16,7 +18,7 @@ export function NotificationSheet({ onClose }: { onClose: () => void }) {
   function openNotification(notification: AppNotification) {
     markNotificationRead(notification.id)
     onClose()
-    if (notification.orderId) navigate(`/app/orders?order=${encodeURIComponent(notification.orderId)}`)
+    if (notification.orderId) navigate(`${ordersPath}?order=${encodeURIComponent(notification.orderId)}`)
   }
 
   return (
@@ -29,6 +31,17 @@ export function NotificationSheet({ onClose }: { onClose: () => void }) {
           </div>
           <SheetCloseButton label={`Close ${copy.notifications}`} onClick={onClose} />
         </div>
+
+        <div className="notification-push">
+          <div>
+            <strong>Device notifications</strong>
+            <small>Get order updates even when FreshPoint is closed. On iPhone, add FreshPoint to your home screen first.</small>
+          </div>
+          <button type="button" className="btn btn--primary btn--small" onClick={() => void enablePush()} disabled={pushEnabled || pushBusy}>
+            {pushEnabled ? 'Enabled' : pushBusy ? 'Enabling…' : 'Enable'}
+          </button>
+        </div>
+        {pushNote ? <p className="notification-push__note">{pushNote}</p> : null}
 
         {notifications.length ? (
           <>

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { SheetCloseButton } from './SheetCloseButton'
 import { StatusBadge } from './StatusBadge'
 import { useData } from '../lib/data-store'
@@ -12,25 +13,33 @@ const statusOptions: OrderStatus[] = ['Pending', 'Preparing', 'Out for delivery'
 export function OrderWorkspace({ manager = false }: { manager?: boolean }) {
   const { orders, updateOrderStatus } = useData()
   const [filter, setFilter] = useState<'All' | OrderStatus>('All')
-  const [selectedId, setSelectedId] = useState('')
+  const [params, setParams] = useSearchParams()
+  const [openedId, setOpenedId] = useState('')
+  const selectedId = params.get('order') || openedId
   const [busyId, setBusyId] = useState('')
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
 
-  const visible = filter === 'All' ? orders : orders.filter((order) => order.status === filter)
+  const sorted = [...orders].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  const visible = filter === 'All' ? sorted : sorted.filter((order) => order.status === filter)
   const selected = selectedId ? orders.find((order) => order.id === selectedId) ?? null : null
   const countFor = (status: 'All' | OrderStatus) => status === 'All'
     ? orders.length
     : orders.filter((order) => order.status === status).length
 
   function openOrder(orderId: string) {
-    setSelectedId(orderId)
+    setOpenedId(orderId)
     setError('')
     setNotice('')
   }
 
   function closeOrder() {
-    setSelectedId('')
+    setOpenedId('')
+    if (params.has('order')) {
+      const next = new URLSearchParams(params)
+      next.delete('order')
+      setParams(next, { replace: true })
+    }
     setError('')
     setNotice('')
   }

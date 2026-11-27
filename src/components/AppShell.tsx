@@ -5,6 +5,7 @@ import { useData } from '../lib/data-store'
 import { useSiteSettings } from '../lib/site-content'
 import { Logo } from './Logo'
 import { NotificationSheet } from './NotificationSheet'
+import { PushOptInPrompt } from './PushOptInPrompt'
 import { TabIcon } from './TabIcon'
 
 export function AppShell() {
@@ -92,7 +93,7 @@ export function AppShell() {
         </nav>
       </div>
 
-      {notificationsOpen ? <NotificationSheet onClose={() => setNotificationsOpen(false)} /> : null}
+      {notificationsOpen ? <NotificationSheet onClose={() => setNotificationsOpen(false)} /> : <PushOptInPrompt />}
     </div>
   )
 }

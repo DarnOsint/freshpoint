@@ -1,7 +1,7 @@
 import { randomInt } from 'node:crypto'
 import {
   AuthError, ForbiddenError, InputError, dbFetch, readJson, recordAudit, requireStaff, requireUser,
-  roleFromUser, send, type ApiRequest, type ApiResponse,
+  roleFromUser, send, sendPush, type ApiRequest, type ApiResponse,
 } from '../server/freshpoint.js'
 
 type OrderRow = {
@@ -102,13 +102,17 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       const user = await requireUser(req)
       const url = new URL(req.url ?? '', 'http://localhost')
       if (url.searchParams.get('view') === 'notifications') {
-        const ordersResponse = await dbFetch(`/orders?select=id&user_id=eq.${encodeURIComponent(user.id)}&limit=200`)
+        const role = roleFromUser(user)
+        const staff = role === 'admin' || role === 'manager'
+        const ownerFilter = staff ? '' : `&user_id=eq.${encodeURIComponent(user.id)}`
+        const ordersResponse = await dbFetch(`/orders?select=id${ownerFilter}&limit=200`)
         if (!ordersResponse.ok) throw new Error('Order lookup failed')
         const orderRows = await ordersResponse.json() as Array<{ id: string }>
         const orderIds = new Set(orderRows.map((row) => row.id))
 
+        const audienceFilter = staff ? '' : `&details->>userId=eq.${encodeURIComponent(user.id)}`
         const response = await dbFetch(
-          `/audit_logs?select=id,created_at,action,target_id,details&details->>userId=eq.${encodeURIComponent(user.id)}&action=in.(order.created,order.status_change)&order=created_at.desc&limit=100`,
+          `/audit_logs?select=id,created_at,action,target_id,details&action=in.(order.created,order.status_change)${audienceFilter}&order=created_at.desc&limit=100`,
         )
         if (!response.ok) throw new Error('Notification lookup failed')
         const rows = await response.json() as AuditRow[]
@@ -201,6 +205,18 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         throw new Error('Order item creation failed')
       }
       await recordAudit(user, 'order.created', 'order', order.id, { userId: user.id, status: 'Pending' })
+      await sendPush(
+        'Order placed',
+        `Order ${order.id} was received and is being reviewed.`,
+        '/app/orders',
+        { userIds: [user.id] },
+      ).catch((error) => console.error('Customer push failed:', error))
+      await sendPush(
+        'New order placed',
+        `${customer} placed order ${order.id}.`,
+        '/admin/orders',
+        { staff: true },
+      ).catch((error) => console.error('Staff push failed:', error))
 
       return send(res, 200, {
         order: mapOrder(
@@ -237,6 +253,12 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         from: previous.status,
         status,
       })
+      await sendPush(
+        statusTitles[status] ?? 'Order update',
+        `Order ${orderId} is now ${status.toLowerCase()}.`,
+        '/app/orders',
+        { userIds: [previous.user_id] },
+      ).catch((error) => console.error('Status push failed:', error))
       return send(res, 200, { order: mapOrder(rows[0]) })
     }
 

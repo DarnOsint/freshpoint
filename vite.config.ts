@@ -6,6 +6,12 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.js',
+      injectManifest: {
+        globPatterns: ['**/*.{js,css,html,svg,png,jpg,jpeg,webp,ico}'],
+      },
       registerType: 'autoUpdate',
       includeAssets: ['favicon.png', 'logo.png', 'logo-light.png', 'icons/icon-192.png', 'icons/icon-512.png'],
       manifest: {
@@ -30,10 +36,6 @@ export default defineConfig({
             purpose: 'maskable',
           },
         ],
-      },
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,jpg,jpeg,webp,ico}'],
-        navigateFallback: '/index.html',
       },
     }),
   ],

@@ -1,4 +1,5 @@
 import { createHash, randomInt } from 'node:crypto'
+import { sendNotification, setVapidDetails } from 'web-push'
 
 export type ApiRequest = {
   method?: string
@@ -26,6 +27,9 @@ const siteUrl = (process.env.SITE_URL || 'https://freshpointltd.com').replace(/\
 const siteHost = siteUrl.replace(/^https?:\/\//, '').split('/')[0]
 const r2Base = (process.env.VITE_R2_PUBLIC_BASE_URL ?? '').replace(/\/+$/, '')
 const heroKey = process.env.VITE_R2_HERO_KEY || 'hero-market.jpg'
+const vapidPublicKey = process.env.VAPID_PUBLIC_KEY ?? ''
+const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY ?? ''
+const vapidSubject = process.env.VAPID_SUBJECT || 'mailto:hello@freshpointltd.com'
 
 const logoUrl = r2Base ? `${r2Base}/brand/logo-light.png` : `${siteUrl}/logo-light.png`
 const heroUrl = r2Base ? `${r2Base}/${heroKey}` : `${siteUrl}/images/hero-market.jpg`
@@ -300,4 +304,82 @@ async function sendEmail(to: string, subject: string, html: string) {
     console.error('Resend rejected email:', response.status, await response.text())
     throw new Error('Email delivery failed')
   }
+}
+
+type PushUser = {
+  id: string
+  app_metadata?: { role?: string }
+  user_metadata?: Record<string, unknown>
+}
+
+export function vapidPublicKeyForClient() {
+  return vapidPublicKey
+}
+
+export async function sendPush(
+  title: string,
+  body: string,
+  url: string,
+  audience: { userIds?: string[]; staff?: boolean } = {},
+) {
+  if (!vapidPublicKey || !vapidPrivateKey) return
+  const userIds = audience.userIds ? new Set(audience.userIds) : null
+
+  const response = await adminFetch('/auth/v1/admin/users?per_page=500')
+  if (!response.ok) return
+  const payload = await response.json() as { users?: PushUser[] }
+
+  type PushTarget = { userId: string; endpoint: string; keys: { p256dh: string; auth: string } }
+  const subscriptions: PushTarget[] = []
+  for (const user of payload.users ?? []) {
+    if (userIds && !userIds.has(user.id)) continue
+    if (audience.staff && user.app_metadata?.role !== 'admin' && user.app_metadata?.role !== 'manager') continue
+    const stored = user.user_metadata?.pushSubscriptions
+    if (!Array.isArray(stored)) continue
+    for (const entry of stored) {
+      const candidate = entry as { endpoint?: unknown; keys?: { p256dh?: unknown; auth?: unknown } }
+      const endpoint = String(candidate?.endpoint ?? '')
+      const p256dh = String(candidate?.keys?.p256dh ?? '')
+      const auth = String(candidate?.keys?.auth ?? '')
+      if (endpoint && p256dh && auth) subscriptions.push({ userId: user.id, endpoint, keys: { p256dh, auth } })
+    }
+  }
+  if (!subscriptions.length) return
+
+  setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey)
+  const message = JSON.stringify({ title, body, url, tag: `freshpoint-${Date.now()}` })
+  const results = await Promise.allSettled(
+    subscriptions.map((subscription) => sendNotification(
+      { endpoint: subscription.endpoint, keys: subscription.keys } as Parameters<typeof sendNotification>[0],
+      message,
+    )),
+  )
+
+  const expiredByUser = new Map<string, Set<string>>()
+  results.forEach((result, index) => {
+    if (result.status !== 'rejected') return
+    const statusCode = (result.reason as { statusCode?: number } | undefined)?.statusCode
+    if (statusCode === 404 || statusCode === 410) {
+      const target = subscriptions[index]
+      const endpoints = expiredByUser.get(target.userId) ?? new Set<string>()
+      endpoints.add(target.endpoint)
+      expiredByUser.set(target.userId, endpoints)
+      return
+    }
+    console.error('Push delivery failed:', statusCode ?? 'unknown error')
+  })
+
+  await Promise.allSettled([...expiredByUser.entries()].map(async ([userId, endpoints]) => {
+    const lookup = await adminFetch(`/auth/v1/admin/users/${encodeURIComponent(userId)}`)
+    if (!lookup.ok) return
+    const target = await lookup.json() as PushUser
+    const stored = target.user_metadata?.pushSubscriptions
+    if (!Array.isArray(stored)) return
+    const next = stored.filter((entry) => !endpoints.has(String((entry as { endpoint?: unknown })?.endpoint ?? '')))
+    if (next.length === stored.length) return
+    await adminFetch(`/auth/v1/admin/users/${encodeURIComponent(userId)}`, {
+      method: 'PUT',
+      body: JSON.stringify({ user_metadata: { ...target.user_metadata, pushSubscriptions: next } }),
+    })
+  }))
 }
