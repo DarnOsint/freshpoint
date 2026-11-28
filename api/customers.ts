@@ -1,7 +1,8 @@
 import {
-  AuthError, ForbiddenError, InputError, adminFetch, dbFetch, listAuditLogs, readJson,
-  recordAudit, requireAdmin, requireStaff, requireUser, roleFromUser, vapidPublicKeyForClient,
-  send, type ApiRequest, type ApiResponse,
+  AuthError, ForbiddenError, InputError, adminFetch, assertConfigured, clearLoginAttempts,
+  consumeLoginAttempt, dbFetch, listAuditLogs, loginIdentityKey, loginIpKey, publicFetch,
+  readJson, recordAudit, requireAdmin, requireStaff, requireUser, roleFromUser,
+  signInWithPassword, vapidPublicKeyForClient, send, type ApiRequest, type ApiResponse,
 } from '../server/freshpoint.js'
 
 type ProfileRow = {
@@ -18,6 +19,17 @@ type AuthUserRow = {
   id: string
   app_metadata?: { role?: string }
   user_metadata?: Record<string, unknown>
+}
+
+const ACCOUNT_ATTEMPT_LIMIT = 8
+const IP_ATTEMPT_LIMIT = 200
+const ATTEMPT_WINDOW_SECONDS = 15 * 60
+const ATTEMPT_BLOCK_SECONDS = 15 * 60
+
+type LoginRoute = {
+  identifier: string
+  usePhone: boolean
+  normalized: string
 }
 
 const CLIENT_EVENTS = new Set([
@@ -50,11 +62,102 @@ function cleanEventDetails(input: unknown): Record<string, unknown> {
   )
 }
 
+function normalizeLoginInput(method: string, raw: string) {
+  if (method === 'email') {
+    const value = raw.trim().toLowerCase()
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? value : ''
+  }
+  if (method === 'phone') {
+    const digits = raw.replace(/\D/g, '')
+    return digits.length >= 7 && digits.length <= 15 ? `+${digits}` : ''
+  }
+  if (method === 'username') {
+    const value = raw.trim().toLowerCase()
+    return /^[a-z0-9_]{3,20}$/.test(value) ? value : ''
+  }
+  return ''
+}
+
+async function resolveLoginRoute(method: string, normalized: string): Promise<LoginRoute | null> {
+  if (method === 'email') return { identifier: normalized, usePhone: false, normalized }
+  if (method === 'phone') {
+    const response = await publicFetch('/rpc/login_identifier_for_phone', {
+      method: 'POST',
+      body: JSON.stringify({ p_phone: normalized }),
+    })
+    if (!response.ok) return null
+    const rows = await response.json() as Array<{ email?: string }>
+    const email = rows[0]?.email
+    return email ? { identifier: email, usePhone: false, normalized } : null
+  }
+
+  const response = await publicFetch('/rpc/login_identifier_for_username', {
+    method: 'POST',
+    body: JSON.stringify({ p_username: normalized }),
+  })
+  if (!response.ok) return null
+  const rows = await response.json() as Array<{ identifier?: string; kind?: string }>
+  const identifier = rows[0]?.identifier
+  if (!identifier) return null
+  const usePhone = rows[0]?.kind === 'phone'
+  return {
+    identifier: usePhone ? `+${identifier.replace(/\D/g, '')}` : identifier,
+    usePhone,
+    normalized,
+  }
+}
+
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   try {
     const requestUrl = new URL(req.url ?? '', 'http://localhost')
     const isPushView = requestUrl.searchParams.get('view') === 'push'
     const isEventsView = requestUrl.searchParams.get('view') === 'events'
+    const isLoginView = requestUrl.searchParams.get('view') === 'login'
+
+    if (isLoginView && req.method === 'POST') {
+      assertConfigured()
+      const body = await readJson(req)
+      const surface = body.surface === 'admin' ? 'admin' : 'customer'
+      const method = String(body.method ?? '').trim().toLowerCase()
+      const rawIdentifier = String(body.identifier ?? '').trim()
+      const password = String(body.password ?? '')
+      if (!['email', 'phone', 'username'].includes(method)) throw new InputError('Choose a valid sign-in method.')
+      if (surface === 'admin' && method === 'phone') throw new InputError('Phone sign-in is not available here.')
+      if (!rawIdentifier || rawIdentifier.length > 200 || !password || password.length > 200) {
+        throw new InputError('Enter your sign-in details.')
+      }
+      const normalized = normalizeLoginInput(method, rawIdentifier)
+      if (!normalized) throw new InputError('Enter valid sign-in details.')
+
+      const identityKey = loginIdentityKey(surface, normalized)
+      const rateChecks = await Promise.all([
+        consumeLoginAttempt(identityKey, ACCOUNT_ATTEMPT_LIMIT, ATTEMPT_WINDOW_SECONDS, ATTEMPT_BLOCK_SECONDS),
+        consumeLoginAttempt(loginIpKey(req), IP_ATTEMPT_LIMIT, ATTEMPT_WINDOW_SECONDS, ATTEMPT_BLOCK_SECONDS),
+      ])
+      const limited = rateChecks.find((check) => !check.allowed)
+      if (limited) {
+        return send(res, 429, {
+          error: 'Too many login attempts. Please try again shortly.',
+          retryAfter: limited.retryAfter,
+        })
+      }
+
+      const route = await resolveLoginRoute(method, normalized)
+      const session = route ? await signInWithPassword(route.identifier, password, route.usePhone) : null
+      if (!session) return send(res, 401, { error: 'The details you entered are incorrect.' })
+      if (surface === 'admin' && roleFromUser(session.user) !== 'admin') {
+        return send(res, 403, { error: 'This account cannot access the admin area.' })
+      }
+
+      await clearLoginAttempts([identityKey])
+      return send(res, 200, {
+        access_token: session.access_token,
+        refresh_token: session.refresh_token,
+        expires_in: session.expires_in,
+        token_type: session.token_type,
+        user: session.user,
+      })
+    }
 
     if (isEventsView && req.method === 'POST') {
       const user = await requireUser(req)

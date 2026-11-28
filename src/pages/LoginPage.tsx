@@ -1,15 +1,13 @@
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { AuthShell } from '../components/AuthShell'
 import { PhoneField } from '../components/PhoneField'
 import { countries, defaultCountry, isValidNationalNumber, toE164 } from '../lib/countries'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/auth-context'
+import { submitLogin, type LoginMethod } from '../lib/login'
 import { homePathForUser } from '../lib/roles'
 import { useSiteSettings } from '../lib/site-content'
-
-type LoginMethod = 'phone' | 'email' | 'username'
-type UsernameLookup = { identifier: string; kind: 'phone' | 'email' }
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -30,7 +28,9 @@ export function LoginPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
+  const [serverError, setServerError] = useState(false)
   const [loading, setLoading] = useState(false)
+  const submittingRef = useRef(false)
 
   function flagLogin() {
     try {
@@ -42,7 +42,9 @@ export function LoginPage() {
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
+    if (submittingRef.current) return
     setError('')
+    setServerError(false)
 
     if (!password) {
       setError(copy.enterPassword)
@@ -50,76 +52,52 @@ export function LoginPage() {
     }
 
     const selectedCountry = countries.find((item) => item.code === countryCode) ?? defaultCountry
-    if (method === 'phone' && !isValidNationalNumber(phone, selectedCountry.dial)) {
-      setError(common.validPhone)
-      return
-    }
-    if (method === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      setError(common.validEmail)
-      return
-    }
-    if (method === 'username' && !/^[a-z0-9_]{3,20}$/i.test(username.trim())) {
-      setError(common.validUsername)
-      return
+    let identifier = ''
+    if (method === 'phone') {
+      if (!isValidNationalNumber(phone, selectedCountry.dial)) {
+        setError(common.validPhone)
+        return
+      }
+      identifier = toE164(selectedCountry.dial, phone)
+    } else if (method === 'email') {
+      identifier = email.trim()
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier)) {
+        setError(common.validEmail)
+        return
+      }
+    } else {
+      identifier = username.trim()
+      if (!/^[a-z0-9_]{3,20}$/i.test(identifier)) {
+        setError(common.validUsername)
+        return
+      }
     }
 
+    submittingRef.current = true
     setLoading(true)
-    let signedInUser = user
     try {
-      let identifier = ''
-      let usePhone = method === 'phone'
-
-      if (method === 'phone') {
-        const country = countries.find((item) => item.code === countryCode) ?? defaultCountry
-        identifier = toE164(country.dial, phone)
-
-        // Email is the reliable identifier when a project has phone sign-in disabled.
-        const { data, error: lookupError } = await supabase.rpc('login_identifier_for_phone', {
-          p_phone: identifier,
-        })
-        if (!lookupError) {
-          const linkedEmail = (data as Array<{ email: string }> | null)?.[0]?.email
-          if (linkedEmail) {
-            const { data: signedIn, error: emailError } = await supabase.auth.signInWithPassword({
-              email: linkedEmail,
-              password,
-            })
-            if (!emailError) {
-              signedInUser = signedIn.user
-              setLoading(false)
-              flagLogin()
-              navigate(homePathForUser(signedInUser), { replace: true })
-              return
-            }
-          }
-        }
-      } else if (method === 'email') {
-        identifier = email.trim()
-      } else {
-        const { data, error: lookupError } = await supabase.rpc('login_identifier_for_username', {
-          p_username: username.trim(),
-        })
-        if (lookupError) throw lookupError
-        const match = (data as UsernameLookup[] | null)?.[0]
-        if (!match) throw new Error('No login found')
-        identifier = match.identifier
-        usePhone = match.kind === 'phone'
+      const outcome = await submitLogin({ surface: 'customer', method, identifier, password })
+      if ('error' in outcome) {
+        setError(outcome.error || copy.error)
+        setServerError(true)
+        return
       }
 
-      const { data: signedIn, error: authError } = usePhone
-        ? await supabase.auth.signInWithPassword({ phone: identifier, password })
-        : await supabase.auth.signInWithPassword({ email: identifier, password })
-      if (authError) throw authError
-      signedInUser = signedIn.user
-    } catch {
-      setError(copy.error)
-      setLoading(false)
-      return
-    }
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: outcome.accessToken,
+        refresh_token: outcome.refreshToken,
+      })
+      if (sessionError) {
+        setError(copy.error)
+        return
+      }
 
-    setLoading(false)
-    flagLogin()
-    navigate(homePathForUser(signedInUser), { replace: true })
+      flagLogin()
+      navigate(homePathForUser(outcome.user), { replace: true })
+    } finally {
+      setLoading(false)
+      submittingRef.current = false
+    }
   }
 
   if (session) return <Navigate to={homePathForUser(user)} replace />
@@ -141,6 +119,7 @@ export function LoginPage() {
             aria-selected={method === item.value}
             className={`login-method${method === item.value ? ' login-method--active' : ''}`}
             onClick={() => { setMethod(item.value); setError('') }}
+            disabled={loading}
           >
             {item.label}
           </button>
@@ -155,6 +134,7 @@ export function LoginPage() {
             value={phone}
             onChange={setPhone}
             error={method === 'phone' ? error : undefined}
+            disabled={loading}
           />
         ) : (
           <div className="field">
@@ -168,6 +148,7 @@ export function LoginPage() {
               value={method === 'email' ? email : username}
               onChange={(event) => (method === 'email' ? setEmail(event.target.value) : setUsername(event.target.value))}
               aria-invalid={Boolean(error)}
+              disabled={loading}
             />
           </div>
         )}
@@ -183,12 +164,14 @@ export function LoginPage() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               aria-invalid={Boolean(error)}
+              disabled={loading}
             />
             <button
               type="button"
               className="password-input__toggle"
               onClick={() => setShowPassword((value) => !value)}
               aria-label={showPassword ? common.hidePassword : common.showPassword}
+              disabled={loading}
             >
               {showPassword ? common.hidePassword : common.showPassword}
             </button>
@@ -197,7 +180,7 @@ export function LoginPage() {
 
         <div className="auth-link-row"><Link to="/forgot-password">{common.forgotPassword}</Link></div>
 
-        {error && method !== 'phone' ? <p className="field-error">{error}</p> : null}
+        {error && (method !== 'phone' || serverError) ? <p className="field-error">{error}</p> : null}
 
         <button className="btn btn--primary btn--block btn--large" type="submit" disabled={loading}>
           {loading ? copy.loggingIn : copy.submit}

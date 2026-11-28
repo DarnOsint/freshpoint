@@ -1,13 +1,13 @@
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { AuthShell } from '../../components/AuthShell'
 import { useAuth } from '../../lib/auth-context'
+import { submitLogin } from '../../lib/login'
 import { useSiteSettings } from '../../lib/site-content'
 import { supabase } from '../../lib/supabase'
 import { homePathForUser, isAdmin } from '../../lib/roles'
 
 type Method = 'email' | 'username'
-type UsernameLookup = { identifier: string; kind: 'phone' | 'email' }
 
 export function AdminLoginPage() {
   const navigate = useNavigate()
@@ -22,51 +22,53 @@ export function AdminLoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const submittingRef = useRef(false)
 
   if (user) return <Navigate to={isAdmin(user) ? '/admin' : homePathForUser(user)} replace />
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
+    if (submittingRef.current) return
     setError('')
-    const value = (method === 'email' ? email : username).trim()
+    const identifier = (method === 'email' ? email : username).trim()
 
-    if (!value || !password) {
+    if (!identifier || !password) {
       setError(copy.enterDetails)
       return
     }
-    if (method === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+    if (method === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier)) {
       setError(common.validEmail)
       return
     }
 
+    submittingRef.current = true
     setLoading(true)
     try {
-      let identifier = value
-      let usePhone = false
-      if (method === 'username') {
-        const { data, error: lookupError } = await supabase.rpc('login_identifier_for_username', { p_username: value })
-        if (lookupError) throw lookupError
-        const match = (data as UsernameLookup[] | null)?.[0]
-        if (!match) throw new Error('No login found')
-        identifier = match.identifier
-        usePhone = match.kind === 'phone'
+      const outcome = await submitLogin({ surface: 'admin', method, identifier, password })
+      if ('error' in outcome) {
+        setError(outcome.error || copy.error)
+        return
       }
 
-      const { data, error: authError } = usePhone
-        ? await supabase.auth.signInWithPassword({ phone: identifier, password })
-        : await supabase.auth.signInWithPassword({ email: identifier, password })
-      if (authError || !data.user || !isAdmin(data.user)) {
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: outcome.accessToken,
+        refresh_token: outcome.refreshToken,
+      })
+      if (sessionError) {
+        setError(copy.error)
+        return
+      }
+      if (!isAdmin(outcome.user)) {
         await supabase.auth.signOut()
-        throw new Error('Not an admin')
+        setError(copy.error)
+        return
       }
-    } catch {
-      setError(copy.error)
-      setLoading(false)
-      return
-    }
 
-    setLoading(false)
-    navigate('/admin', { replace: true })
+      navigate('/admin', { replace: true })
+    } finally {
+      setLoading(false)
+      submittingRef.current = false
+    }
   }
 
   const methods: Array<{ value: Method; label: string }> = [
@@ -91,6 +93,7 @@ export function AdminLoginPage() {
             aria-selected={method === item.value}
             className={`login-method${method === item.value ? ' login-method--active' : ''}`}
             onClick={() => { setMethod(item.value); setError('') }}
+            disabled={loading}
           >
             {item.label}
           </button>
@@ -107,6 +110,7 @@ export function AdminLoginPage() {
             placeholder={method === 'email' ? common.emailPlaceholder : common.usernamePlaceholder}
             value={method === 'email' ? email : username}
             onChange={(event) => (method === 'email' ? setEmail(event.target.value) : setUsername(event.target.value))}
+            disabled={loading}
           />
         </div>
         <div className="field">
@@ -119,9 +123,10 @@ export function AdminLoginPage() {
               placeholder={common.passwordPlaceholder}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
+              disabled={loading}
             />
             <button type="button" className="password-input__toggle" onClick={() => setShowPassword((value) => !value)}
-              aria-label={showPassword ? common.hidePassword : common.showPassword}>
+              aria-label={showPassword ? common.hidePassword : common.showPassword} disabled={loading}>
               {showPassword ? common.hidePassword : common.showPassword}
             </button>
           </div>

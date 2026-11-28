@@ -1,4 +1,4 @@
-import { createHash, randomInt } from 'node:crypto'
+import { createHash, createHmac, randomInt, randomUUID } from 'node:crypto'
 import { sendNotification, setVapidDetails } from 'web-push'
 
 export type ApiRequest = {
@@ -139,9 +139,146 @@ export async function recordAudit(
   if (!response.ok) console.warn('Audit log write failed:', response.status)
 }
 
+export type LoginRateCheck = {
+  allowed: boolean
+  retryAfter: number
+  attemptsRemaining: number
+}
+
+export type TokenSession = {
+  access_token: string
+  refresh_token: string
+  expires_in: number
+  token_type: string
+  user: AuthUser
+}
+
+function loginHash(value: string) {
+  return createHmac('sha256', secretKey).update(value).digest('hex')
+}
+
+export function loginIdentityKey(surface: string, identifier: string) {
+  return `login:${loginHash(`${surface}:${identifier.trim().toLowerCase()}`)}`
+}
+
+export function loginIpKey(req: ApiRequest) {
+  const raw = req.headers['x-real-ip'] ?? req.headers['x-forwarded-for'] ?? ''
+  const value = Array.isArray(raw) ? raw[0] : raw
+  const ip = String(value ?? '').split(',')[0].trim().slice(0, 64) || 'unknown'
+  return `login-ip:${loginHash(ip)}`
+}
+
+async function consumeLoginAttemptFromStore(key: string, limit: number, windowSeconds: number): Promise<LoginRateCheck> {
+  const now = Date.now()
+  const timestamp = new Date(now).toISOString()
+  const cutoff = new Date(now - windowSeconds * 1000).toISOString()
+  const cleanupBefore = new Date(now - 24 * 60 * 60 * 1000).toISOString()
+
+  // email_confirmations is server-only and has a primary key, so each attempt
+  // is an atomic insert without disturbing real confirmation codes.
+  void dbFetch(`/email_confirmations?full_name=eq.login&created_at=lt.${encodeURIComponent(cleanupBefore)}`, {
+    method: 'DELETE',
+    headers: { Prefer: 'return=minimal' },
+  }).catch(() => undefined)
+
+  const write = await dbFetch('/email_confirmations', {
+    method: 'POST',
+    headers: { Prefer: 'return=minimal' },
+    body: JSON.stringify({
+      email: `${key}:${randomUUID()}`,
+      user_id: '00000000-0000-0000-0000-000000000000',
+      code_hash: key,
+      full_name: 'login',
+      username: 'attempt',
+      account_type: 'household',
+      attempts: 1,
+      expires_at: new Date(now + windowSeconds * 1000).toISOString(),
+      created_at: timestamp,
+      updated_at: timestamp,
+    }),
+  })
+  if (!write.ok) throw new Error('Rate limit write failed')
+
+  const read = await dbFetch(
+    `/email_confirmations?select=created_at&full_name=eq.login&code_hash=eq.${encodeURIComponent(key)}&created_at=gte.${encodeURIComponent(cutoff)}&order=created_at.desc&limit=${limit}`,
+  )
+  if (!read.ok) throw new Error('Rate limit lookup failed')
+  const rows = await read.json() as Array<{ created_at: string }>
+  if (rows.length < limit) {
+    return { allowed: true, retryAfter: 0, attemptsRemaining: Math.max(limit - rows.length, 0) }
+  }
+
+  const oldest = new Date(rows[rows.length - 1]?.created_at ?? '').getTime()
+  const retryAfter = Number.isFinite(oldest)
+    ? Math.max(1, Math.ceil((oldest + windowSeconds * 1000 - now) / 1000))
+    : windowSeconds
+  return { allowed: false, retryAfter, attemptsRemaining: 0 }
+}
+
+export async function consumeLoginAttempt(
+  key: string,
+  limit: number,
+  windowSeconds: number,
+  blockSeconds: number,
+): Promise<LoginRateCheck> {
+  const rpc = await dbFetch('/rpc/consume_login_attempt', {
+    method: 'POST',
+    body: JSON.stringify({
+      p_key: key,
+      p_limit: limit,
+      p_window_seconds: windowSeconds,
+      p_block_seconds: blockSeconds,
+    }),
+  }).catch(() => null)
+
+  if (rpc?.ok) {
+    const payload = await rpc.json() as unknown
+    const rows = Array.isArray(payload) ? payload : [payload]
+    const row = rows[0] as { allowed?: boolean; retry_after?: number; attempts_remaining?: number } | undefined
+    if (row && typeof row.allowed === 'boolean') {
+      return {
+        allowed: row.allowed,
+        retryAfter: Math.max(0, Number(row.retry_after) || 0),
+        attemptsRemaining: Math.max(0, Number(row.attempts_remaining) || 0),
+      }
+    }
+  }
+
+  return consumeLoginAttemptFromStore(key, limit, windowSeconds)
+}
+
+export async function clearLoginAttempts(keys: string[]) {
+  if (!keys.length) return
+  await Promise.allSettled(keys.map(async (key) => {
+    await dbFetch(`/login_rate_limits?attempt_key=eq.${encodeURIComponent(key)}`, {
+      method: 'DELETE',
+      headers: { Prefer: 'return=minimal' },
+    })
+    await dbFetch(`/email_confirmations?full_name=eq.login&code_hash=eq.${encodeURIComponent(key)}`, {
+      method: 'DELETE',
+      headers: { Prefer: 'return=minimal' },
+    })
+  }))
+}
+
+export async function signInWithPassword(
+  identifier: string,
+  password: string,
+  usePhone: boolean,
+): Promise<TokenSession | null> {
+  const response = await publicFetch('/auth/v1/token?grant_type=password', {
+    method: 'POST',
+    body: JSON.stringify({ [usePhone ? 'phone' : 'email']: identifier, password }),
+  })
+  if (!response.ok) return null
+  const data = await response.json() as Partial<TokenSession>
+  if (!data.access_token || !data.refresh_token) return null
+  return data as TokenSession
+}
+
 export async function listAuditLogs(limit = 200): Promise<AuditEntry[]> {
   const safeLimit = Math.min(Math.max(Math.floor(limit), 1), 1000)
-  const response = await dbFetch(`/audit_logs?select=id,created_at,actor_id,actor_email,actor_role,action,target_type,target_id,details&order=created_at.desc&limit=${safeLimit}`)
+  const response = await dbFetch(`/audit_logs?select=id,created_at,actor_id,actor_email,actor_role,action,target_type,target_id,details&action=neq.auth.login_attempt&order=created_at.desc&limit=${safeLimit}`)
   if (!response.ok) throw new Error('Audit log lookup failed')
   const rows = await response.json() as Array<{
     id: number | string

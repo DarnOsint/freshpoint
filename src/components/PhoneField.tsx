@@ -10,6 +10,7 @@ type PhoneFieldProps = {
   id?: string
   autoFocus?: boolean
   optional?: boolean
+  disabled?: boolean
 }
 
 export function PhoneField({
@@ -21,6 +22,7 @@ export function PhoneField({
   id = 'phone',
   autoFocus,
   optional,
+  disabled,
 }: PhoneFieldProps) {
   const country = countries.find((item) => item.code === countryCode) ?? countries[0]
   const copy = useSiteSettings().settings.interface.common
@@ -34,6 +36,7 @@ export function PhoneField({
             aria-label={copy.countryCode}
             value={country.code}
             onChange={(event) => onCountryChange(event.target.value)}
+            disabled={disabled}
           >
             {countries.map((item) => (
               <option key={item.code} value={item.code}>
@@ -58,6 +61,7 @@ export function PhoneField({
           onChange={(event) => onChange(formatNationalNumber(event.target.value))}
           aria-invalid={Boolean(error)}
           aria-describedby={error ? `${id}-error` : undefined}
+          disabled={disabled}
         />
       </div>
       {error ? <p className="field-error" id={`${id}-error`}>{error}</p> : null}
